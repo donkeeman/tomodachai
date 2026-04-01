@@ -1,6 +1,7 @@
 from pathlib import Path
+from unittest.mock import MagicMock
 
-from tomodachai.personality import PersonalityType, load_personalities, get_trait_values
+from tomodachai.personality import PersonalityType, load_personalities, get_trait_values, match_personality
 
 
 def test_personality_type_model():
@@ -54,3 +55,28 @@ def test_all_codes_are_valid():
         assert code[3] in ("O", "T")
         assert code[4] in ("B", "G")
         assert p.code == code
+
+
+def test_match_personality_returns_valid_code(mock_llm):
+    personalities = load_personalities()
+    mock_llm.chat_json.return_value = {
+        "code": "EWSOB",
+        "reason": "활발하고 사교적인 성격",
+    }
+    result = match_personality(
+        mock_llm, personalities,
+        "활발하고 사교적이며 리더십이 있는 사람",
+    )
+    assert result == "EWSOB"
+    mock_llm.chat_json.assert_called_once()
+
+
+def test_match_personality_prompt_contains_types(mock_llm):
+    personalities = load_personalities()
+    mock_llm.chat_json.return_value = {"code": "ICVTG", "reason": "test"}
+    match_personality(mock_llm, personalities, "조용한 사람")
+    call_args = mock_llm.chat_json.call_args
+    prompt = call_args[0][0][1]["content"]
+    assert "EWSOB" in prompt
+    assert "불꽃 리더" in prompt
+    assert "ICVTG" in prompt
