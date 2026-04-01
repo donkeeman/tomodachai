@@ -1,0 +1,32 @@
+[project]
+name = "tomodachai"
+version = "0.1.0"
+description = "AI-powered social simulation prototype"
+requires-python = ">=3.11"
+dependencies = [
+    "litellm>=1.40.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-mock>=3.12",
+]
+
+[project.scripts]
+tomodachai = "tomodachai.main:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: tests requiring a real LLM connection",
+]
