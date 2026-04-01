@@ -109,3 +109,43 @@ def test_simulation_stores_memory(
     events = sim.memory.get_events_for("char_1")
     assert len(events) == 1
     assert events[0].summary == "공원에서 인사"
+
+
+from tomodachai.relationship import detect_triangles
+
+
+def test_simulation_jealousy_emerges(
+    app_config, mock_llm, sample_personalities,
+):
+    from tomodachai.character import Character
+    from tomodachai.config import LocationConfig
+
+    app_config.locations = [LocationConfig(name="공원", capacity=5)]
+
+    a = Character(id="a", name="A", personality_code="EWSOB")
+    b = Character(id="b", name="B", personality_code="IWVOG")
+    c = Character(id="c", name="C", personality_code="ECVOB")
+
+    mock_llm.chat_json.return_value = {
+        "dialogue": [{"speaker": "A", "text": "hi"}],
+        "deltas": {
+            "A": {"friendship": 5, "romance": 0, "tension": 0},
+            "B": {"friendship": 5, "romance": 0, "tension": 0},
+        },
+        "summary": "대화함",
+    }
+
+    sim = Simulation(
+        config=app_config,
+        characters=[a, b, c],
+        llm=mock_llm,
+        personalities=sample_personalities,
+    )
+
+    sim.relationships.update("a", "b", {"romance": 60})
+    sim.relationships.update("b", "c", {"friendship": 70})
+
+    sim.tick(seed=42)
+
+    rel_ac = sim.relationships.get("a", "c")
+    assert rel_ac.jealousy > 0, "A should be jealous of C"

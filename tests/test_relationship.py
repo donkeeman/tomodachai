@@ -70,3 +70,55 @@ def test_tracker_get_rivals():
     tracker.update("a", "c", {"friendship": 30})
     rivals = tracker.get_rivals("a", threshold=-50)
     assert rivals == [("b", -60.0)]
+
+
+from tomodachai.relationship import Triangle, detect_triangles, apply_jealousy
+
+
+def test_triangle_model():
+    t = Triangle(jealous="a", target="b", rival="c", romance_level=60.0)
+    assert t.jealous == "a"
+    assert t.rival == "c"
+
+
+def test_detect_triangles_finds_basic_triangle():
+    tracker = RelationshipTracker()
+    tracker.update("a", "b", {"romance": 50})
+    tracker.update("b", "c", {"friendship": 60})
+    triangles = detect_triangles(tracker)
+    assert len(triangles) == 1
+    assert triangles[0].jealous == "a"
+    assert triangles[0].target == "b"
+    assert triangles[0].rival == "c"
+
+
+def test_detect_triangles_no_triangle_without_romance():
+    tracker = RelationshipTracker()
+    tracker.update("a", "b", {"friendship": 80})
+    tracker.update("b", "c", {"friendship": 60})
+    triangles = detect_triangles(tracker)
+    assert len(triangles) == 0
+
+
+def test_detect_triangles_mutual_jealousy():
+    tracker = RelationshipTracker()
+    tracker.update("a", "b", {"romance": 50})
+    tracker.update("c", "b", {"romance": 40})
+    tracker.update("b", "a", {"friendship": 60})
+    tracker.update("b", "c", {"friendship": 60})
+    triangles = detect_triangles(tracker)
+    assert len(triangles) == 2
+    jealous_ids = {t.jealous for t in triangles}
+    assert jealous_ids == {"a", "c"}
+
+
+def test_apply_jealousy_updates():
+    tracker = RelationshipTracker()
+    tracker.update("a", "b", {"romance": 50})
+    tracker.update("b", "c", {"friendship": 60})
+    triangles = detect_triangles(tracker)
+    apply_jealousy(tracker, triangles)
+    rel_ac = tracker.get("a", "c")
+    assert rel_ac.jealousy > 0
+    rel_ab = tracker.get("a", "b")
+    assert rel_ab.tension > 0

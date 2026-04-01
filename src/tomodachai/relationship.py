@@ -66,3 +66,53 @@ class RelationshipTracker:
 
     def all_pairs(self) -> list[tuple[str, str, Relationship]]:
         return [(a, b, rel) for (a, b), rel in self._relationships.items()]
+
+
+class Triangle(BaseModel):
+    jealous: str
+    target: str
+    rival: str
+    romance_level: float
+
+
+def detect_triangles(
+    tracker: RelationshipTracker,
+    romance_threshold: float = 30.0,
+    friendship_threshold: float = 30.0,
+) -> list[Triangle]:
+    triangles: list[Triangle] = []
+    all_chars = set()
+    for (a, b), _ in tracker._relationships.items():
+        all_chars.add(a)
+        all_chars.add(b)
+
+    for a in all_chars:
+        for b in all_chars:
+            if a == b:
+                continue
+            rel_ab = tracker.get(a, b)
+            if rel_ab.romance < romance_threshold:
+                continue
+            for c in all_chars:
+                if c == a or c == b:
+                    continue
+                rel_bc = tracker.get(b, c)
+                if rel_bc.friendship >= friendship_threshold:
+                    triangles.append(Triangle(
+                        jealous=a, target=b, rival=c,
+                        romance_level=rel_ab.romance,
+                    ))
+    return triangles
+
+
+def apply_jealousy(
+    tracker: RelationshipTracker,
+    triangles: list[Triangle],
+    jealousy_rate: float = 0.3,
+    tension_rate: float = 0.1,
+) -> None:
+    for tri in triangles:
+        jealousy_delta = tri.romance_level * jealousy_rate * 0.1
+        tracker.update(tri.jealous, tri.rival, {"jealousy": jealousy_delta})
+        tension_delta = tri.romance_level * tension_rate * 0.1
+        tracker.update(tri.jealous, tri.target, {"tension": tension_delta})

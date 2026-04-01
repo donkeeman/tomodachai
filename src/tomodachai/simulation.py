@@ -9,7 +9,7 @@ from tomodachai.conversation import ConversationEngine, ConversationResult
 from tomodachai.llm import LLMClient
 from tomodachai.memory import MemoryStore, SocialEvent
 from tomodachai.personality import PersonalityType
-from tomodachai.relationship import RelationshipTracker
+from tomodachai.relationship import RelationshipTracker, detect_triangles, apply_jealousy
 
 _TIME_SLOTS = ["아침", "오전", "점심", "오후", "저녁", "밤"]
 
@@ -63,6 +63,11 @@ class Simulation:
             for char_a, char_b in combinations(chars, 2):
                 result = self._run_conversation(char_a, char_b, loc_name, time_of_day)
                 results.append(result)
+
+        # Process multi-party dynamics
+        triangles = detect_triangles(self.relationships)
+        if triangles:
+            apply_jealousy(self.relationships, triangles)
 
         self._tick_count += 1
         return results
