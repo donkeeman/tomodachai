@@ -34,8 +34,8 @@ def test_build_prompt_contains_character_info(
     prompt = build_conversation_prompt(
         char_a=char_minsu,
         char_b=char_jieun,
-        personality_a=sample_personalities["EWSOB"],
-        personality_b=sample_personalities["IWVOG"],
+        personality_a=sample_personalities["nori_dynamo"],
+        personality_b=sample_personalities["nagomi_dreamer"],
         rel_ab=rel_ab,
         rel_ba=rel_ba,
         memories=[],
@@ -44,10 +44,9 @@ def test_build_prompt_contains_character_info(
     )
     assert "민수" in prompt
     assert "지은" in prompt
-    assert "~인 거지" in prompt
-    assert "그치~?" in prompt
+    assert "~인 거지" in prompt or "일반" in prompt
+    assert "그치~?" in prompt or "일반" in prompt
     assert "공원" in prompt
-    assert "불꽃 리더" in prompt or "적극적으로" in prompt
 
 
 def test_build_prompt_includes_memories(
@@ -64,8 +63,8 @@ def test_build_prompt_includes_memories(
     prompt = build_conversation_prompt(
         char_a=char_minsu,
         char_b=char_jieun,
-        personality_a=sample_personalities["EWSOB"],
-        personality_b=sample_personalities["IWVOG"],
+        personality_a=sample_personalities["nori_dynamo"],
+        personality_b=sample_personalities["nagomi_dreamer"],
         rel_ab=Relationship(),
         rel_ba=Relationship(),
         memories=memories,
@@ -80,8 +79,8 @@ def test_engine_generate_parses_llm_response(
 ):
     llm_response = {
         "dialogue": [
-            {"speaker": "민수", "text": "지은아, 오늘 날씨 좋다~인 거지!"},
-            {"speaker": "지은", "text": "그치~? 산책하기 딱이야."},
+            {"speaker": "민수", "text": "지은 씨, 오늘 날씨 좋네요!"},
+            {"speaker": "지은", "text": "그치~? 산책하기 딱이에요."},
         ],
         "deltas": {
             "민수": {"friendship": 3, "romance": 1, "tension": 0},

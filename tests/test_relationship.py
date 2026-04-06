@@ -1,5 +1,19 @@
-from tomodachai.relationship import Relationship, RelationshipTracker
+from tomodachai.relationship import (
+    Fight,
+    Relationship,
+    RelationshipEvent,
+    RelationshipStage,
+    RelationshipTracker,
+    Triangle,
+    apply_jealousy,
+    calculate_compatibility,
+    detect_triangles,
+)
 
+
+# ---------------------------------------------------------------------------
+# Basic Relationship model
+# ---------------------------------------------------------------------------
 
 def test_relationship_defaults():
     r = Relationship()
@@ -7,6 +21,7 @@ def test_relationship_defaults():
     assert r.romance == 0.0
     assert r.tension == 0.0
     assert r.jealousy == 0.0
+    assert r.stage == RelationshipStage.STRANGER
 
 
 def test_apply_deltas():
@@ -31,6 +46,85 @@ def test_romance_clamps_at_zero():
     r.apply_deltas({"romance": -20})
     assert r.romance == 0.0
 
+
+# ---------------------------------------------------------------------------
+# Stage transitions
+# ---------------------------------------------------------------------------
+
+def test_stage_auto_promotion_friendship():
+    r = Relationship(friendship=45.0)
+    changed = r.check_stage_transition()
+    assert changed
+    assert r.stage == RelationshipStage.FRIEND
+
+
+def test_stage_acquaintance():
+    r = Relationship(friendship=15.0)
+    r.check_stage_transition()
+    assert r.stage == RelationshipStage.ACQUAINTANCE
+
+
+def test_stage_best_friend():
+    r = Relationship(friendship=85.0)
+    r.check_stage_transition()
+    assert r.stage == RelationshipStage.BEST_FRIEND
+
+
+def test_stage_romantic_requires_flag():
+    """연애 전환은 allow_romantic_transition 없으면 안 됨 (가드레일)."""
+    r = Relationship(friendship=50.0, romance=70.0, stage=RelationshipStage.FRIEND)
+    changed = r.check_stage_transition(allow_romantic_transition=False)
+    assert not changed or r.stage != RelationshipStage.LOVER
+
+
+def test_stage_romantic_with_flag():
+    r = Relationship(friendship=50.0, romance=70.0, stage=RelationshipStage.FRIEND)
+    changed = r.check_stage_transition(allow_romantic_transition=True)
+    assert changed
+    assert r.stage == RelationshipStage.LOVER
+
+
+def test_stage_demotion():
+    r = Relationship(friendship=5.0, stage=RelationshipStage.FRIEND)
+    changed = r.check_stage_transition()
+    assert changed
+    assert r.stage == RelationshipStage.STRANGER  # friendship=5 < ACQUAINTANCE(10)
+
+
+def test_stage_demotion_to_acquaintance():
+    r = Relationship(friendship=15.0, stage=RelationshipStage.FRIEND)
+    changed = r.check_stage_transition()
+    assert changed
+    assert r.stage == RelationshipStage.ACQUAINTANCE
+
+
+def test_status_text():
+    r = Relationship(stage=RelationshipStage.FRIEND)
+    assert r.get_status_text() == "친구"
+
+
+def test_friendship_text():
+    r = Relationship(friendship=95.0)
+    assert r.get_friendship_text() == "엄청 좋아함"
+
+    r2 = Relationship(friendship=-70.0)
+    assert r2.get_friendship_text() == "매우 싫어함"
+
+
+# ---------------------------------------------------------------------------
+# Event log & reconciliation
+# ---------------------------------------------------------------------------
+
+def test_can_reconcile():
+    r = Relationship()
+    assert not r.can_reconcile()
+    r.event_log.append(RelationshipEvent(day=10, event_type="breakup", summary="이별"))
+    assert r.can_reconcile()
+
+
+# ---------------------------------------------------------------------------
+# Tracker basics
+# ---------------------------------------------------------------------------
 
 def test_tracker_get_creates_default():
     tracker = RelationshipTracker()
@@ -72,8 +166,23 @@ def test_tracker_get_rivals():
     assert rivals == [("b", -60.0)]
 
 
-from tomodachai.relationship import Triangle, detect_triangles, apply_jealousy
+# ---------------------------------------------------------------------------
+# Fights
+# ---------------------------------------------------------------------------
 
+def test_fight_management():
+    tracker = RelationshipTracker()
+    fight = Fight(participants=("a", "b"), cause="음식 싸움")
+    tracker.add_fight(fight)
+    assert len(tracker.get_fights()) == 1
+    resolved = tracker.resolve_fight(("a", "b"))
+    assert resolved
+    assert len(tracker.get_fights()) == 0
+
+
+# ---------------------------------------------------------------------------
+# Triangles & jealousy
+# ---------------------------------------------------------------------------
 
 def test_triangle_model():
     t = Triangle(jealous="a", target="b", rival="c", romance_level=60.0)
@@ -122,3 +231,30 @@ def test_apply_jealousy_updates():
     assert rel_ac.jealousy > 0
     rel_ab = tracker.get("a", "b")
     assert rel_ab.tension > 0
+
+
+# ---------------------------------------------------------------------------
+# Compatibility
+# ---------------------------------------------------------------------------
+
+def test_calculate_compatibility():
+    score = calculate_compatibility(
+        personality_a="nagomi_softie",
+        personality_b="nori_charmer",
+        blood_a="O", blood_b="A",
+        zodiac_a="사자자리", zodiac_b="양자리",
+    )
+    assert 0.0 <= score <= 1.0
+    # 나고미+노리 = good pair, O+A = high, 불+불 = same element
+    assert score > 0.6
+
+
+def test_compatibility_low_pair():
+    score = calculate_compatibility(
+        personality_a="nagomi_softie",
+        personality_b="dry_busybee",
+        blood_a="A", blood_b="B",
+        zodiac_a="게자리", zodiac_b="양자리",
+    )
+    assert 0.0 <= score <= 1.0
+    assert score < 0.5

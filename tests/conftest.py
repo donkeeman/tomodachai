@@ -38,22 +38,28 @@ def sample_personalities():
 @pytest.fixture
 def char_minsu():
     return Character(
-        id="char_1", name="민수", personality_code="EWSOB",
-        speech_habit="~인 거지", backstory="동네 반장을 맡고 있는 활발한 청년",
+        id="char_1", name="민수", personality_code="nori_dynamo",
+        speech_habits={"normal": "~인 거지"},
+        backstory="동네 반장을 맡고 있는 활발한 청년",
+        birthday="03-15", blood_type="B", gender="남성",
     )
 
 
 @pytest.fixture
 def char_jieun():
     return Character(
-        id="char_2", name="지은", personality_code="IWVOG",
-        speech_habit="그치~?", backstory="카페를 운영하는 몽상가",
+        id="char_2", name="지은", personality_code="nagomi_dreamer",
+        speech_habits={"normal": "그치~?"},
+        backstory="카페를 운영하는 몽상가",
+        birthday="11-02", blood_type="A", gender="여성",
     )
 
 
 @pytest.fixture
 def char_taeho():
     return Character(
-        id="char_3", name="태호", personality_code="ECVOB",
-        speech_habit="ㅋㅋ", backstory="자유분방한 대학생",
+        id="char_3", name="태호", personality_code="nori_extrovert",
+        speech_habits={"normal": "ㅋㅋ"},
+        backstory="자유분방한 대학생",
+        birthday="07-28", blood_type="O", gender="남성",
     )

@@ -20,6 +20,17 @@ class ConversationResult(BaseModel):
     summary: str
 
 
+def _format_speech_habits(habits: dict[str, str]) -> str:
+    if not habits:
+        return "없음"
+    parts = []
+    labels = {"normal": "일반", "happy": "기쁠 때", "angry": "화날 때", "sad": "슬플 때", "worried": "걱정할 때"}
+    for key, label in labels.items():
+        if key in habits:
+            parts.append(f'{label}: "{habits[key]}"')
+    return " / ".join(parts) if parts else "없음"
+
+
 _SYSTEM_PROMPT = "당신은 작은 마을의 주민들 간의 대화를 시뮬레이션하는 AI입니다. 모든 캐릭터는 20~30대 성인입니다. 이름이나 말투에 관계없이 절대로 노인, 어린이, 청소년으로 설정하지 마세요. 반드시 지정된 JSON 형식으로만 응답하세요."
 
 
@@ -40,21 +51,24 @@ def build_conversation_prompt(
             f"- (틱 {m.tick}) {m.summary}" for m in memories
         )
 
+    habits_a = _format_speech_habits(char_a.speech_habits)
+    habits_b = _format_speech_habits(char_b.speech_habits)
+
     return f"""## 캐릭터 1: {char_a.name}
-성격 유형: {personality_a.name}
+성격 유형: {personality_a.name} ({personality_a.family})
 성격: {personality_a.behavior_guide.strip()}
-말버릇: "{char_a.speech_habit}" (문맥에 맞게 자연스럽게 섞어 사용)
+말버릇: {habits_a}
 배경: {char_a.backstory}
 
 ## 캐릭터 2: {char_b.name}
-성격 유형: {personality_b.name}
+성격 유형: {personality_b.name} ({personality_b.family})
 성격: {personality_b.behavior_guide.strip()}
-말버릇: "{char_b.speech_habit}" (문맥에 맞게 자연스럽게 섞어 사용)
+말버릇: {habits_b}
 배경: {char_b.backstory}
 
 ## 두 사람의 관계
-{char_a.name} → {char_b.name}: 우정 {rel_ab.friendship:.0f}, 로맨스 {rel_ab.romance:.0f}, 긴장 {rel_ab.tension:.0f}
-{char_b.name} → {char_a.name}: 우정 {rel_ba.friendship:.0f}, 로맨스 {rel_ba.romance:.0f}, 긴장 {rel_ba.tension:.0f}
+{char_a.name} → {char_b.name}: {rel_ab.get_status_text()} ({rel_ab.get_friendship_text()})
+{char_b.name} → {char_a.name}: {rel_ba.get_status_text()} ({rel_ba.get_friendship_text()})
 
 ## 최근 기억
 {memory_text}
