@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 
 class LLMConfig(BaseModel):
+    provider: str = "litellm"  # "litellm", "claude-cli", "codex-cli"
     model: str = "claude-sonnet-4-20250514"
     api_key: str | None = None
     api_base: str | None = None

@@ -1,4 +1,5 @@
 llm:
+  provider: "claude-cli"  # "litellm" | "claude-cli" | "codex-cli"
   model: "claude-sonnet-4-20250514"
   api_key: null       # null이면 환경변수에서 읽음
   api_base: null      # 커스텀 엔드포인트 (프록시, Ollama 등)

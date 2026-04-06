@@ -28,7 +28,7 @@ _DEMO_CHARACTERS = [
     Character(
         id="char_4", name="순자", personality_code="EWSTG",
         speech_habit="아이고~",
-        backstory="동네 터줏대감 할머니. 모든 주민의 안부가 궁금하다.",
+        backstory="동네에서 오래 산 20대 후반 여성. 정이 많아서 모든 주민의 안부가 궁금하다.",
     ),
 ]
 
