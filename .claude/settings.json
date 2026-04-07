@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /tmp/tomodachai && ruff check src/ tests/ 2>&1 | tail -20"
+          }
+        ]
+      }
+    ]
+  }
+}
