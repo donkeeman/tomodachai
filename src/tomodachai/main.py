@@ -12,7 +12,7 @@ from tomodachai.simulation import Simulation
 _DEMO_CHARACTERS = [
     Character(
         id=1,
-        personality_code="nori_dynamo",
+        personality_code="outgoing_dynamo",
         profile=Profile(
             name="민수",
             birthday="03-15",
@@ -33,7 +33,7 @@ _DEMO_CHARACTERS = [
     ),
     Character(
         id=2,
-        personality_code="nagomi_dreamer",
+        personality_code="easygoing_dreamer",
         profile=Profile(
             name="지은",
             birthday="11-02",
@@ -54,7 +54,7 @@ _DEMO_CHARACTERS = [
     ),
     Character(
         id=3,
-        personality_code="nori_extrovert",
+        personality_code="outgoing_extrovert",
         profile=Profile(
             name="태호",
             birthday="07-28",
@@ -75,7 +75,7 @@ _DEMO_CHARACTERS = [
     ),
     Character(
         id=4,
-        personality_code="nagomi_carer",
+        personality_code="easygoing_carer",
         profile=Profile(
             name="순자",
             birthday="09-09",

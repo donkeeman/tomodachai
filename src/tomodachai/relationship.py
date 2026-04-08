@@ -499,49 +499,36 @@ _ZODIAC_ELEMENTS: dict[str, str] = {
     "물고기자리": "물",
 }
 
-# Personality family groupings (나고미/노리/쿨/드라이)
-_PERSONALITY_FAMILIES: dict[str, str] = {
-    "나고미": "나고미",
-    "노리": "노리",
-    "쿨": "쿨",
-    "드라이": "드라이",
-}
-
-_FAMILY_COMPAT: dict[tuple[str, str], float] = {
-    # Good pairs
-    ("나고미", "노리"): 0.85,
-    ("노리", "나고미"): 0.85,
-    ("쿨", "드라이"): 0.85,
-    ("드라이", "쿨"): 0.85,
-    # Same family (medium)
-    ("나고미", "나고미"): 0.60,
-    ("노리", "노리"): 0.60,
-    ("쿨", "쿨"): 0.60,
-    ("드라이", "드라이"): 0.60,
-    # Opposite / cross (lower)
-    ("나고미", "쿨"): 0.40,
-    ("쿨", "나고미"): 0.40,
-    ("나고미", "드라이"): 0.35,
-    ("드라이", "나고미"): 0.35,
-    ("노리", "쿨"): 0.45,
-    ("쿨", "노리"): 0.45,
-    ("노리", "드라이"): 0.40,
-    ("드라이", "노리"): 0.40,
+# Personality group compatibility
+_GROUP_COMPAT: dict[tuple[str, str], float] = {
+    # Good pairs: 안정파+사교파, 신중파+주도파
+    ("안정파", "사교파"): 0.85, ("사교파", "안정파"): 0.85,
+    ("신중파", "주도파"): 0.85, ("주도파", "신중파"): 0.85,
+    # Same group (medium)
+    ("안정파", "안정파"): 0.60,
+    ("사교파", "사교파"): 0.60,
+    ("신중파", "신중파"): 0.60,
+    ("주도파", "주도파"): 0.60,
+    # Cross (lower)
+    ("안정파", "신중파"): 0.40, ("신중파", "안정파"): 0.40,
+    ("안정파", "주도파"): 0.35, ("주도파", "안정파"): 0.35,
+    ("사교파", "신중파"): 0.45, ("신중파", "사교파"): 0.45,
+    ("사교파", "주도파"): 0.40, ("주도파", "사교파"): 0.40,
 }
 
 
-_CODE_TO_FAMILY: dict[str, str] = {
-    "nagomi": "나고미",
-    "nori": "노리",
-    "cool": "쿨",
-    "dry": "드라이",
+_CODE_TO_GROUP: dict[str, str] = {
+    "easygoing": "안정파",
+    "outgoing": "사교파",
+    "confident": "주도파",
+    "independent": "신중파",
 }
 
 
-def _personality_family(personality: str) -> str | None:
-    """Extract family name from a personality code like 'nagomi_softie' or 'cool_introvert'."""
+def _personality_group(personality: str) -> str | None:
+    """Extract group name from a personality code like 'easygoing_softie' or 'confident_gogetter'."""
     prefix = personality.split("_")[0] if "_" in personality else personality
-    return _CODE_TO_FAMILY.get(prefix)
+    return _CODE_TO_GROUP.get(prefix)
 
 
 def calculate_compatibility(
@@ -559,10 +546,10 @@ def calculate_compatibility(
     Returns a value in 0.0 ~ 1.0.
     """
     # --- Personality (50%) ---
-    family_a = _personality_family(personality_a)
-    family_b = _personality_family(personality_b)
+    family_a = _personality_group(personality_a)
+    family_b = _personality_group(personality_b)
     if family_a and family_b:
-        personality_score = _FAMILY_COMPAT.get(
+        personality_score = _GROUP_COMPAT.get(
             (family_a, family_b),
             0.50,  # unknown pair → neutral
         )

@@ -364,7 +364,7 @@ def list_personalities():
         PersonalityTypeOut(
             code=p.code,
             name=p.name,
-            family=p.family,
+            group=p.group,
             description=p.description,
         )
         for p in gs.personalities.values()

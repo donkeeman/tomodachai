@@ -4,7 +4,7 @@ from tomodachai.relationship import RelationshipStage
 from tomodachai.simulation import Simulation, assign_locations
 
 
-def _make_char(char_id: int, name: str, code: str = "nori_dynamo") -> Character:
+def _make_char(char_id: int, name: str, code: str = "outgoing_dynamo") -> Character:
     return Character(
         id=char_id, personality_code=code,
         profile=Profile(name=name),
@@ -17,7 +17,7 @@ def test_assign_locations():
         LocationConfig(name="공원", capacity=2),
         LocationConfig(name="카페", capacity=2),
     ]
-    characters = [_make_char(1, "A"), _make_char(2, "B"), _make_char(3, "C", "nori_extrovert")]
+    characters = [_make_char(1, "A"), _make_char(2, "B"), _make_char(3, "C", "outgoing_extrovert")]
     assignments = assign_locations(characters, locations, seed=42)
     assigned_ids = set()
     for loc_name, chars in assignments.items():
@@ -115,9 +115,9 @@ def test_simulation_jealousy_emerges(
     app_config, mock_llm, sample_personalities,
 ):
     app_config.locations = [LocationConfig(name="공원", capacity=5)]
-    a = _make_char(1, "A", "nori_dynamo")
-    b = _make_char(2, "B", "nagomi_dreamer")
-    c = _make_char(3, "C", "nori_extrovert")
+    a = _make_char(1, "A", "outgoing_dynamo")
+    b = _make_char(2, "B", "easygoing_dreamer")
+    c = _make_char(3, "C", "outgoing_extrovert")
 
     mock_llm.chat_json.return_value = {
         "dialogue": [{"speaker": "A", "text": "안녕하세요"}],
@@ -187,8 +187,8 @@ def test_simulation_fight_trigger(
     app_config, mock_llm, sample_personalities,
 ):
     app_config.locations = [LocationConfig(name="공원", capacity=5)]
-    a = _make_char(1, "A", "nori_dynamo")
-    b = _make_char(2, "B", "dry_gogetter")
+    a = _make_char(1, "A", "outgoing_dynamo")
+    b = _make_char(2, "B", "confident_gogetter")
 
     mock_llm.chat_json.return_value = {
         "dialogue": [{"speaker": "A", "text": "안녕하세요"}],
@@ -227,8 +227,8 @@ def test_simulation_confession_trigger(
     app_config, mock_llm, sample_personalities,
 ):
     app_config.locations = [LocationConfig(name="공원", capacity=5)]
-    a = _make_char(1, "A", "nori_charmer")
-    b = _make_char(2, "B", "nagomi_softie")
+    a = _make_char(1, "A", "outgoing_charmer")
+    b = _make_char(2, "B", "easygoing_softie")
 
     mock_llm.chat_json.return_value = {
         "dialogue": [{"speaker": "A", "text": "안녕하세요"}],

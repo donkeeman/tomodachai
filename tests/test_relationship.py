@@ -291,8 +291,8 @@ def test_apply_jealousy_updates():
 
 def test_calculate_compatibility():
     score = calculate_compatibility(
-        personality_a="nagomi_softie",
-        personality_b="nori_charmer",
+        personality_a="easygoing_softie",
+        personality_b="outgoing_charmer",
         blood_a="O", blood_b="A",
         zodiac_a="사자자리", zodiac_b="양자리",
     )
@@ -302,8 +302,8 @@ def test_calculate_compatibility():
 
 def test_compatibility_low_pair():
     score = calculate_compatibility(
-        personality_a="nagomi_softie",
-        personality_b="dry_busybee",
+        personality_a="easygoing_softie",
+        personality_b="confident_busybee",
         blood_a="A", blood_b="B",
         zodiac_a="게자리", zodiac_b="양자리",
     )

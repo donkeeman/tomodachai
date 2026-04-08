@@ -11,74 +11,74 @@ from tomodachai.personality import (
 
 def test_personality_type_model():
     p = PersonalityType(
-        code="nagomi_softie",
-        name="ふわふわ형 (포근이)",
-        family="nagomi",
+        code="easygoing_softie",
+        name="외유내강형",
+        group="easygoing",
         description="테스트",
         behavior_guide="테스트 가이드",
     )
-    assert p.code == "nagomi_softie"
-    assert p.family == "nagomi"
+    assert p.code == "easygoing_softie"
+    assert p.group == "easygoing"
 
 
-def test_determine_personality_nagomi():
+def test_determine_personality_easygoing():
     sliders = PersonalitySliders(
         movement=0.1, speech=0.1,
         expressiveness=0.1, attitude=0.1,
     )
-    assert determine_personality(sliders) == "nagomi_softie"
+    assert determine_personality(sliders) == "easygoing_softie"
 
 
-def test_determine_personality_nori():
+def test_determine_personality_outgoing():
     sliders = PersonalitySliders(
         movement=0.9, speech=0.9,
         expressiveness=0.9, attitude=0.9,
     )
-    assert determine_personality(sliders) == "nori_extrovert"
+    assert determine_personality(sliders) == "outgoing_extrovert"
 
 
-def test_determine_personality_cool():
+def test_determine_personality_independent():
     sliders = PersonalitySliders(
         movement=0.3, speech=0.3,
         expressiveness=0.6, attitude=0.6,
     )
-    assert determine_personality(sliders) == "cool_introvert"
+    assert determine_personality(sliders) == "independent_introvert"
 
 
-def test_determine_personality_dry():
+def test_determine_personality_confident():
     sliders = PersonalitySliders(
         movement=0.6, speech=0.6,
         expressiveness=0.3, attitude=0.3,
     )
-    assert determine_personality(sliders) == "dry_gogetter"
+    assert determine_personality(sliders) == "confident_gogetter"
 
 
 def test_load_personalities():
     personalities = load_personalities()
     assert len(personalities) == 16
-    assert "nagomi_softie" in personalities
-    assert "nori_dynamo" in personalities
-    assert "cool_thinker" in personalities
-    assert "dry_busybee" in personalities
+    assert "easygoing_softie" in personalities
+    assert "outgoing_dynamo" in personalities
+    assert "independent_thinker" in personalities
+    assert "confident_busybee" in personalities
 
 
-def test_all_codes_have_family():
+def test_all_codes_have_group():
     personalities = load_personalities()
-    families = {"nagomi", "cool", "dry", "nori"}
+    groups = {"easygoing", "independent", "confident", "outgoing"}
     for code, p in personalities.items():
-        assert p.family in families
+        assert p.group in groups
         assert p.code == code
         assert "_" in code
 
 
-def test_each_family_has_four_types():
+def test_each_group_has_four_types():
     personalities = load_personalities()
-    by_family: dict[str, list] = {}
+    by_group: dict[str, list] = {}
     for p in personalities.values():
-        by_family.setdefault(p.family, []).append(p)
-    assert len(by_family) == 4
-    for family, types in by_family.items():
-        assert len(types) == 4, f"{family} has {len(types)} types, expected 4"
+        by_group.setdefault(p.group, []).append(p)
+    assert len(by_group) == 4
+    for group, types in by_group.items():
+        assert len(types) == 4, f"{group} has {len(types)} types, expected 4"
 
 
 def test_match_personality_returns_sliders(mock_llm):
@@ -93,5 +93,5 @@ def test_match_personality_returns_sliders(mock_llm):
     assert isinstance(sliders, PersonalitySliders)
     assert 0.0 <= sliders.movement <= 1.0
     code = determine_personality(sliders)
-    assert code.startswith("nori")
+    assert code.startswith("outgoing")
     mock_llm.chat_json.assert_called_once()

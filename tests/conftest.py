@@ -39,7 +39,7 @@ def sample_personalities():
 def char_minsu():
     return Character(
         id=1,
-        personality_code="nori_dynamo",
+        personality_code="outgoing_dynamo",
         profile=Profile(
             name="민수", birthday="03-15", blood_type="B", gender="남성",
         ),
@@ -54,7 +54,7 @@ def char_minsu():
 def char_jieun():
     return Character(
         id=2,
-        personality_code="nagomi_dreamer",
+        personality_code="easygoing_dreamer",
         profile=Profile(
             name="지은", birthday="11-02", blood_type="A", gender="여성",
         ),
@@ -69,7 +69,7 @@ def char_jieun():
 def char_taeho():
     return Character(
         id=3,
-        personality_code="nori_extrovert",
+        personality_code="outgoing_extrovert",
         profile=Profile(
             name="태호", birthday="07-28", blood_type="O", gender="남성",
         ),

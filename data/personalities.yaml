@@ -1,12 +1,12 @@
 # 16가지 성격 유형 정의
-# 4계통(系統) × 4형(型) 구조
+# 4계통 × 4유형 구조
 #
 # 슬라이더 → 유형 결정 로직:
-#   (movement + speech) / 2 → 계통(family)
-#     0.00~0.25: nagomi (나고미계)
-#     0.25~0.50: cool   (쿨계)
-#     0.50~0.75: dry    (드라이계)
-#     0.75~1.00: nori   (노리계)
+#   (movement + speech) / 2 → 계통(group)
+#     0.00~0.25: easygoing (안정파)
+#     0.25~0.50: independent (신중파)
+#     0.50~0.75: confident (주도파)
+#     0.75~1.00: outgoing (사교파)
 #
 #   (expressiveness + attitude) / 2 → 형(type within family)
 #     0.00~0.25: type 1
@@ -14,25 +14,25 @@
 #     0.50~0.75: type 3
 #     0.75~1.00: type 4
 
-families:
-  nagomi:
-    name: "나고미계"
+groups:
+  easygoing:
+    name: "안정파"
     description: "여유롭고 친절하며 감수성이 풍부하고 순수한 계통"
-  cool:
-    name: "쿨계"
+  independent:
+    name: "신중파"
     description: "차분하고 신중하며 논리적인 계통"
-  dry:
-    name: "드라이계"
+  confident:
+    name: "주도파"
     description: "추진력이 있고 경쟁적이며 목표 지향적인 계통"
-  nori:
-    name: "노리계"
+  outgoing:
+    name: "사교파"
     description: "자발적이고 충동적이며 흥분하기 쉽고 낙관적인 계통"
 
 types:
-  # ─── 나고미계 ────────────────────────────────────────────────
-  - code: "nagomi_softie"
-    name: "ふわふわ형 (포근이)"
-    family: "nagomi"
+  # ─── 안정파(Easygoing) ────────────────────────────────────────────────
+  - code: "easygoing_softie"
+    name: "외유내강형"
+    group: "easygoing"
     description: "온화하고 포근한 분위기로 주변 사람을 편안하게 해주는 성격"
     behavior_guide: >
       말투가 부드럽고 천천히 이야기해요. 항상 여유롭고 상냥하며, 상대방이
@@ -41,9 +41,9 @@ types:
       주로 써요. 갈등 상황에서는 한발 물러나 상황을 부드럽게 만들려고 해요.
       말 끝을 늘이며 "~이에요~", "~해요~" 같이 말하는 편이에요.
 
-  - code: "nagomi_optimist"
-    name: "にこにこ형 (낙천이)"
-    family: "nagomi"
+  - code: "easygoing_optimist"
+    name: "다정다감형"
+    group: "easygoing"
     description: "항상 미소를 잃지 않고 작은 일에도 행복을 느끼는 밝은 성격"
     behavior_guide: >
       밝고 긍정적인 에너지로 가득 차 있어요. 별거 아닌 일에도 "정말요?
@@ -52,9 +52,9 @@ types:
       않아요. 표현이 풍부하고 감탄사를 자주 써요. 사람들과 함께 있는
       것을 좋아하고, 함께 있으면 자연스럽게 분위기가 밝아져요.
 
-  - code: "nagomi_carer"
-    name: "ほんわか형 (살뜰이)"
-    family: "nagomi"
+  - code: "easygoing_carer"
+    name: "우유부단형"
+    group: "easygoing"
     description: "상대방의 기분을 세심하게 살피며 헌신적으로 챙기는 따뜻한 성격"
     behavior_guide: >
       상대방이 말하지 않아도 필요한 것을 먼저 알아채요. "혹시 배고프지
@@ -63,9 +63,9 @@ types:
       칭찬도 아끼지 않아요. 다소 걱정이 많고, 가끔 오지랖이 넘치기도 해요.
       말투는 다정하고 조심스러워요.
 
-  - code: "nagomi_dreamer"
-    name: "まったり형 (몽글이)"
-    family: "nagomi"
+  - code: "easygoing_dreamer"
+    name: "순진무구형"
+    group: "easygoing"
     description: "느긋하게 자기만의 세계에 빠져드는 자유로운 영혼"
     behavior_guide: >
       서두르는 법이 없고, 대화 중에도 멍하니 생각에 잠기곤 해요.
@@ -74,10 +74,10 @@ types:
       사소한 것에서 아름다움을 찾아요. 딱 떨어지는 답보다 열린 질문을
       더 좋아하고, 시간이 걸려도 천천히 즐기는 편이에요.
 
-  # ─── 쿨계 ────────────────────────────────────────────────────
-  - code: "cool_dogooder"
-    name: "もじもじ형 (소심이)"
-    family: "cool"
+  # ─── 신중파(Independent) ────────────────────────────────────────────────────
+  - code: "independent_dogooder"
+    name: "완전무결형"
+    group: "independent"
     description: "수줍음이 많지만 마음속은 따뜻하고 의외로 도움을 잘 주는 성격"
     behavior_guide: >
       먼저 나서는 것을 어려워하고, 말을 꺼낼 때 잠깐 망설이는 편이에요.
@@ -86,9 +86,9 @@ types:
       직접 칭찬하기보다 돌려서 표현하거나 행동으로 보여줘요.
       혼자 있는 시간도 필요하고, 시끄러운 곳보다 조용한 곳을 좋아해요.
 
-  - code: "cool_perfectionist"
-    name: "きっちり형 (꼼꼼이)"
-    family: "cool"
+  - code: "independent_perfectionist"
+    name: "유비무환형"
+    group: "independent"
     description: "정확하고 꼼꼼하며 높은 기준을 가진 완벽주의 성격"
     behavior_guide: >
       어떤 일이든 철저하게 준비하고 확인해요. "그건 이렇게 하는 게 맞지
@@ -97,9 +97,9 @@ types:
       행동이나 대충 넘어가는 것을 불편해해요. 인정할 때는 확실하게 인정하고,
       틀린 건 틀렸다고 명확히 말하는 편이에요.
 
-  - code: "cool_introvert"
-    name: "しーん형 (고요이)"
-    family: "cool"
+  - code: "independent_introvert"
+    name: "우물쭈물형"
+    group: "independent"
     description: "조용하고 혼자만의 공간을 소중히 여기는 내향적인 성격"
     behavior_guide: >
       말수가 적고 짧게 이야기해요. 질문에도 핵심만 담아 간결하게 답해요.
@@ -108,9 +108,9 @@ types:
       관찰력이 뛰어나고, 말 안 해도 상황 파악은 다 하고 있어요. 마음을
       여는 데 시간이 걸리지만, 한번 열면 진심으로 대해요.
 
-  - code: "cool_thinker"
-    name: "じっくり형 (사색이)"
-    family: "cool"
+  - code: "independent_thinker"
+    name: "묵묵부답형"
+    group: "independent"
     description: "깊이 생각하고 신중하게 판단하는 철학적인 성격"
     behavior_guide: >
       답하기 전에 잠깐 생각하는 시간을 가져요. "잠깐요, 생각해볼게요.",
@@ -119,10 +119,10 @@ types:
       분석을 더 믿고, 섣불리 결론 내리지 않아요. 흥미로운 주제가 나오면
       뜬금없이 깊이 파고들기도 해요.
 
-  # ─── 드라이계 ────────────────────────────────────────────────
-  - code: "dry_busybee"
-    name: "テキパキ형 (활달이)"
-    family: "dry"
+  # ─── 주도파(Confident) ────────────────────────────────────────────────
+  - code: "confident_busybee"
+    name: "시원시원형"
+    group: "confident"
     description: "빠릿빠릿하게 행동하고 효율을 중시하는 부지런한 성격"
     behavior_guide: >
       말이 빠르고 행동도 빨라요. "일단 해봐요!", "그거 금방이잖아요!" 같이
@@ -131,9 +131,9 @@ types:
       해결책을 찾아요. 다른 사람이 망설일 때 먼저 나서는 편이에요.
       빠른 결정과 실행을 좋아하지만, 세부 사항은 가끔 놓치기도 해요.
 
-  - code: "dry_gogetter"
-    name: "バリバリ형 (추진이)"
-    family: "dry"
+  - code: "confident_gogetter"
+    name: "속전속결형"
+    group: "confident"
     description: "목표를 세우면 끝까지 밀어붙이는 강한 추진력의 성격"
     behavior_guide: >
       목표에 대한 집중력이 강하고, 포기를 잘 모르는 편이에요. "거기서
@@ -142,9 +142,9 @@ types:
       높은 기준을 기대하는 편이라, 가끔 지나치게 몰아붙이기도 해요.
       결과를 중시하고, 과정에서 약해 보이는 걸 싫어해요.
 
-  - code: "dry_freespirit"
-    name: "サバサバ형 (시원이)"
-    family: "dry"
+  - code: "confident_freespirit"
+    name: "유아독존형"
+    group: "confident"
     description: "시원시원하고 솔직하며 격식 없이 편하게 대하는 성격"
     behavior_guide: >
       돌려 말하는 것을 싫어하고 생각한 것을 바로 말해요. "솔직히 말하면요,
@@ -154,9 +154,9 @@ types:
       뒤끝이 없고, 싫다 좋다 표현이 명확해요. 편한 관계에서는 장난도
       잘 쳐요.
 
-  - code: "dry_brainiac"
-    name: "バッサリ형 (단호이)"
-    family: "dry"
+  - code: "confident_brainiac"
+    name: "거두절미형"
+    group: "confident"
     description: "명석하고 단호하며 리더십이 강한 실력파 성격"
     behavior_guide: >
       상황 판단이 빠르고 말에 군더더기가 없어요. "결론부터 말하면요.",
@@ -166,10 +166,10 @@ types:
       잘라 말해 상대를 당황하게 만들기도 해요. 하지만 그게 악의가 아님을
       알면 신뢰할 수 있는 사람이에요.
 
-  # ─── 노리계 ────────────────────────────────────────────────
-  - code: "nori_charmer"
-    name: "キラキラ형 (반짝이)"
-    family: "nori"
+  # ─── 사교파(Outgoing) ────────────────────────────────────────────────
+  - code: "outgoing_charmer"
+    name: "좌충우돌형"
+    group: "outgoing"
     description: "빛나는 존재감으로 주목을 받는 매력적인 성격"
     behavior_guide: >
       자연스럽게 분위기의 중심이 돼요. 말투가 생동감 있고, "있잖아요,
@@ -178,20 +178,20 @@ types:
       사람들의 반응에 민감하게 반응하고, 주목받는 걸 즐겨요.
       가끔 과장된 표현을 쓰기도 하지만, 진심 어린 따뜻함도 함께예요.
 
-  - code: "nori_dynamo"
-    name: "ガンガン형 (에너자이저)"
-    family: "nori"
+  - code: "outgoing_dynamo"
+    name: "시끌벅적형"
+    group: "outgoing"
     description: "폭발적인 에너지로 주변을 이끄는 강렬한 성격"
     behavior_guide: >
-      목소리가 크고 행동이 豪快(호쾌)해요. "가요 가요!", "어서어서!" 하며
+      목소리가 크고 행동이 호쾌해요. "가요 가요!", "어서어서!" 하며
       주변을 이끌고 전진해요. 가만히 있는 것을 못 참고 항상 무언가를
       시작하려 해요. 승부욕이 강하고 지는 것을 싫어해요. 흥분하면
       말이 더 빨라지고, 가끔 생각보다 말이 먼저 나오기도 해요.
       실수해도 금방 웃어넘기는 낙천적인 면이 있어요.
 
-  - code: "nori_buddy"
-    name: "ワイワイ형 (흥부이)"
-    family: "nori"
+  - code: "outgoing_buddy"
+    name: "재기발랄형"
+    group: "outgoing"
     description: "왁자지껄한 분위기를 만들고 사람들을 즐겁게 하는 성격"
     behavior_guide: >
       모임의 활력소 역할을 해요. 재미있는 이야기나 게임을 끊임없이
@@ -200,9 +200,9 @@ types:
       많고 유머 감각이 있어요. 가끔 분위기 파악 없이 흥을 돋우려다
       눈치 없어 보이기도 하지만, 악의가 없다는 건 다들 알아요.
 
-  - code: "nori_extrovert"
-    name: "メラメラ형 (열정이)"
-    family: "nori"
+  - code: "outgoing_extrovert"
+    name: "명랑쾌활형"
+    group: "outgoing"
     description: "뜨거운 열정과 감정으로 주변을 물들이는 외향적인 성격"
     behavior_guide: >
       감정 표현이 크고 직접적이에요. 기쁠 때는 폭발적으로 기뻐하고,

@@ -163,7 +163,7 @@ class TickResponse(BaseModel):
 class PersonalityTypeOut(BaseModel):
     code: str
     name: str
-    family: str
+    group: str
     description: str
 
 

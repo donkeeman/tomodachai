@@ -12,11 +12,12 @@ if TYPE_CHECKING:
 _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 
 # Slider thresholds for family and type-within-family
-_FAMILY_THRESHOLDS = [
-    (0.25, "nagomi"),
-    (0.50, "cool"),
-    (0.75, "dry"),
-    (1.01, "nori"),
+# Slider thresholds for group and type-within-group
+_GROUP_THRESHOLDS = [
+    (0.25, "easygoing"),
+    (0.50, "independent"),
+    (0.75, "confident"),
+    (1.01, "outgoing"),
 ]
 
 _TYPE_SUFFIXES = [
@@ -26,24 +27,28 @@ _TYPE_SUFFIXES = [
     (1.01, 4),
 ]
 
-# Maps (family, type_index) → personality code
-_FAMILY_TYPE_CODES: dict[tuple[str, int], str] = {
-    ("nagomi", 1): "nagomi_softie",
-    ("nagomi", 2): "nagomi_optimist",
-    ("nagomi", 3): "nagomi_carer",
-    ("nagomi", 4): "nagomi_dreamer",
-    ("cool", 1): "cool_dogooder",
-    ("cool", 2): "cool_perfectionist",
-    ("cool", 3): "cool_introvert",
-    ("cool", 4): "cool_thinker",
-    ("dry", 1): "dry_busybee",
-    ("dry", 2): "dry_gogetter",
-    ("dry", 3): "dry_freespirit",
-    ("dry", 4): "dry_brainiac",
-    ("nori", 1): "nori_charmer",
-    ("nori", 2): "nori_dynamo",
-    ("nori", 3): "nori_buddy",
-    ("nori", 4): "nori_extrovert",
+# Maps (group, type_index) → personality code
+_GROUP_TYPE_CODES: dict[tuple[str, int], str] = {
+    # 안정파 (Easygoing): 외유내강/다정다감/우유부단/순진무구
+    ("easygoing", 1): "easygoing_softie",
+    ("easygoing", 2): "easygoing_optimist",
+    ("easygoing", 3): "easygoing_carer",
+    ("easygoing", 4): "easygoing_dreamer",
+    # 신중파 (Independent): 완전무결/유비무환/우물쭈물/묵묵부답
+    ("independent", 1): "independent_dogooder",
+    ("independent", 2): "independent_perfectionist",
+    ("independent", 3): "independent_introvert",
+    ("independent", 4): "independent_thinker",
+    # 주도파 (Confident): 시원시원/속전속결/유아독존/거두절미
+    ("confident", 1): "confident_busybee",
+    ("confident", 2): "confident_gogetter",
+    ("confident", 3): "confident_freespirit",
+    ("confident", 4): "confident_brainiac",
+    # 사교파 (Outgoing): 좌충우돌/시끌벅적/재기발랄/명랑쾌활
+    ("outgoing", 1): "outgoing_charmer",
+    ("outgoing", 2): "outgoing_dynamo",
+    ("outgoing", 3): "outgoing_buddy",
+    ("outgoing", 4): "outgoing_extrovert",
 }
 
 
@@ -65,7 +70,7 @@ class PersonalitySliders(BaseModel):
 class PersonalityType(BaseModel):
     code: str
     name: str
-    family: str
+    group: str  # easygoing / outgoing / confident / independent
     description: str
     behavior_guide: str
 
@@ -79,10 +84,10 @@ def determine_personality(sliders: PersonalitySliders) -> str:
     ms_avg = (sliders.movement + sliders.speech) / 2.0
     ea_avg = (sliders.expressiveness + sliders.attitude) / 2.0
 
-    family = next(name for threshold, name in _FAMILY_THRESHOLDS if ms_avg < threshold)
+    group = next(name for threshold, name in _GROUP_THRESHOLDS if ms_avg < threshold)
     type_idx = next(idx for threshold, idx in _TYPE_SUFFIXES if ea_avg < threshold)
 
-    return _FAMILY_TYPE_CODES[(family, type_idx)]
+    return _GROUP_TYPE_CODES[(group, type_idx)]
 
 
 def load_personalities(path: Path | None = None) -> dict[str, PersonalityType]:

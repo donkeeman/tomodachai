@@ -34,8 +34,8 @@ def test_build_prompt_contains_character_info(
     prompt = build_conversation_prompt(
         char_a=char_minsu,
         char_b=char_jieun,
-        personality_a=sample_personalities["nori_dynamo"],
-        personality_b=sample_personalities["nagomi_dreamer"],
+        personality_a=sample_personalities["outgoing_dynamo"],
+        personality_b=sample_personalities["easygoing_dreamer"],
         rel_ab=rel_ab,
         rel_ba=rel_ba,
         memories=[],
@@ -63,8 +63,8 @@ def test_build_prompt_includes_memories(
     prompt = build_conversation_prompt(
         char_a=char_minsu,
         char_b=char_jieun,
-        personality_a=sample_personalities["nori_dynamo"],
-        personality_b=sample_personalities["nagomi_dreamer"],
+        personality_a=sample_personalities["outgoing_dynamo"],
+        personality_b=sample_personalities["easygoing_dreamer"],
         rel_ab=Relationship(),
         rel_ba=Relationship(),
         memories=memories,

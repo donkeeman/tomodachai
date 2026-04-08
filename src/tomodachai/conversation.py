@@ -55,13 +55,13 @@ def build_conversation_prompt(
     habits_b = _format_speech_habits(char_b.speech_habits)
 
     return f"""## 캐릭터 1: {char_a.name}
-성격 유형: {personality_a.name} ({personality_a.family})
+성격 유형: {personality_a.name} ({personality_a.group})
 성격: {personality_a.behavior_guide.strip()}
 말버릇: {habits_a}
 배경: {char_a.backstory}
 
 ## 캐릭터 2: {char_b.name}
-성격 유형: {personality_b.name} ({personality_b.family})
+성격 유형: {personality_b.name} ({personality_b.group})
 성격: {personality_b.behavior_guide.strip()}
 말버릇: {habits_b}
 배경: {char_b.backstory}

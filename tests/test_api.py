@@ -27,7 +27,7 @@ def seeded_client(client):
     client.post("/api/characters", json={
         "id": "char_1",
         "name": "민수",
-        "personality_code": "nori_dynamo",
+        "personality_code": "outgoing_dynamo",
         "backstory": "활발한 청년",
         "birthday": "03-15",
         "blood_type": "B",
@@ -37,7 +37,7 @@ def seeded_client(client):
     client.post("/api/characters", json={
         "id": "char_2",
         "name": "지은",
-        "personality_code": "nagomi_dreamer",
+        "personality_code": "easygoing_dreamer",
         "backstory": "몽상가",
         "birthday": "11-02",
         "blood_type": "A",
@@ -67,20 +67,20 @@ def test_create_character(client):
     resp = client.post("/api/characters", json={
         "id": "char_1",
         "name": "민수",
-        "personality_code": "nori_dynamo",
+        "personality_code": "outgoing_dynamo",
     })
     assert resp.status_code == 201
     data = resp.json()
     assert data["name"] == "민수"
-    assert data["personality_code"] == "nori_dynamo"
+    assert data["personality_code"] == "outgoing_dynamo"
 
 
 def test_create_duplicate_character(client):
     client.post("/api/characters", json={
-        "id": "char_1", "name": "민수", "personality_code": "nori_dynamo",
+        "id": "char_1", "name": "민수", "personality_code": "outgoing_dynamo",
     })
     resp = client.post("/api/characters", json={
-        "id": "char_1", "name": "민수2", "personality_code": "nori_dynamo",
+        "id": "char_1", "name": "민수2", "personality_code": "outgoing_dynamo",
     })
     assert resp.status_code == 409
 
@@ -111,7 +111,7 @@ def test_delete_character(seeded_client):
 
 def test_character_zodiac_auto(client):
     resp = client.post("/api/characters", json={
-        "id": "c1", "name": "A", "personality_code": "nori_dynamo",
+        "id": "c1", "name": "A", "personality_code": "outgoing_dynamo",
         "birthday": "07-28",
     })
     assert resp.json()["zodiac"] == "사자자리"
