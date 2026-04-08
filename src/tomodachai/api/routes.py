@@ -128,6 +128,40 @@ def create_character(body: CharacterCreate):
     return _char_to_out(char)
 
 
+@router.get("/characters/generate-name")
+def generate_name(gender: str = ""):
+    """LLM으로 한국 이름 하나 생성. ?gender=남 또는 ?gender=여"""
+    gs = _gs()
+    existing = [c.name for c in gs.characters]
+    existing_text = ", ".join(existing) if existing else "없음"
+
+    gender_hint = ""
+    if gender in ("남", "남성", "M", "male"):
+        gender_hint = "남성 이름"
+    elif gender in ("여", "여성", "F", "female"):
+        gender_hint = "여성 이름"
+    else:
+        gender_hint = "남성 또는 여성 이름"
+
+    prompt = (
+        f"한국 {gender_hint}을 하나만 생성하세요. 성+이름 형태 (예: 김민수, 이지은).\n"
+        f"기존 캐릭터: {existing_text}\n"
+        f"기존 이름과 겹치지 않게 해주세요.\n"
+        f"이름만 출력하세요. 다른 설명 없이 이름 하나만."
+    )
+    messages = [
+        {"role": "system", "content": "한국 이름 생성기. 이름만 출력."},
+        {"role": "user", "content": prompt},
+    ]
+    try:
+        name = gs.llm.chat(messages).strip().strip('"').strip("'")
+        # 혹시 여러 줄이면 첫 줄만
+        name = name.split("\n")[0].strip()
+        return {"name": name}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LLM 호출 실패: {e}")
+
+
 @router.get("/characters/{char_id}", response_model=CharacterOut)
 def get_character(char_id: str):
     gs = _gs()

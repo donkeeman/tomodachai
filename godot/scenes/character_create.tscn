@@ -1,0 +1,96 @@
+[gd_scene format=3 uid="uid://charcreate"]
+
+[ext_resource type="Script" path="res://scripts/character_create.gd" id="1"]
+
+[node name="CharacterCreate" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -300.0
+offset_right = 250.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "캐릭터 생성"
+horizontal_alignment = 1
+
+[node name="Sep0" type="HSeparator" parent="Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "이름"
+
+[node name="NameInput" type="LineEdit" parent="Panel/Margin/VBox"]
+layout_mode = 2
+placeholder_text = "김민수"
+
+[node name="BirthdayLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "생일 (MM-DD)"
+
+[node name="BirthdayInput" type="LineEdit" parent="Panel/Margin/VBox"]
+layout_mode = 2
+placeholder_text = "03-15"
+
+[node name="BloodLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "혈액형"
+
+[node name="BloodSelect" type="OptionButton" parent="Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="GenderLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "성별"
+
+[node name="GenderSelect" type="OptionButton" parent="Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="ColorLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "좋아하는 색"
+
+[node name="ColorInput" type="LineEdit" parent="Panel/Margin/VBox"]
+layout_mode = 2
+placeholder_text = "파란색"
+
+[node name="Sep1" type="HSeparator" parent="Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="CreateBtn" type="Button" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "입주시키기"
+
+[node name="ResultLabel" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
