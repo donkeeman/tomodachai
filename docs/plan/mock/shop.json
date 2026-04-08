@@ -1,0 +1,11 @@
+{
+  "daily": {
+    "food": [3, 17, 55],
+    "clothing": [22, 45],
+    "interior": [8]
+  },
+  "morning_market": {
+    "item": 28,
+    "discount_price": 1500
+  }
+}

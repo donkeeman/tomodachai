@@ -1,0 +1,13 @@
+{
+  "island_name": "별빛 마을",
+  "day_count": 52,
+  "money": 45000,
+  "time_flip": false,
+  "ending_credit_seen": false,
+  "catalog": {
+    "food": [2, 4, 7],
+    "clothing": [12],
+    "interior": [5],
+    "treasure": [1, 15]
+  }
+}

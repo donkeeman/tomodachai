@@ -1,0 +1,132 @@
+{
+  "id": 1,
+
+  "profile": {
+    "name": "김민수",
+    "birthday": "03-15",
+    "blood_type": "A",
+    "favorite_color": "blue",
+    "gender": "M",
+    "appearance": {
+      "face_shape": 3,
+      "skin_color": "#F5D6B8",
+      "eye": {
+        "base": 5,
+        "lash": 2,
+        "color": "#4A3728",
+        "adjust": { "spacing": 0, "height": 3, "size": 0, "angle": 0 }
+      },
+      "eyebrow": {
+        "id": 3,
+        "adjust": { "spacing": 0, "height": 2, "size": 0, "angle": 0 }
+      },
+      "nose": {
+        "id": 2,
+        "adjust": { "height": 1, "size": 0 }
+      },
+      "mouth": {
+        "id": 4,
+        "adjust": { "height": -1, "size": 0 }
+      },
+      "hair": {
+        "front": 7,
+        "back": 3,
+        "color": "#2C1810"
+      },
+      "glasses": null,
+      "body": { "height": 5, "build": 4 }
+    },
+    "personality": {
+      "movement": 6,
+      "speech": 3,
+      "expressiveness": 7,
+      "attitude": 5,
+      "overall": 4
+    },
+    "voice": {
+      "preset": "male",
+      "pitch": 5,
+      "speed": 4,
+      "quality": null,
+      "tone": null,
+      "accent": null,
+      "intonation": null
+    }
+  },
+
+  "preferences": {
+    "food_ranks": [7, 3, 1, 5, 10, 2, 8, 9, 4, 6],
+    "food_eaten": [false, true, true, false, true, false, false, false, false, false],
+    "clothing": {
+      "likes": "cute",
+      "dislikes": "formal"
+    },
+    "interior": {
+      "likes": "nature",
+      "dislikes": "modern"
+    },
+    "personality_group": {
+      "group": "steady",
+      "is_positive": true
+    }
+  },
+
+  "state": {
+    "satisfaction": 65.0,
+    "level": 4,
+    "hunger": 30.0,
+    "mood": {
+      "happiness": 7,
+      "energy": 5,
+      "stress": 2
+    },
+    "sick": null,
+    "current_location": "living_room",
+    "current_outfit": 12,
+    "current_interior": 5,
+    "photo_frame": 3
+  },
+
+  "customizable": {
+    "speech_habits": {
+      "normal": "~인 거예요",
+      "happy": "완전 좋아요!",
+      "angry": "이건 아니에요!",
+      "sad": "흑흑...",
+      "worried": "어떡하죠..."
+    },
+    "mini_traits": {
+      "walking": { "owned": [1, 3, 5], "active": 1 },
+      "eating": { "owned": [2, 5], "active": 5 },
+      "idle": { "owned": [8], "active": null }
+    },
+    "nicknames": {
+      "2": "수수"
+    },
+    "songs": [true, false, true, false, false, false, false, false]
+  },
+
+  "relationships": {
+    "2": { "friendship": 72.0, "romance": 15.0 },
+    "3": { "friendship": -55.0, "romance": 0.0 },
+    "4": { "friendship": 40.0, "romance": 60.0 }
+  },
+
+  "slots": {
+    "best_friend": 2,
+    "lover": null,
+    "enemy": 3
+  },
+
+  "tags": {
+    "ex_lovers": [
+      { "target": 3, "reason": "fight", "day": 42 }
+    ]
+  },
+
+  "records": {
+    "treasure_collection": [1, 15],
+    "confession_count": { "4": 1 },
+    "photos": [1, 2, 3]
+  }
+}
