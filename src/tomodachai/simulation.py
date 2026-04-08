@@ -20,6 +20,13 @@ from tomodachai.relationship import (
 
 _TIME_SLOTS = ["아침", "오전", "점심", "오후", "저녁", "밤"]
 
+# 오프라인 catch-up: 큰 이벤트는 생성 금지
+_BIG_EVENT_TYPES = {"confession_success", "confession_fail", "marriage", "breakup"}
+
+# catch-up 1회 이벤트 수치 변화 폭 (작게 유지)
+_CATCHUP_FRIENDSHIP_DELTA_RANGE = (-3.0, 5.0)
+_CATCHUP_ROMANCE_DELTA_RANGE = (-1.0, 3.0)
+
 # Thresholds for auto-triggered events
 _FIGHT_FRIENDSHIP_THRESHOLD = -30.0  # friendship below this can trigger fight
 _FIGHT_CHANCE = 0.3
@@ -76,7 +83,9 @@ class Simulation:
 
         time_of_day = _TIME_SLOTS[self._tick_count % len(_TIME_SLOTS)]
         assignments = assign_locations(
-            self.characters, self.config.locations, seed=seed,
+            self.characters,
+            self.config.locations,
+            seed=seed,
         )
 
         events: list[dict] = []
@@ -85,12 +94,14 @@ class Simulation:
         for loc_name, chars in assignments.items():
             for char_a, char_b in combinations(chars, 2):
                 result = self._run_conversation(char_a, char_b, loc_name, time_of_day)
-                events.append({
-                    "type": "conversation",
-                    "location": loc_name,
-                    "participants": [char_a.name, char_b.name],
-                    "result": result,
-                })
+                events.append(
+                    {
+                        "type": "conversation",
+                        "location": loc_name,
+                        "participants": [char_a.name, char_b.name],
+                        "result": result,
+                    }
+                )
 
         # 2. Check for triggered events (fights, confessions)
         triggered = self._check_triggered_events()
@@ -137,16 +148,18 @@ class Simulation:
             elif name == char_b.name:
                 self.relationships.update(char_b.id, char_a.id, deltas)
 
-        self.memory.add_event(SocialEvent(
-            tick=self._tick_count,
-            participants=[str(char_a.id), str(char_b.id)],
-            event_type="conversation",
-            summary=result.summary,
-            emotional_impact={
-                str(char_a.id): sum(result.deltas.get(char_a.name, {}).values()),
-                str(char_b.id): sum(result.deltas.get(char_b.name, {}).values()),
-            },
-        ))
+        self.memory.add_event(
+            SocialEvent(
+                tick=self._tick_count,
+                participants=[str(char_a.id), str(char_b.id)],
+                event_type="conversation",
+                summary=result.summary,
+                emotional_impact={
+                    str(char_a.id): sum(result.deltas.get(char_a.name, {}).values()),
+                    str(char_b.id): sum(result.deltas.get(char_b.name, {}).values()),
+                },
+            )
+        )
 
         return result
 
@@ -168,7 +181,8 @@ class Simulation:
             # Confession trigger: high romance + friendship stage
             if (
                 rel.romance >= _CONFESSION_ROMANCE_THRESHOLD
-                and rel.stage in (
+                and rel.stage
+                in (
                     RelationshipStage.FRIEND,
                     RelationshipStage.BEST_FRIEND,
                 )
@@ -199,26 +213,28 @@ class Simulation:
 
         # Log event
         rel = self.relationships.get(a_id, b_id)
-        rel.event_log.append(RelationshipEvent(
-            day=self._tick_count,
-            event_type="fight",
-            summary=f"긴장이 폭발하여 싸움 발생",
-        ))
+        rel.event_log.append(
+            RelationshipEvent(
+                day=self._tick_count,
+                event_type="fight",
+                summary="긴장이 폭발하여 싸움 발생",
+            )
+        )
 
-        self.memory.add_event(SocialEvent(
-            tick=self._tick_count,
-            participants=[str(a_id), str(b_id)],
-            event_type="fight",
-            summary=f"{self._name(a_id)}와(과) {self._name(b_id)}가 싸움",
-            emotional_impact={str(a_id): -5.0, str(b_id): -5.0},
-        ))
+        self.memory.add_event(
+            SocialEvent(
+                tick=self._tick_count,
+                participants=[str(a_id), str(b_id)],
+                event_type="fight",
+                summary=f"{self._name(a_id)}와(과) {self._name(b_id)}가 싸움",
+                emotional_impact={str(a_id): -5.0, str(b_id): -5.0},
+            )
+        )
 
         # Satisfaction hit
         for cid in (a_id, b_id):
             if cid in self._char_map:
-                self._char_map[cid].satisfaction = max(
-                    0.0, self._char_map[cid].satisfaction - 10.0
-                )
+                self._char_map[cid].satisfaction = max(0.0, self._char_map[cid].satisfaction - 10.0)
 
         a_name = self._name(a_id)
         b_name = self._name(b_id)
@@ -247,22 +263,26 @@ class Simulation:
             event_type = "confession_fail"
             summary = f"{self._name(a_id)}가 {self._name(b_id)}에게 고백했지만 거절당했다."
 
-        rel_ab.event_log.append(RelationshipEvent(
-            day=self._tick_count,
-            event_type=event_type,
-            summary=summary,
-        ))
+        rel_ab.event_log.append(
+            RelationshipEvent(
+                day=self._tick_count,
+                event_type=event_type,
+                summary=summary,
+            )
+        )
 
-        self.memory.add_event(SocialEvent(
-            tick=self._tick_count,
-            participants=[str(a_id), str(b_id)],
-            event_type=event_type,
-            summary=summary,
-            emotional_impact={
-                str(a_id): 10.0 if success else -8.0,
-                str(b_id): 5.0 if success else -2.0,
-            },
-        ))
+        self.memory.add_event(
+            SocialEvent(
+                tick=self._tick_count,
+                participants=[str(a_id), str(b_id)],
+                event_type=event_type,
+                summary=summary,
+                emotional_impact={
+                    str(a_id): 10.0 if success else -8.0,
+                    str(b_id): 5.0 if success else -2.0,
+                },
+            )
+        )
 
         return {
             "type": event_type,
@@ -284,8 +304,181 @@ class Simulation:
     def _name(self, char_id) -> str:
         return self._char_map[char_id].name if char_id in self._char_map else str(char_id)
 
+    # ------------------------------------------------------------------
+    # Real-time step (replaces all-pairs tick for live play)
+    # ------------------------------------------------------------------
+
+    def step(self, time_of_day: str | None = None) -> list[dict]:
+        """실시간용: 랜덤으로 1~2쌍 캐릭터를 골라 단일 이벤트 생성.
+
+        tick()과 달리 '모든 쌍 처리' 없음 — 이벤트 하나만 만들고 반환.
+        backward compat을 위해 tick()은 그대로 유지.
+        """
+        if len(self.characters) < 2:
+            return []
+
+        if time_of_day is None:
+            from tomodachai.time_system import get_clock
+
+            time_of_day = get_clock().get_time_period()
+
+        # 랜덤으로 캐릭터 2명 선택
+        pair = self._rng.sample(self.characters, 2)
+        char_a, char_b = pair[0], pair[1]
+
+        # 랜덤 장소 선택
+        if self.config.locations:
+            loc = self._rng.choice(self.config.locations)
+            location = loc.name
+        else:
+            location = "공동주택"
+
+        events: list[dict] = []
+
+        # 대화 이벤트 생성
+        result = self._run_conversation(char_a, char_b, location, time_of_day)
+        events.append(
+            {
+                "type": "conversation",
+                "location": location,
+                "participants": [char_a.name, char_b.name],
+                "result": result,
+            }
+        )
+
+        # 트리거 이벤트 체크 (이 쌍에 한해서만)
+        triggered = self._check_triggered_events_for_pair(char_a.id, char_b.id)
+        events.extend(triggered)
+
+        # 단계 전환 체크
+        self._check_stage_transitions()
+
+        # 삼각관계 질투 체크
+        triangles = detect_triangles(self.relationships)
+        if triangles:
+            apply_jealousy(self.relationships, triangles)
+
+        # 욕구 업데이트
+        self._update_needs()
+
+        self._tick_count += 1
+        return events
+
+    def _check_triggered_events_for_pair(self, a_id, b_id) -> list[dict]:
+        """특정 쌍에 대해서만 fight/confession 체크."""
+        events: list[dict] = []
+        rel = self.relationships.get(a_id, b_id)
+
+        if (
+            rel.friendship <= _FIGHT_FRIENDSHIP_THRESHOLD
+            and self._rng.random() < _FIGHT_CHANCE
+            and rel.stage not in (RelationshipStage.STRANGER,)
+        ):
+            fight = self._trigger_fight(a_id, b_id, rel.friendship)
+            if fight:
+                events.append(fight)
+
+        if (
+            rel.romance >= _CONFESSION_ROMANCE_THRESHOLD
+            and rel.stage in (RelationshipStage.FRIEND, RelationshipStage.BEST_FRIEND)
+            and self._rng.random() < _CONFESSION_CHANCE
+        ):
+            confession = self._trigger_confession(a_id, b_id)
+            if confession:
+                events.append(confession)
+
+        return events
+
+    # ------------------------------------------------------------------
+    # Offline catch-up (lightweight, no LLM)
+    # ------------------------------------------------------------------
+
+    def generate_catchup_events(self, offline_hours: float) -> list[dict]:
+        """오프라인 기간 동안 일어났을 법한 이벤트를 숫자 테이블로만 산출.
+
+        LLM 호출 없음. 큰 이벤트(고백/결혼 등) 금지.
+        반환값: 경량 이벤트 dict 리스트.
+        """
+        from tomodachai.time_system import GameClock
+
+        clock = GameClock()
+        count = clock.catchup_event_count(offline_hours)
+
+        if len(self.characters) < 2 or count == 0:
+            return []
+
+        events: list[dict] = []
+        pairs = list(combinations(self.characters, 2))
+
+        for _ in range(count):
+            if not pairs:
+                break
+            char_a, char_b = self._rng.choice(pairs)
+
+            f_delta = self._rng.uniform(*_CATCHUP_FRIENDSHIP_DELTA_RANGE)
+            r_delta = self._rng.uniform(*_CATCHUP_ROMANCE_DELTA_RANGE)
+
+            self.relationships.update(
+                char_a.id,
+                char_b.id,
+                {
+                    "friendship": f_delta,
+                    "romance": r_delta,
+                },
+            )
+            self.relationships.update(
+                char_b.id,
+                char_a.id,
+                {
+                    "friendship": f_delta * 0.8,  # 비대칭 허용
+                    "romance": r_delta * 0.6,
+                },
+            )
+
+            self._check_stage_transitions()
+
+            self.memory.add_event(
+                SocialEvent(
+                    tick=self._tick_count,
+                    participants=[str(char_a.id), str(char_b.id)],
+                    event_type="catchup",
+                    summary=f"[오프라인] {char_a.name}와(과) {char_b.name}의 일상적인 교류",
+                    emotional_impact={
+                        str(char_a.id): f_delta,
+                        str(char_b.id): f_delta * 0.8,
+                    },
+                )
+            )
+
+            self._tick_count += 1
+
+            events.append(
+                {
+                    "type": "catchup",
+                    "participants": [char_a.name, char_b.name],
+                    "summary": f"{char_a.name}와(과) {char_b.name}이(가) 어울렸다.",
+                    "deltas": {
+                        char_a.name: {
+                            "friendship": round(f_delta, 1),
+                            "romance": round(r_delta, 1),
+                        },
+                        char_b.name: {
+                            "friendship": round(f_delta * 0.8, 1),
+                            "romance": round(r_delta * 0.6, 1),
+                        },
+                    },
+                }
+            )
+
+        return events
+
+    # ------------------------------------------------------------------
+
     def _force_encounter(
-        self, char_a: Character, char_b: Character, location: str,
+        self,
+        char_a: Character,
+        char_b: Character,
+        location: str,
     ) -> ConversationResult:
         return self._run_conversation(char_a, char_b, location, "오후")
 
@@ -297,9 +490,9 @@ class Simulation:
 
     def _print_tick(self, tick_num: int, events: list[dict]) -> None:
         time_of_day = _TIME_SLOTS[tick_num % len(_TIME_SLOTS)]
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"  틱 {tick_num} | {time_of_day}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         if not events:
             print("  (아무 일도 일어나지 않았다)")
@@ -311,7 +504,7 @@ class Simulation:
             if etype == "conversation":
                 result: ConversationResult = event["result"]
                 print(f"\n  📍 {result.summary}")
-                print(f"  {'-'*40}")
+                print(f"  {'-' * 40}")
                 for line in result.dialogue:
                     print(f"  {line.speaker}: {line.text}")
                 for name, deltas in result.deltas.items():

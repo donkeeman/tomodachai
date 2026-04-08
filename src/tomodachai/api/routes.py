@@ -10,13 +10,18 @@ from tomodachai.api.schemas import (
     CustomizableOut,
     EventOut,
     GameStatusOut,
+    LoadResponse,
+    LocationOut,
     MiniTraitEntry,
     MoodOut,
+    MoveResponse,
     PersonalitySliders,
     PersonalityTypeOut,
     PreferencesOut,
     RecordsOut,
     RelationshipOut,
+    SaveResponse,
+    SlotInfoOut,
     StateOut,
     StatusResponse,
     TickRequest,
@@ -24,16 +29,23 @@ from tomodachai.api.schemas import (
 )
 from tomodachai.character import Character
 from tomodachai.game_state import GameState
+from tomodachai.save import SaveManager
 
 router = APIRouter()
 
 # Singleton game state — created on startup, injected via app.state
 _game: GameState | None = None
+_save_manager: SaveManager = SaveManager()
 
 
 def set_game_state(game: GameState) -> None:
     global _game
     _game = game
+
+
+def set_save_manager(manager: SaveManager) -> None:
+    global _save_manager
+    _save_manager = manager
 
 
 def _gs() -> GameState:
@@ -357,6 +369,157 @@ def list_personalities():
         )
         for p in gs.personalities.values()
     ]
+
+
+# ---------------------------------------------------------------------------
+# Locations
+# ---------------------------------------------------------------------------
+
+
+@router.get("/locations", response_model=list[LocationOut])
+def list_locations():
+    """모든 장소와 현재 입장 캐릭터 목록을 반환한다."""
+    gs = _gs()
+    snapshot = gs.location_manager.snapshot()
+    return [LocationOut(**entry) for entry in snapshot]
+
+
+@router.post(
+    "/locations/move/{char_id}/{destination}",
+    response_model=MoveResponse,
+)
+def move_character(char_id: str, destination: str):
+    """플레이어가 캐릭터를 강제 이동시킨다 (물리적 간섭).
+
+    destination은 장소 ID 또는 장소 이름 모두 허용.
+    """
+    gs = _gs()
+    int_id = _parse_char_id(char_id)
+    if isinstance(int_id, str):
+        int_id = abs(hash(int_id)) % 100000
+
+    # 캐릭터 존재 여부 확인
+    char = gs.get_character(_parse_char_id(char_id))
+    if char is None:
+        raise HTTPException(status_code=404, detail="Character not found")
+
+    success = gs.location_manager.move_character(int_id, destination)
+    if not success:
+        # 장소 ID/이름 찾기 실패
+        raise HTTPException(
+            status_code=404,
+            detail=f"Location '{destination}' not found",
+        )
+
+    # Character.state.current_location도 동기화
+    actual_loc_id = gs.location_manager.get_character_location(int_id)
+    loc = gs.location_manager.get_location(actual_loc_id or destination)
+    loc_name = loc.name if loc else destination
+    char.state.current_location = loc_name
+
+    return MoveResponse(
+        char_id=int_id,
+        destination=actual_loc_id or destination,
+        success=True,
+        message=f"{char.name}을(를) {loc_name}으로 이동시켰다.",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Save / Load
+# ---------------------------------------------------------------------------
+
+
+@router.get("/saves", response_model=list[SlotInfoOut])
+def list_saves():
+    """List all save slots with metadata."""
+    slots = _save_manager.list_slots()
+    return [
+        SlotInfoOut(
+            slot=s.slot,
+            exists=s.exists,
+            island_name=s.island_name,
+            day_count=s.day_count,
+            last_saved=s.last_saved,
+        )
+        for s in slots
+    ]
+
+
+@router.post("/save/{slot}", response_model=SaveResponse)
+def save_game(slot: int):
+    """Save current game to the given slot (1-3)."""
+    gs = _gs()
+    try:
+        _save_manager.save(slot, gs)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Save failed: {e}")
+    return SaveResponse(ok=True, slot=slot, message=f"Saved to slot {slot}")
+
+
+@router.post("/load/{slot}", response_model=LoadResponse)
+def load_game(slot: int):
+    """Load game from the given slot and replace current game state."""
+    global _game
+    try:
+        loaded = _save_manager.load(slot)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Save slot {slot} does not exist")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Load failed: {e}")
+    _game = loaded
+    return LoadResponse(
+        ok=True,
+        slot=slot,
+        island_name=loaded.island_name,
+        day_count=loaded.day_count,
+        characters=len(loaded.characters),
+    )
+
+
+@router.delete("/save/{slot}", status_code=204)
+def delete_save(slot: int):
+    """Delete a save slot."""
+    try:
+        _save_manager.delete_slot(slot)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/save/temp", response_model=SaveResponse)
+def save_temp():
+    """Write crash-recovery temp save."""
+    gs = _gs()
+    try:
+        _save_manager.save_temp(gs)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Temp save failed: {e}")
+    return SaveResponse(ok=True, slot=0, message="Temp save written")
+
+
+@router.post("/load/temp", response_model=LoadResponse)
+def load_temp():
+    """Load from crash-recovery temp save."""
+    global _game
+    if not _save_manager.has_temp_save():
+        raise HTTPException(status_code=404, detail="No crash-recovery save found")
+    try:
+        loaded = _save_manager.load_temp()
+        _save_manager.clear_temp()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Temp load failed: {e}")
+    _game = loaded
+    return LoadResponse(
+        ok=True,
+        slot="temp",
+        island_name=loaded.island_name,
+        day_count=loaded.day_count,
+        characters=len(loaded.characters),
+    )
 
 
 # ---------------------------------------------------------------------------

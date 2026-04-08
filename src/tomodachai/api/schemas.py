@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-
 # ---------------------------------------------------------------------------
 # Character
 # ---------------------------------------------------------------------------
@@ -166,3 +165,51 @@ class PersonalityTypeOut(BaseModel):
     name: str
     family: str
     description: str
+
+
+# ---------------------------------------------------------------------------
+# Locations
+# ---------------------------------------------------------------------------
+
+class LocationOut(BaseModel):
+    id: str
+    name: str
+    location_type: str
+    capacity: int
+    event_types: list[str]
+    description: str
+    characters: list[int]  # 현재 해당 장소에 있는 캐릭터 ID 목록
+
+
+class MoveResponse(BaseModel):
+    char_id: int
+    destination: str
+    success: bool
+    message: str
+
+
+# ---------------------------------------------------------------------------
+# Save / Load
+# ---------------------------------------------------------------------------
+
+class SlotInfoOut(BaseModel):
+    slot: int
+    exists: bool
+    island_name: str = ""
+    day_count: int = 0
+    last_saved: str = ""
+
+
+class SaveResponse(BaseModel):
+    ok: bool
+    slot: int
+    message: str = ""
+
+
+class LoadResponse(BaseModel):
+    ok: bool
+    slot: int | str
+    island_name: str = ""
+    day_count: int = 0
+    characters: int = 0
+    message: str = ""

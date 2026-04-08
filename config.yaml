@@ -10,9 +10,15 @@ simulation:
   ticks_per_day: 6
   max_characters: 24    # 섬당 최대 24명
 
-# 장소 목록 (기획서 기준)
+# 기존 simulation.py 호환용 locations (assign_locations에서 사용)
+# 신규 LocationManager의 장소 정의는 location.py의 DEFAULT_LOCATIONS 참조
 locations:
-  # 필수
+  # 공유 주택
+  - name: "거실"
+    capacity: 10
+  - name: "발코니"
+    capacity: 3
+  # 13개 공개 장소
   - name: "식료품점"
     capacity: 4
   - name: "의류점"
@@ -23,8 +29,19 @@ locations:
     capacity: 6
   - name: "방송국"
     capacity: 2
-  # 후보 (확정)
   - name: "공원"
-    capacity: 6
+    capacity: 8
   - name: "카페"
+    capacity: 4
+  - name: "해변"
+    capacity: 5
+  - name: "광장"
+    capacity: 24
+  - name: "콘서트홀"
+    capacity: 24
+  - name: "놀이공원"
+    capacity: 8
+  - name: "시청"
+    capacity: 6
+  - name: "사진관"
     capacity: 4
