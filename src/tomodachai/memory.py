@@ -19,20 +19,22 @@ class MemoryStore:
         self._events.append(event)
 
     def get_events_for(
-        self, char_id: str, limit: int = 10
+        self, char_id: str | int, limit: int = 10
     ) -> list[SocialEvent]:
+        key = str(char_id)
         relevant = [
-            e for e in self._events if char_id in e.participants
+            e for e in self._events if key in e.participants
         ]
         relevant.sort(key=lambda e: e.tick, reverse=True)
         return relevant[:limit]
 
     def get_events_between(
-        self, char_a: str, char_b: str, limit: int = 5
+        self, char_a: str | int, char_b: str | int, limit: int = 5
     ) -> list[SocialEvent]:
+        key_a, key_b = str(char_a), str(char_b)
         relevant = [
             e for e in self._events
-            if char_a in e.participants and char_b in e.participants
+            if key_a in e.participants and key_b in e.participants
         ]
         relevant.sort(key=lambda e: e.tick, reverse=True)
         return relevant[:limit]

@@ -7,6 +7,8 @@ dependencies = [
     "litellm>=1.40.0",
     "pydantic>=2.0",
     "pyyaml>=6.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
 ]
 
 [project.optional-dependencies]
@@ -37,4 +39,9 @@ select = ["E", "F", "I", "W"]
 testpaths = ["tests"]
 markers = [
     "integration: tests requiring a real LLM connection",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.9",
 ]

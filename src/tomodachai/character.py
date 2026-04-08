@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 
 def calculate_zodiac(birthday: str) -> str:
@@ -39,49 +39,371 @@ def calculate_zodiac(birthday: str) -> str:
     return ""
 
 
-class Character(BaseModel):
-    id: str
+# ---------------------------------------------------------------------------
+# Appearance sub-models
+# ---------------------------------------------------------------------------
+
+class AppearanceAdjust(BaseModel):
+    """파츠별 미세 조절 파라미터."""
+    spacing: int = 0
+    height: int = 0
+    size: int = 0
+    angle: int = 0
+
+
+class Eye(BaseModel):
+    base: int = 1
+    lash: int = 0
+    color: str = "#000000"
+    adjust: AppearanceAdjust = Field(default_factory=AppearanceAdjust)
+
+
+class Eyebrow(BaseModel):
+    id: int = 1
+    adjust: AppearanceAdjust = Field(default_factory=AppearanceAdjust)
+
+
+class Nose(BaseModel):
+    id: int = 1
+    adjust: AppearanceAdjust = Field(default_factory=AppearanceAdjust)
+
+
+class Mouth(BaseModel):
+    id: int = 1
+    adjust: AppearanceAdjust = Field(default_factory=AppearanceAdjust)
+
+
+class Hair(BaseModel):
+    front: int = 1
+    back: int = 1
+    color: str = "#000000"
+
+
+class Body(BaseModel):
+    height: int = 5   # 0~10
+    build: int = 5    # 0~10
+
+
+class Appearance(BaseModel):
+    face_shape: int = 1
+    skin_color: str = "#F5D6B8"
+    eye: Eye = Field(default_factory=Eye)
+    eyebrow: Eyebrow = Field(default_factory=Eyebrow)
+    nose: Nose = Field(default_factory=Nose)
+    mouth: Mouth = Field(default_factory=Mouth)
+    hair: Hair = Field(default_factory=Hair)
+    glasses: int | None = None
+    body: Body = Field(default_factory=Body)
+
+
+# ---------------------------------------------------------------------------
+# Personality & Voice sub-models
+# ---------------------------------------------------------------------------
+
+class Personality(BaseModel):
+    """성격 슬라이더 5종 (0~10 int).
+
+    movement + speech → 4계통 결정
+    expressiveness + attitude → 4형 결정
+    overall → 유형 판정 무관, 병맛 톤 강도에만 영향
+    """
+    movement: int = 5       # 느림(0) ↔ 빠름(10)
+    speech: int = 5         # 유순(0) ↔ 직설(10)
+    expressiveness: int = 5  # 냉정(0) ↔ 감정적(10)
+    attitude: int = 5       # 진지(0) ↔ 여유(10)
+    overall: int = 5        # 특이(0) ↔ 평범(10)
+
+
+class Voice(BaseModel):
+    preset: str = "default"
+    pitch: int = 5
+    speed: int = 5
+    quality: str | None = None
+    tone: str | None = None
+    accent: str | None = None
+    intonation: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Profile sub-model
+# ---------------------------------------------------------------------------
+
+class Profile(BaseModel):
     name: str
-    personality_code: str
-    backstory: str = ""
-
-    # 프로필
-    birthday: str = ""          # "MM-DD"
-    zodiac: str = ""            # 별자리 (birthday에서 자동 계산)
-    blood_type: str = ""        # "A" / "B" / "O" / "AB"
-    favorite_color: str = ""    # 좋아하는 색 (기본 복장 색상)
-    gender: str = ""            # 자유 텍스트, 제한 없음
-
-    # 말버릇 (감정별 5종류)
-    speech_habits: dict[str, str] = {}   # "normal"/"happy"/"angry"/"sad"/"worried"
-
-    # 상태 수치
-    satisfaction: float = 50.0  # 만족도/행복도 0~100
-    hunger: float = 0.0         # 배고픔 0~100, 시간 경과로 증가
-
-    # 선호도
-    food_preferences: dict[str, str] = {}      # item_id → "최애"/"좋아함"/"보통"/"싫어함"/"최악"
-    clothing_preferences: dict[str, str] = {}  # 의류 스타일 선호도
-
-    # 관계
-    nicknames: dict[str, str] = {}  # char_id → 이 캐릭터를 부르는 별명
-
-    # 미니 개성
-    mini_personality: list[str] = []  # 걷는 방식·먹는 방식·습관 등 미세 행동 특성
+    birthday: str = ""           # "MM-DD"
+    zodiac: str = ""             # 별자리 (birthday에서 자동 계산)
+    blood_type: str = ""         # "A" / "B" / "O" / "AB"
+    favorite_color: str = ""     # 좋아하는 색 (기본 복장 색상)
+    gender: str = ""             # 자유 텍스트, 수정 불가
+    appearance: Appearance = Field(default_factory=Appearance)
+    personality: Personality = Field(default_factory=Personality)
+    voice: Voice = Field(default_factory=Voice)
 
     @model_validator(mode="before")
     @classmethod
-    def _migrate_and_compute(cls, data: dict) -> dict:
-        # 하위 호환: 구버전 speech_habit(str) → speech_habits["normal"]로 마이그레이션
+    def _compute_zodiac(cls, data: dict) -> dict:
         if isinstance(data, dict):
-            old_habit = data.pop("speech_habit", None)
-            if old_habit and not data.get("speech_habits"):
-                data["speech_habits"] = {"normal": old_habit}
+            birthday = data.get("birthday", "")
+            zodiac = data.get("zodiac", "")
+            if birthday and not zodiac:
+                data["zodiac"] = calculate_zodiac(birthday)
+        return data
 
-        # birthday가 있고 zodiac이 비어 있으면 자동 계산
-        birthday = data.get("birthday", "") if isinstance(data, dict) else ""
-        zodiac = data.get("zodiac", "") if isinstance(data, dict) else ""
-        if birthday and not zodiac:
-            data["zodiac"] = calculate_zodiac(birthday)
+
+# ---------------------------------------------------------------------------
+# Preferences sub-models
+# ---------------------------------------------------------------------------
+
+class ClothingPreference(BaseModel):
+    likes: str = ""
+    dislikes: str = ""
+
+
+class InteriorPreference(BaseModel):
+    likes: str = ""
+    dislikes: str = ""
+
+
+class PersonalityGroup(BaseModel):
+    """생성 시 랜덤 배정된 선호/비선호 성격 계통."""
+    group: str = ""          # 계통 이름 e.g. "steady", "outgoing"
+    is_positive: bool = True  # True → 선호, False → 비선호
+
+
+class Preferences(BaseModel):
+    food_ranks: list[int] = Field(default_factory=list)
+    """인덱스 = 음식 ID, 값 = 순위. 생성 시 확정, 불변."""
+
+    food_eaten: list[bool] = Field(default_factory=list)
+    """인덱스 = 음식 ID, 값 = 이 캐릭터에게 먹여봤는지."""
+
+    clothing: ClothingPreference = Field(default_factory=ClothingPreference)
+    interior: InteriorPreference = Field(default_factory=InteriorPreference)
+    personality_group: PersonalityGroup = Field(default_factory=PersonalityGroup)
+
+
+# ---------------------------------------------------------------------------
+# State sub-models
+# ---------------------------------------------------------------------------
+
+class Mood(BaseModel):
+    """단기 감정 상태 3축 (0~10 int)."""
+    happiness: int = 5   # ↑ 좋아하는 음식/친구 대화, ↓ 싫어하는 음식/싸움
+    energy: int = 5      # ↑ 대화/활동, ↓ 배고픔/거절
+    stress: int = 2      # ↑ 싸움/배고픔/거절, ↓ 친구 대화/시간 경과
+
+
+class CharacterState(BaseModel):
+    satisfaction: float = 50.0   # 장기 레벨업 경험치, 마이너스 가능 → 절망
+    level: int = 1
+    hunger: float = 0.0          # 0~100, 시간 경과로 증가
+    mood: Mood = Field(default_factory=Mood)
+    sick: str | None = None      # None / "cold" / "stomachache"
+    current_location: str = ""
+    current_outfit: int | None = None
+    current_interior: int | None = None
+    photo_frame: int | None = None
+
+
+# ---------------------------------------------------------------------------
+# Customizable sub-models
+# ---------------------------------------------------------------------------
+
+class SpeechHabits(BaseModel):
+    """감정별 말버릇 5종."""
+    normal: str = ""
+    happy: str = ""
+    angry: str = ""
+    sad: str = ""
+    worried: str = ""
+
+    def as_dict(self) -> dict[str, str]:
+        return {k: v for k, v in self.model_dump().items() if v}
+
+
+class MiniTrait(BaseModel):
+    """카테고리별 미니 개성 (보유 풀 + 활성 1개)."""
+    owned: list[int] = Field(default_factory=list)
+    active: int | None = None    # None → 성격 기본값 사용
+
+
+class MiniTraits(BaseModel):
+    walking: MiniTrait = Field(default_factory=MiniTrait)
+    eating: MiniTrait = Field(default_factory=MiniTrait)
+    idle: MiniTrait = Field(default_factory=MiniTrait)
+
+
+class Customizable(BaseModel):
+    speech_habits: SpeechHabits = Field(default_factory=SpeechHabits)
+    mini_traits: MiniTraits = Field(default_factory=MiniTraits)
+    nicknames: dict[str, str] = Field(default_factory=dict)
+    """char_id(str) → 이 캐릭터가 상대에게 부르는 별명."""
+    songs: list[bool] = Field(default_factory=lambda: [False] * 8)
+    """길이 8. 장르 순서: 트로트/아이돌/발라드/락/랩/뮤지컬·오페라/동요/찬송가."""
+
+
+# ---------------------------------------------------------------------------
+# Records sub-model
+# ---------------------------------------------------------------------------
+
+class Records(BaseModel):
+    treasure_collection: list[int] = Field(default_factory=list)
+    confession_count: dict[str, int] = Field(default_factory=dict)
+    """char_id(str) → 고백 횟수."""
+    photos: list[int] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Character (top-level)
+# ---------------------------------------------------------------------------
+
+class Character(BaseModel):
+    """캐릭터 모델. 신규 중첩 구조 + 구버전 플랫 구조 하위 호환.
+
+    JSON 저장 형식은 char_{id}.json 스키마를 따른다.
+    id는 int 권장 (신버전), str도 허용 (구버전 하위 호환).
+    """
+    id: int | str
+
+    # 주요 섹션 (JSON 저장 구조와 일치)
+    profile: Profile
+    preferences: Preferences = Field(default_factory=Preferences)
+    state: CharacterState = Field(default_factory=CharacterState)
+    customizable: Customizable = Field(default_factory=Customizable)
+    records: Records = Field(default_factory=Records)
+
+    # 성격 코드 — personality.py에서 참조하는 식별자
+    # (profile.personality 슬라이더와 별개로 유지되는 레거시 코드)
+    personality_code: str = ""
+
+    # 구버전 하위 호환 필드 (flat 구조 접근용)
+    food_preferences: dict[str, str] = Field(default_factory=dict)
+    """구버전: item_id → 선호 등급("최애"/"좋아함"/"보통"/"싫어함"/"최악")."""
+    clothing_preferences: dict[str, str] = Field(default_factory=dict)
+    """구버전: 의류 스타일 선호도."""
+    mini_personality: list[str] = Field(default_factory=list)
+    """구버전: 미세 행동 특성 텍스트 목록."""
+
+    @model_validator(mode="before")
+    @classmethod
+    def _migrate(cls, data: dict) -> dict:
+        if not isinstance(data, dict):
+            return data
+
+        # ── 구버전 플랫 구조 → 신버전 중첩 구조 마이그레이션 ──────────────
+
+        # profile이 없으면 플랫 필드를 묶어 profile 생성
+        if "profile" not in data:
+            profile_fields = {
+                "name": data.pop("name", ""),
+                "birthday": data.pop("birthday", ""),
+                "zodiac": data.pop("zodiac", ""),
+                "blood_type": data.pop("blood_type", ""),
+                "favorite_color": data.pop("favorite_color", ""),
+                "gender": data.pop("gender", ""),
+            }
+            data["profile"] = profile_fields
+
+        # 구버전 speech_habits / speech_habit → customizable.speech_habits 마이그레이션
+        if "customizable" not in data:
+            old_habits = data.pop("speech_habits", None)
+            old_habit_single = data.pop("speech_habit", None)
+
+            if old_habits and isinstance(old_habits, dict):
+                data["customizable"] = {"speech_habits": old_habits}
+            elif old_habit_single and isinstance(old_habit_single, str):
+                data["customizable"] = {"speech_habits": {"normal": old_habit_single}}
+
+        # 구버전 satisfaction / hunger / mood → state 마이그레이션
+        if "state" not in data:
+            state_fields: dict = {}
+            for field in ("satisfaction", "hunger", "sick"):
+                if field in data:
+                    state_fields[field] = data.pop(field)
+            if "mood" in data:
+                state_fields["mood"] = data.pop("mood")
+            if state_fields:
+                data["state"] = state_fields
+
+        # 구버전 backstory 필드 제거 (소비만 함)
+        data.pop("backstory", None)
+
+        # 구버전 food_preferences / clothing_preferences → 최상위 필드로 유지
+        # (preferences.food_ranks와 별개 구조이므로 별도 보존)
+        # 구버전 nicknames → customizable.nicknames 이동 (최상위에서 제거)
+        old_nicknames = data.pop("nicknames", None)
+        if old_nicknames and "customizable" not in data:
+            data["customizable"] = {"nicknames": old_nicknames}
+        elif old_nicknames and isinstance(data.get("customizable"), dict):
+            data["customizable"].setdefault("nicknames", old_nicknames)
+
+        # preferences 섹션 없을 때 신버전 필드 마이그레이션
+        if "preferences" not in data:
+            pref_fields: dict = {}
+            for field in ("food_ranks", "food_eaten", "clothing", "interior", "personality_group"):
+                if field in data:
+                    pref_fields[field] = data.pop(field)
+            if pref_fields:
+                data["preferences"] = pref_fields
 
         return data
+
+    # ------------------------------------------------------------------
+    # Backward-compat properties — simulation.py / conversation.py 호환
+    # ------------------------------------------------------------------
+
+    @property
+    def name(self) -> str:
+        return self.profile.name
+
+    @property
+    def birthday(self) -> str:
+        return self.profile.birthday
+
+    @property
+    def zodiac(self) -> str:
+        return self.profile.zodiac
+
+    @property
+    def blood_type(self) -> str:
+        return self.profile.blood_type
+
+    @property
+    def gender(self) -> str:
+        return self.profile.gender
+
+    @property
+    def favorite_color(self) -> str:
+        return self.profile.favorite_color
+
+    @property
+    def speech_habits(self) -> dict[str, str]:
+        """conversation.py 호환: 말버릇을 dict[str, str]로 반환."""
+        return self.customizable.speech_habits.as_dict()
+
+    @property
+    def nicknames(self) -> dict[str, str]:
+        """구버전 호환: customizable.nicknames 위임."""
+        return self.customizable.nicknames
+
+    @property
+    def backstory(self) -> str:
+        """conversation.py 호환: backstory 필드 제거됨, 빈 문자열 반환."""
+        return ""
+
+    # satisfaction / hunger — simulation.py가 직접 대입하므로 setter 필요
+    @property
+    def satisfaction(self) -> float:
+        return self.state.satisfaction
+
+    @satisfaction.setter
+    def satisfaction(self, value: float) -> None:
+        self.state.satisfaction = value
+
+    @property
+    def hunger(self) -> float:
+        return self.state.hunger
+
+    @hunger.setter
+    def hunger(self, value: float) -> None:
+        self.state.hunger = value

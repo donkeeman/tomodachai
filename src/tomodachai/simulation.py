@@ -21,7 +21,7 @@ from tomodachai.relationship import (
 _TIME_SLOTS = ["아침", "오전", "점심", "오후", "저녁", "밤"]
 
 # Thresholds for auto-triggered events
-_FIGHT_TENSION_THRESHOLD = 60.0
+_FIGHT_FRIENDSHIP_THRESHOLD = -30.0  # friendship below this can trigger fight
 _FIGHT_CHANCE = 0.3
 _CONFESSION_ROMANCE_THRESHOLD = 60.0
 _CONFESSION_CHANCE = 0.2
@@ -139,12 +139,12 @@ class Simulation:
 
         self.memory.add_event(SocialEvent(
             tick=self._tick_count,
-            participants=[char_a.id, char_b.id],
+            participants=[str(char_a.id), str(char_b.id)],
             event_type="conversation",
             summary=result.summary,
             emotional_impact={
-                char_a.id: sum(result.deltas.get(char_a.name, {}).values()),
-                char_b.id: sum(result.deltas.get(char_b.name, {}).values()),
+                str(char_a.id): sum(result.deltas.get(char_a.name, {}).values()),
+                str(char_b.id): sum(result.deltas.get(char_b.name, {}).values()),
             },
         ))
 
@@ -155,13 +155,13 @@ class Simulation:
         events: list[dict] = []
 
         for a_id, b_id, rel in self.relationships.all_pairs():
-            # Fight trigger: high tension
+            # Fight trigger: very negative friendship
             if (
-                rel.tension >= _FIGHT_TENSION_THRESHOLD
+                rel.friendship <= _FIGHT_FRIENDSHIP_THRESHOLD
                 and self._rng.random() < _FIGHT_CHANCE
                 and rel.stage not in (RelationshipStage.STRANGER,)
             ):
-                fight = self._trigger_fight(a_id, b_id, rel.tension)
+                fight = self._trigger_fight(a_id, b_id, rel.friendship)
                 if fight:
                     events.append(fight)
 
@@ -180,7 +180,7 @@ class Simulation:
 
         return events
 
-    def _trigger_fight(self, a_id: str, b_id: str, tension: float) -> dict | None:
+    def _trigger_fight(self, a_id: int, b_id: int, friendship: float) -> dict | None:
         # Don't fight if already fighting
         active_fights = self.relationships.get_fights()
         for f in active_fights:
@@ -189,13 +189,13 @@ class Simulation:
 
         fight = Fight(
             participants=(a_id, b_id),
-            cause=f"긴장도 {tension:.0f} 초과",
+            cause=f"우정 {friendship:.0f} — 사이가 나쁨",
         )
         self.relationships.add_fight(fight)
 
         # Apply fight effects
-        self.relationships.update(a_id, b_id, {"friendship": -5, "tension": -10})
-        self.relationships.update(b_id, a_id, {"friendship": -5, "tension": -10})
+        self.relationships.update(a_id, b_id, {"friendship": -5})
+        self.relationships.update(b_id, a_id, {"friendship": -5})
 
         # Log event
         rel = self.relationships.get(a_id, b_id)
@@ -207,10 +207,10 @@ class Simulation:
 
         self.memory.add_event(SocialEvent(
             tick=self._tick_count,
-            participants=[a_id, b_id],
+            participants=[str(a_id), str(b_id)],
             event_type="fight",
             summary=f"{self._name(a_id)}와(과) {self._name(b_id)}가 싸움",
-            emotional_impact={a_id: -5.0, b_id: -5.0},
+            emotional_impact={str(a_id): -5.0, str(b_id): -5.0},
         ))
 
         # Satisfaction hit
@@ -228,7 +228,7 @@ class Simulation:
             "summary": f"{a_name}와(과) {b_name}의 긴장이 폭발하여 싸움이 벌어졌다!",
         }
 
-    def _trigger_confession(self, a_id: str, b_id: str) -> dict | None:
+    def _trigger_confession(self, a_id: int, b_id: int) -> dict | None:
         rel_ab = self.relationships.get(a_id, b_id)
         rel_ba = self.relationships.get(b_id, a_id)
 
@@ -242,8 +242,8 @@ class Simulation:
             event_type = "confession_success"
             summary = f"{self._name(a_id)}가 {self._name(b_id)}에게 고백하여 연인이 되었다!"
         else:
-            # Rejected: tension increases, romance decreases
-            self.relationships.update(a_id, b_id, {"tension": 10, "romance": -10})
+            # Rejected: friendship hit, romance decreases
+            self.relationships.update(a_id, b_id, {"friendship": -5, "romance": -10})
             event_type = "confession_fail"
             summary = f"{self._name(a_id)}가 {self._name(b_id)}에게 고백했지만 거절당했다."
 
@@ -255,12 +255,12 @@ class Simulation:
 
         self.memory.add_event(SocialEvent(
             tick=self._tick_count,
-            participants=[a_id, b_id],
+            participants=[str(a_id), str(b_id)],
             event_type=event_type,
             summary=summary,
             emotional_impact={
-                a_id: 10.0 if success else -8.0,
-                b_id: 5.0 if success else -2.0,
+                str(a_id): 10.0 if success else -8.0,
+                str(b_id): 5.0 if success else -2.0,
             },
         ))
 
@@ -281,8 +281,8 @@ class Simulation:
             char.hunger = min(100.0, char.hunger + _HUNGER_PER_TICK)
             char.satisfaction = max(0.0, char.satisfaction - _SATISFACTION_DECAY)
 
-    def _name(self, char_id: str) -> str:
-        return self._char_map[char_id].name if char_id in self._char_map else char_id
+    def _name(self, char_id) -> str:
+        return self._char_map[char_id].name if char_id in self._char_map else str(char_id)
 
     def _force_encounter(
         self, char_a: Character, char_b: Character, location: str,

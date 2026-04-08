@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from tomodachai.config import AppConfig, LLMConfig, SimulationConfig, LocationConfig
 from tomodachai.llm import LLMClient
-from tomodachai.character import Character
+from tomodachai.character import Character, Profile, CharacterState, Customizable, SpeechHabits
 from tomodachai.personality import load_personalities
 from tomodachai.relationship import Relationship
 
@@ -38,28 +38,43 @@ def sample_personalities():
 @pytest.fixture
 def char_minsu():
     return Character(
-        id="char_1", name="민수", personality_code="nori_dynamo",
-        speech_habits={"normal": "~인 거지"},
-        backstory="동네 반장을 맡고 있는 활발한 청년",
-        birthday="03-15", blood_type="B", gender="남성",
+        id=1,
+        personality_code="nori_dynamo",
+        profile=Profile(
+            name="민수", birthday="03-15", blood_type="B", gender="남성",
+        ),
+        state=CharacterState(),
+        customizable=Customizable(
+            speech_habits=SpeechHabits(normal="~인 거지"),
+        ),
     )
 
 
 @pytest.fixture
 def char_jieun():
     return Character(
-        id="char_2", name="지은", personality_code="nagomi_dreamer",
-        speech_habits={"normal": "그치~?"},
-        backstory="카페를 운영하는 몽상가",
-        birthday="11-02", blood_type="A", gender="여성",
+        id=2,
+        personality_code="nagomi_dreamer",
+        profile=Profile(
+            name="지은", birthday="11-02", blood_type="A", gender="여성",
+        ),
+        state=CharacterState(),
+        customizable=Customizable(
+            speech_habits=SpeechHabits(normal="그치~?"),
+        ),
     )
 
 
 @pytest.fixture
 def char_taeho():
     return Character(
-        id="char_3", name="태호", personality_code="nori_extrovert",
-        speech_habits={"normal": "ㅋㅋ"},
-        backstory="자유분방한 대학생",
-        birthday="07-28", blood_type="O", gender="남성",
+        id=3,
+        personality_code="nori_extrovert",
+        profile=Profile(
+            name="태호", birthday="07-28", blood_type="O", gender="남성",
+        ),
+        state=CharacterState(),
+        customizable=Customizable(
+            speech_habits=SpeechHabits(normal="ㅋㅋ"),
+        ),
     )
