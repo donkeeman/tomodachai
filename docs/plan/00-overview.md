@@ -38,3 +38,4 @@
 | [10-shop-system.md](10-shop-system.md) | 상점 시스템 |
 | [11-onboarding.md](11-onboarding.md) | 온보딩 |
 | [12-ui-settings.md](12-ui-settings.md) | UI/UX & 설정 |
+| [13-llm-usage.md](13-llm-usage.md) | LLM 사용 범위 |
