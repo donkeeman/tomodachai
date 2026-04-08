@@ -57,6 +57,11 @@ var _slider_attitude: HSlider
 var _slider_overall: HSlider
 var _personality_label: Label
 
+# Step 3 inputs (voice)
+var _voice_preset_select: OptionButton
+var _slider_pitch: HSlider
+var _slider_speed: HSlider
+
 
 func _ready() -> void:
 	_build_ui()
@@ -149,14 +154,18 @@ func _show_step(step: int) -> void:
 		1: _build_step_profile()
 		2: _build_step_voice()
 		3: _build_step_personality()
+		4: _build_step_confirm()
 
 	_prev_btn.visible = step > 0
-	_next_btn.text = "입주시키기" if step == 3 else "다음"
+	_random_btn.visible = step < 4
+	_next_btn.text = "입주시키기" if step == 4 else "다음"
 
 
 func _clear_content() -> void:
-	for child in _content.get_children():
-		child.queue_free()
+	var children := _content.get_children()
+	for child in children:
+		_content.remove_child(child)
+		child.free()  # 즉시 해제, queue_free가 아님
 
 
 func _add_label(text: String) -> Label:
@@ -171,7 +180,7 @@ func _add_label(text: String) -> Label:
 # ---------------------------------------------------------------------------
 
 func _build_step_appearance() -> void:
-	_title_label.text = "1/4 — 외형"
+	_title_label.text = "1/4 — 외형 (준비 중)"
 	_add_label("(3D 모델링 준비 중)")
 	_add_label("")
 	_add_label("외형 커스터마이징은 추후 구현됩니다.")
@@ -185,8 +194,9 @@ func _build_step_appearance() -> void:
 func _build_step_profile() -> void:
 	_title_label.text = "2/4 — 프로필"
 
-	_add_label("이름")
+	_add_label("이름 (최대 10자)")
 	_name_input = LineEdit.new()
+	_name_input.max_length = 10
 	_content.add_child(_name_input)
 
 	_add_label("생일")
@@ -195,19 +205,21 @@ func _build_step_profile() -> void:
 	_content.add_child(bday_row)
 
 	_birthday_m = SpinBox.new()
-	_birthday_m.min_value = 1
-	_birthday_m.max_value = 12
+	_birthday_m.min_value = 0  # wrap용 임시 허용
+	_birthday_m.max_value = 13
 	_birthday_m.value = 1
 	_birthday_m.prefix = ""
 	_birthday_m.suffix = "월"
+	_birthday_m.value_changed.connect(_on_month_changed)
 	bday_row.add_child(_birthday_m)
 
 	_birthday_d = SpinBox.new()
-	_birthday_d.min_value = 1
-	_birthday_d.max_value = 31
+	_birthday_d.min_value = 0
+	_birthday_d.max_value = 32
 	_birthday_d.value = 1
 	_birthday_d.prefix = ""
 	_birthday_d.suffix = "일"
+	_birthday_d.value_changed.connect(_on_day_changed)
 	bday_row.add_child(_birthday_d)
 
 	_add_label("혈액형")
@@ -238,16 +250,77 @@ func _build_step_profile() -> void:
 		_name_input.text = _char_data["name"]
 
 
+func _days_in_month(month: int) -> int:
+	match month:
+		2: return 29
+		4, 6, 9, 11: return 30
+		_: return 31
+
+
+func _on_month_changed(value: float) -> void:
+	var v := int(value)
+	# wrap: 0 → 12, 13 → 1
+	if v < 1:
+		_birthday_m.value = 12
+		return
+	if v > 12:
+		_birthday_m.value = 1
+		return
+	# 일수 보정
+	var max_day := _days_in_month(v)
+	_birthday_d.max_value = max_day + 1  # wrap용 +1
+	if int(_birthday_d.value) > max_day:
+		_birthday_d.value = max_day
+
+
+func _on_day_changed(value: float) -> void:
+	var max_day := _days_in_month(int(_birthday_m.value))
+	var v := int(value)
+	# wrap: 0 → max_day, max_day+1 → 1
+	if v < 1:
+		_birthday_d.value = max_day
+		return
+	if v > max_day:
+		_birthday_d.value = 1
+		return
+
+
 # ---------------------------------------------------------------------------
 # Step 2: 목소리
 # ---------------------------------------------------------------------------
 
 func _build_step_voice() -> void:
 	_title_label.text = "3/4 — 목소리"
-	_add_label("(TTS 시스템 준비 중)")
-	_add_label("")
-	_add_label("목소리 설정은 추후 구현됩니다.")
-	_add_label("지금은 기본 목소리로 진행합니다.")
+	_add_label("(TTS는 아직 미구현 — 값만 저장됩니다)")
+
+	_add_label("프리셋")
+	_voice_preset_select = OptionButton.new()
+	_voice_preset_select.add_item("남성")
+	_voice_preset_select.add_item("여성")
+	_voice_preset_select.selected = 0
+	_content.add_child(_voice_preset_select)
+
+	_add_label("높낮이 (낮음 ↔ 높음)")
+	_slider_pitch = HSlider.new()
+	_slider_pitch.min_value = 0
+	_slider_pitch.max_value = 10
+	_slider_pitch.step = 1
+	_slider_pitch.value = 5
+	_content.add_child(_slider_pitch)
+
+	_add_label("속도 (느림 ↔ 빠름)")
+	_slider_speed = HSlider.new()
+	_slider_speed.min_value = 0
+	_slider_speed.max_value = 10
+	_slider_speed.step = 1
+	_slider_speed.value = 5
+	_content.add_child(_slider_speed)
+
+	# 이전 데이터 복원
+	if _char_data.has("voice_preset"):
+		_voice_preset_select.selected = 0 if _char_data["voice_preset"] == "male" else 1
+		_slider_pitch.value = _char_data.get("voice_pitch", 5)
+		_slider_speed.value = _char_data.get("voice_speed", 5)
 
 
 # ---------------------------------------------------------------------------
@@ -293,6 +366,58 @@ func _add_slider(label_text: String) -> HSlider:
 	slider.value = 5
 	_content.add_child(slider)
 	return slider
+
+
+# ---------------------------------------------------------------------------
+# Step 4: 확인
+# ---------------------------------------------------------------------------
+
+func _build_step_confirm() -> void:
+	_save_current_step()
+	_title_label.text = "확인"
+
+	var name_str: String = _char_data.get("name", "???")
+	var birthday_str: String = _char_data.get("birthday", "")
+	var zodiac_str := _get_zodiac(birthday_str)
+	var blood_str: String = _char_data.get("blood_type", "")
+	var gender_str: String = _char_data.get("gender", "")
+	var color_str: String = _char_data.get("favorite_color", "")
+	var preset_str := "남성" if _char_data.get("voice_preset", "male") == "male" else "여성"
+	var pitch_val: int = _char_data.get("voice_pitch", 5)
+	var speed_val: int = _char_data.get("voice_speed", 5)
+	var group := _get_personality_group()
+	var group_label: String = GROUP_LABELS.get(group, group)
+	var type_label := _get_type_label(group)
+
+	_add_label("이름: %s" % name_str)
+	_add_label("생일: %s (%s)" % [birthday_str, zodiac_str])
+	_add_label("혈액형: %s형" % blood_str)
+	_add_label("성별: %s" % gender_str)
+	_add_label("좋아하는 색: %s" % color_str)
+	_content.add_child(HSeparator.new())
+	_add_label("목소리: %s (높낮이 %d, 속도 %d)" % [preset_str, pitch_val, speed_val])
+	_content.add_child(HSeparator.new())
+	_add_label("성격: %s — %s" % [group_label, type_label])
+
+
+func _get_zodiac(birthday: String) -> String:
+	if birthday.is_empty() or birthday.length() < 5:
+		return ""
+	var month := birthday.left(2).to_int()
+	var day := birthday.right(2).to_int()
+	if (month == 3 and day >= 21) or (month == 4 and day <= 19): return "양자리"
+	if (month == 4 and day >= 20) or (month == 5 and day <= 20): return "황소자리"
+	if (month == 5 and day >= 21) or (month == 6 and day <= 20): return "쌍둥이자리"
+	if (month == 6 and day >= 21) or (month == 7 and day <= 22): return "게자리"
+	if (month == 7 and day >= 23) or (month == 8 and day <= 22): return "사자자리"
+	if (month == 8 and day >= 23) or (month == 9 and day <= 22): return "처녀자리"
+	if (month == 9 and day >= 23) or (month == 10 and day <= 22): return "천칭자리"
+	if (month == 10 and day >= 23) or (month == 11 and day <= 21): return "전갈자리"
+	if (month == 11 and day >= 22) or (month == 12 and day <= 21): return "사수자리"
+	if (month == 12 and day >= 22) or (month == 1 and day <= 19): return "염소자리"
+	if (month == 1 and day >= 20) or (month == 2 and day <= 18): return "물병자리"
+	if (month == 2 and day >= 19) or (month == 3 and day <= 20): return "물고기자리"
+	return ""
 
 
 func _update_personality_preview() -> void:
@@ -353,7 +478,7 @@ func _on_prev() -> void:
 func _on_next() -> void:
 	_save_current_step()
 
-	if _step < 3:
+	if _step < 4:
 		# 프로필 단계 검증
 		if _step == 1:
 			if _char_data.get("name", "").is_empty():
@@ -367,6 +492,7 @@ func _on_next() -> void:
 func _on_random() -> void:
 	match _step:
 		1: _randomize_profile()
+		2: _randomize_voice()
 		3: _randomize_personality()
 
 
@@ -379,6 +505,11 @@ func _save_current_step() -> void:
 				_char_data["blood_type"] = _blood_select.get_item_text(_blood_select.selected)
 				_char_data["gender"] = _gender_select.get_item_text(_gender_select.selected)
 				_char_data["favorite_color"] = _color_select.get_item_text(_color_select.selected)
+		2:
+			if _voice_preset_select:
+				_char_data["voice_preset"] = "male" if _voice_preset_select.selected == 0 else "female"
+				_char_data["voice_pitch"] = int(_slider_pitch.value)
+				_char_data["voice_speed"] = int(_slider_speed.value)
 		3:
 			if _slider_movement:
 				_char_data["movement"] = int(_slider_movement.value)
@@ -395,6 +526,12 @@ func _randomize_profile() -> void:
 	_birthday_d.value = randi_range(1, 28)
 	_blood_select.selected = randi() % 4
 	_color_select.selected = randi() % COLORS.size()
+
+
+func _randomize_voice() -> void:
+	_voice_preset_select.selected = randi() % 2
+	_slider_pitch.value = randi_range(1, 9)
+	_slider_speed.value = randi_range(2, 8)
 
 
 func _randomize_personality() -> void:
@@ -428,6 +565,11 @@ func _submit() -> void:
 			"attitude": _char_data.get("attitude", 5),
 			"overall": _char_data.get("overall", 5),
 		},
+		"voice": {
+			"preset": _char_data.get("voice_preset", "male"),
+			"pitch": _char_data.get("voice_pitch", 5),
+			"speed": _char_data.get("voice_speed", 5),
+		},
 	}
 
 	_next_btn.disabled = true
@@ -441,10 +583,10 @@ func _on_created(code: int, data: Variant) -> void:
 
 	if code == 201 and data is Dictionary:
 		var cid: int = data.get("id", -1)
-		var cname: String = data.get("name", "?")
-		_result_label.text = "%s (ID:%d) 입주 완료!" % [cname, cid]
 		_next_id += 1
 		character_created.emit(cid)
+		# 모달 자동 닫기
+		queue_free()
 	elif code == 409:
 		_result_label.text = "중복 ID — 다시 시도해주세요."
 		_next_id += 1

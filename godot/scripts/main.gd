@@ -40,7 +40,14 @@ func _toggle_create_ui() -> void:
 		_close_create_ui()
 		return
 	_create_ui = _create_scene.instantiate()
+	_create_ui.character_created.connect(_on_character_created)
+	_create_ui.tree_exiting.connect(func() -> void: _create_ui = null)
 	$UI.add_child(_create_ui)
+
+
+func _on_character_created(_char_id: int) -> void:
+	# 목록 갱신
+	GameServer.get_status(_on_status_received)
 
 
 func _close_create_ui() -> void:
