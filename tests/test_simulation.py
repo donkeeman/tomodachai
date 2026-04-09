@@ -58,7 +58,7 @@ def test_simulation_tick_generates_conversations(
         llm=mock_llm,
         personalities=sample_personalities,
     )
-    events = sim.tick(seed=42)
+    events = sim.step()
     assert len(events) >= 0
     for event in events:
         assert "type" in event
@@ -134,7 +134,7 @@ def test_simulation_jealousy_emerges(
     )
     sim.relationships.update(1, 2, {"romance": 60})
     sim.relationships.update(2, 3, {"friendship": 70})
-    sim.tick(seed=42)
+    sim.step()
     # jealousy manifests as negative friendship toward rival
     rel_13 = sim.relationships.get(1, 3)
     assert rel_13.friendship < 0, "A should have negative feelings toward C"
@@ -157,7 +157,7 @@ def test_simulation_stage_transitions(
         characters=[char_minsu, char_jieun],
         llm=mock_llm, personalities=sample_personalities,
     )
-    sim.tick(seed=42)
+    sim.step()
     rel = sim.relationships.get(1, 2)
     assert rel.stage == RelationshipStage.ACQUAINTANCE
 
@@ -180,7 +180,7 @@ def test_simulation_hunger_increases(
         characters=[char_minsu, char_jieun],
         llm=mock_llm, personalities=sample_personalities,
     )
-    sim.tick(seed=42)
+    sim.step()
     assert char_minsu.hunger > initial_hunger
 
 
@@ -213,7 +213,7 @@ def test_simulation_fight_trigger(
         # Re-set friendship each tick since conversations may shift it
         sim.relationships.get(1, 2).friendship = -50.0
         sim.relationships.get(1, 2).stage = RelationshipStage.ACQUAINTANCE
-        events = sim.tick(seed=i)
+        events = sim.step()
         for event in events:
             if event["type"] == "fight":
                 fight_occurred = True
@@ -248,7 +248,7 @@ def test_simulation_confession_trigger(
 
     confession_occurred = False
     for i in range(30):
-        events = sim.tick(seed=i * 7)
+        events = sim.step()
         for event in events:
             if event["type"].startswith("confession"):
                 confession_occurred = True

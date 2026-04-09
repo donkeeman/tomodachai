@@ -24,8 +24,14 @@ from tomodachai.api.schemas import (
     SlotInfoOut,
     StateOut,
     StatusResponse,
-    TickRequest,
-    TickResponse,
+    BuyMarketResponse,
+    BuyResponse,
+    MorningMarketOut,
+    NewsArticleOut,
+    NewsGenerateRequest,
+    ShopDailyOut,
+    ShopOut,
+    StepResponse,
 )
 from tomodachai.character import Character
 from tomodachai.game_state import GameState
@@ -64,7 +70,7 @@ def get_status():
     return StatusResponse(
         status="running",
         characters=len(gs.characters),
-        tick=gs.simulation._tick_count,
+        tick=gs.simulation._step_count,
         locations=[loc.name for loc in gs.config.locations],
     )
 
@@ -329,14 +335,13 @@ def _rel_to_out(a_id, b_id, rel) -> RelationshipOut:
 # Simulation
 # ---------------------------------------------------------------------------
 
-@router.post("/tick", response_model=TickResponse)
-def do_tick(body: TickRequest | None = None):
+@router.post("/step", response_model=StepResponse)
+def do_step():
     gs = _gs()
-    seed = body.seed if body else None
-    raw_events = gs.tick(seed=seed)
+    raw_events = gs.step()
     events = [_event_to_out(e) for e in raw_events]
-    return TickResponse(
-        tick=gs.simulation._tick_count,
+    return StepResponse(
+        step=gs.simulation._step_count,
         events=events,
     )
 
@@ -582,19 +587,16 @@ async def websocket_endpoint(ws: WebSocket):
     _ws_clients.add(ws)
     try:
         while True:
-            # Client can send tick commands via WS too
             data = await ws.receive_json()
-            if data.get("action") == "tick":
+            if data.get("action") == "step":
                 gs = _gs()
-                seed = data.get("seed")
-                raw_events = gs.tick(seed=seed)
+                raw_events = gs.step()
                 events = [_event_to_out(e).model_dump() for e in raw_events]
                 response = {
-                    "type": "tick_result",
-                    "tick": gs.simulation._tick_count,
+                    "type": "step_result",
+                    "step": gs.simulation._step_count,
                     "events": events,
                 }
-                # Broadcast to all connected clients
                 for client in list(_ws_clients):
                     try:
                         await client.send_json(response)
@@ -602,3 +604,116 @@ async def websocket_endpoint(ws: WebSocket):
                         _ws_clients.discard(client)
     except WebSocketDisconnect:
         _ws_clients.discard(ws)
+
+
+# ---------------------------------------------------------------------------
+# News
+# ---------------------------------------------------------------------------
+
+
+@router.get("/news", response_model=list[NewsArticleOut])
+def get_news(day: int | None = None):
+    gs = _gs()
+    target_day = day if day is not None else gs.day_count
+    articles = gs.news.get_today_news(target_day)
+    return [_article_to_out(a) for a in articles]
+
+
+@router.post("/news/generate", response_model=NewsArticleOut, status_code=201)
+def generate_news(body: NewsGenerateRequest | None = None):
+    gs = _gs()
+    news_type = body.news_type if body else "real"
+    try:
+        if news_type == "absurd":
+            article = gs.news.generate_absurd_news(day=gs.day_count, llm=gs.llm)
+        else:
+            recent_events = gs.memory._events[-20:] if gs.memory._events else []
+            article = gs.news.generate_real_news(
+                day=gs.day_count,
+                events=recent_events,
+                llm=gs.llm,
+                characters=gs.characters,
+            )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"뉴스 생성 실패: {e}")
+    return _article_to_out(article)
+
+
+def _article_to_out(article) -> NewsArticleOut:
+    return NewsArticleOut(
+        id=article.id,
+        day=article.day,
+        news_type=article.news_type,
+        headline=article.headline,
+        body=article.body,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Shop
+# ---------------------------------------------------------------------------
+
+
+@router.get("/shop", response_model=ShopOut)
+def get_shop():
+    gs = _gs()
+    shop = gs.shop
+    raw_mm = shop.get_morning_market()
+    mm_out = MorningMarketOut(**raw_mm) if raw_mm else None
+    return ShopOut(
+        daily=ShopDailyOut(
+            food=shop.get_daily("food"),
+            clothing=shop.get_daily("clothing"),
+            interior=shop.get_daily("interior"),
+        ),
+        morning_market=mm_out,
+        seasonal=shop.get_seasonal(),
+    )
+
+
+@router.post("/shop/buy/{item_id}", response_model=BuyResponse)
+def buy_item(item_id: int):
+    gs = _gs()
+    ok = gs.shop.buy(item_id, gs)
+    if not ok:
+        category = gs.shop._find_daily_category(item_id)
+        if category is None:
+            raise HTTPException(status_code=404, detail=f"Item {item_id} not in daily stock")
+        raise HTTPException(status_code=400, detail="Insufficient funds")
+    return BuyResponse(
+        ok=True,
+        item_id=item_id,
+        remaining_money=gs.money,
+        message=f"아이템 {item_id} 구매 완료.",
+    )
+
+
+@router.post("/shop/buy-market", response_model=BuyMarketResponse)
+def buy_morning_market():
+    gs = _gs()
+    mm = gs.shop.get_morning_market()
+    if mm is None:
+        raise HTTPException(status_code=404, detail="Morning market not available today")
+    ok = gs.shop.buy_morning_market(gs)
+    if not ok:
+        raise HTTPException(status_code=400, detail="Insufficient funds")
+    return BuyMarketResponse(
+        ok=True,
+        item_id=mm["item"],
+        discount_price=mm["discount_price"],
+        remaining_money=gs.money,
+        message=f"모닝마켓 아이템 {mm['item']} 구매 완료 ({mm['discount_price']}원).",
+    )
+
+
+@router.get("/shop/catalog/{category}")
+def get_catalog(category: str):
+    gs = _gs()
+    from tomodachai.shop import CATEGORIES
+
+    if category not in CATEGORIES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown category '{category}'. Valid: {list(CATEGORIES)}",
+        )
+    return {"category": category, "items": gs.shop.get_catalog(category)}

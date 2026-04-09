@@ -134,10 +134,6 @@ class StatusResponse(BaseModel):
 # Simulation
 # ---------------------------------------------------------------------------
 
-class TickRequest(BaseModel):
-    seed: int | None = None
-
-
 class EventOut(BaseModel):
     id: int | None = None
     type: str
@@ -151,8 +147,8 @@ class EventOut(BaseModel):
     deltas: dict[str, dict[str, float]] | None = None
 
 
-class TickResponse(BaseModel):
-    tick: int
+class StepResponse(BaseModel):
+    step: int
     events: list[EventOut]
 
 
@@ -212,4 +208,56 @@ class LoadResponse(BaseModel):
     island_name: str = ""
     day_count: int = 0
     characters: int = 0
+    message: str = ""
+
+
+# ---------------------------------------------------------------------------
+# News
+# ---------------------------------------------------------------------------
+
+class NewsArticleOut(BaseModel):
+    id: int
+    day: int
+    news_type: str  # "real" | "absurd"
+    headline: str
+    body: str
+
+
+class NewsGenerateRequest(BaseModel):
+    news_type: str = "real"
+
+
+# ---------------------------------------------------------------------------
+# Shop
+# ---------------------------------------------------------------------------
+
+class MorningMarketOut(BaseModel):
+    item: int
+    discount_price: int
+
+
+class ShopDailyOut(BaseModel):
+    food: list[int] = []
+    clothing: list[int] = []
+    interior: list[int] = []
+
+
+class ShopOut(BaseModel):
+    daily: ShopDailyOut
+    morning_market: MorningMarketOut | None = None
+    seasonal: list[int] = []
+
+
+class BuyResponse(BaseModel):
+    ok: bool
+    item_id: int
+    remaining_money: int
+    message: str = ""
+
+
+class BuyMarketResponse(BaseModel):
+    ok: bool
+    item_id: int | None = None
+    discount_price: int | None = None
+    remaining_money: int
     message: str = ""
