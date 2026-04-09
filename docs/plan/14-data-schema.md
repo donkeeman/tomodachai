@@ -32,6 +32,7 @@
 }
 ```
 
+*   `day_count`: 게임 시작 후 경과한 날 수. 하루 리셋(새벽 5시)마다 +1.
 *   `catalog`: 전역 입수 기록. 한번이라도 입수한 아이템은 재구매 가능. 플레이어(전역) 단위.
 *   `ending_credit_seen`: 최초 결혼 시 엔딩 크레딧 봤는지.
 
@@ -61,13 +62,22 @@
 
 ### mood 3축
 
-| 축 | ↑ 요인 | ↓ 요인 |
-|---|--------|--------|
-| happiness | 좋아하는 음식, 친구 대화 | 싫어하는 음식, 싸움 |
-| energy | 대화, 활동 | 배고픔, 거절 |
-| stress | 싸움, 배고픔, 거절 | 친구 대화, 시간 경과 |
+| 축 | 범위 | ↑ 요인 | ↓ 요인 |
+|---|------|--------|--------|
+| happiness | 0~10 | 좋아하는 음식, 친구 대화 | 싫어하는 음식, 싸움 |
+| energy | 0~10 | 대화, 활동 | 배고픔, 거절 |
+| stress | 0~10 | 싸움, 배고픔, 거절 | 친구 대화, 시간 경과 |
 
-시간 경과 시 중립으로 수렴.
+시간 경과 시 중립(5)으로 수렴.
+
+### 수치 범위
+
+| 필드 | 범위 | 비고 |
+|------|------|------|
+| satisfaction | -100 ~ 100 | < 0 이면 절망. 레벨업 임계값은 100 |
+| hunger | 0 ~ 100 | 0 = 배부름, 100 = 매우 배고픔 |
+| friendship | -100 ~ 100 | 방향성 |
+| romance | 0 ~ 100 | 방향성 |
 
 ### sick
 
@@ -114,9 +124,13 @@ boolean 배열 (길이 8). 인덱스 = 장르 순서 (트로트/아이돌/발라
 ]
 ```
 
-*   type: conversation, fight, confession, breakup, reconciliation, nickname, donation, birthday, travel, dream, cheating 등
-*   이별 시 `reason` 필드 추가
-*   고백 시 `result` 필드 추가
+*   type: conversation, fight, reconciliation, confession, breakup, nickname, donation, birthday, travel, dream, cheating 등
+*   **공통 필드:** id, type, participants, day
+*   **선택 필드:**
+    *   `time`: 해당 이벤트가 일어난 시간 (게임 내 시간, HH:MM). 장소 기반 이벤트에 주로 사용
+    *   `location`: 이벤트 발생 장소 ID. 위치가 의미 있는 이벤트에만
+    *   `reason`: 이별 사유 (mutual/fight/cheating/boredom/triangle/misunderstanding). breakup에만
+    *   `result`: 성공/실패 (accepted/rejected, success/failed). confession, reconciliation 등에
 *   summary 없음. 필요 시 LLM이 재구성.
 
 ## 4. shop.json
