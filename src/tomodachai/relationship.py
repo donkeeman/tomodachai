@@ -19,18 +19,14 @@ class RelationshipStage(str, Enum):
 
 
 class BreakupReason(str, Enum):
-    FIGHT = "fight"
-    JEALOUSY = "jealousy"
-    BOREDOM = "boredom"
-    CHEATING = "cheating"
-    PLAYER_REQUEST = "player_request"
-    OTHER = "other"
+    MUTUAL = "mutual"                      # 합의
+    FIGHT = "fight"                        # 싸움
+    CHEATING = "cheating"                  # 바람
+    BOREDOM = "boredom"                    # 권태
+    TRIANGLE = "triangle"                  # 삼각관계
+    MISUNDERSTANDING = "misunderstanding"  # 오해
 
 
-class RelationshipEvent(BaseModel):
-    day: int
-    event_type: str  # "confession", "breakup", "reconciliation", "fight", "makeup", "marriage"
-    summary: str
 
 
 class Fight(BaseModel):
@@ -86,7 +82,6 @@ class Relationship(BaseModel):
     friendship: float = 0.0  # -100 ~ 100
     romance: float = 0.0  # 0 ~ 100
     stage: RelationshipStage = RelationshipStage.STRANGER
-    event_log: list[RelationshipEvent] = Field(default_factory=list)
 
     def apply_deltas(self, deltas: dict[str, float]) -> None:
         for key, delta in deltas.items():
@@ -222,13 +217,39 @@ class Relationship(BaseModel):
             return "좋아하는 것 같은"
         return "약간 신경 쓰이는"
 
-    # ------------------------------------------------------------------
-    # Reconciliation check
-    # ------------------------------------------------------------------
 
-    def can_reconcile(self) -> bool:
-        """Return True if this relationship has a recorded breakup in its event log."""
-        return any(e.event_type == "breakup" for e in self.event_log)
+
+def check_breakup_conditions(
+    rel: "Relationship",
+    has_cheating: bool = False,
+    has_triangle: bool = False,
+    fight_unresolved: bool = False,
+    romance_threshold: float = 20.0,
+) -> "BreakupReason | None":
+    """
+    Auto-detect the most likely breakup reason from relationship state.
+
+    Priority order: CHEATING → TRIANGLE → FIGHT → BOREDOM.
+    MUTUAL and MISUNDERSTANDING are narrative reasons; skip auto-detection.
+
+    Returns None if no breakup condition is met (romance still healthy).
+    """
+    if rel.stage not in (RelationshipStage.LOVER, RelationshipStage.MARRIED):
+        return None
+
+    if has_cheating:
+        return BreakupReason.CHEATING
+
+    if has_triangle:
+        return BreakupReason.TRIANGLE
+
+    if fight_unresolved and rel.romance < romance_threshold:
+        return BreakupReason.FIGHT
+
+    if rel.romance < romance_threshold:
+        return BreakupReason.BOREDOM
+
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -526,7 +547,7 @@ _CODE_TO_GROUP: dict[str, str] = {
 
 
 def _personality_group(personality: str) -> str | None:
-    """Extract group name from a personality code like 'easygoing_softie' or 'confident_gogetter'."""
+    """Extract group name from a personality code like 'easygoing_softie' or 'confident_gogetter'."""  # noqa: E501
     prefix = personality.split("_")[0] if "_" in personality else personality
     return _CODE_TO_GROUP.get(prefix)
 

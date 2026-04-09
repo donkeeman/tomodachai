@@ -59,7 +59,6 @@ from tomodachai.relationship import (
     ExLoverTag,
     Fight,
     Relationship,
-    RelationshipEvent,
     RelationshipSlots,
     RelationshipStage,
     RelationshipTracker,
@@ -275,19 +274,10 @@ def _serialize_relationships(tracker: RelationshipTracker) -> dict[str, Any]:
     pairs: dict[str, Any] = {}
     for a, b, rel in tracker.all_pairs():
         key = f"{a}:{b}"
-        events = [
-            {
-                "day": ev.day,
-                "event_type": ev.event_type,
-                "summary": ev.summary,
-            }
-            for ev in rel.event_log
-        ]
         pairs[key] = {
             "friendship": rel.friendship,
             "romance": rel.romance,
             "stage": rel.stage.value,
-            "events": events,
         }
 
     slots: dict[str, Any] = {}
@@ -334,19 +324,10 @@ def _deserialize_relationships(data: dict[str, Any]) -> RelationshipTracker:
     for key, rel_data in data.get("pairs", {}).items():
         parts = key.split(":", 1)
         a, b = int(parts[0]), int(parts[1])
-        events = [
-            RelationshipEvent(
-                day=ev["day"],
-                event_type=ev["event_type"],
-                summary=ev["summary"],
-            )
-            for ev in rel_data.get("events", [])
-        ]
         rel = Relationship(
             friendship=rel_data["friendship"],
             romance=rel_data["romance"],
             stage=RelationshipStage(rel_data["stage"]),
-            event_log=events,
         )
         tracker._relationships[(a, b)] = rel
 
@@ -389,17 +370,25 @@ def _deserialize_relationships(data: dict[str, Any]) -> RelationshipTracker:
 
 
 def _serialize_events(memory: MemoryStore) -> list[dict[str, Any]]:
-    """Serialize all events in MemoryStore."""
-    return [
-        {
-            "tick": e.tick,
-            "event_type": e.event_type,
+    """Serialize all events in MemoryStore. Matches mock/events.json schema."""
+    out: list[dict[str, Any]] = []
+    for e in memory._events:
+        item: dict[str, Any] = {
+            "id": e.id,
+            "type": e.type,
             "participants": e.participants,
-            "summary": e.summary,
-            "emotional_impact": e.emotional_impact,
+            "day": e.day,
         }
-        for e in memory._events
-    ]
+        if e.time is not None:
+            item["time"] = e.time
+        if e.location is not None:
+            item["location"] = e.location
+        if e.reason is not None:
+            item["reason"] = e.reason
+        if e.result is not None:
+            item["result"] = e.result
+        out.append(item)
+    return out
 
 
 def _deserialize_events(data: list[dict[str, Any]]) -> MemoryStore:
@@ -408,11 +397,14 @@ def _deserialize_events(data: list[dict[str, Any]]) -> MemoryStore:
     for item in data:
         store.add_event(
             SocialEvent(
-                tick=item["tick"],
-                event_type=item["event_type"],
+                id=item["id"],
+                type=item["type"],
                 participants=item["participants"],
-                summary=item["summary"],
-                emotional_impact=item.get("emotional_impact", {}),
+                day=item["day"],
+                time=item.get("time"),
+                location=item.get("location"),
+                reason=item.get("reason"),
+                result=item.get("result"),
             )
         )
     return store

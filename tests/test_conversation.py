@@ -54,10 +54,8 @@ def test_build_prompt_includes_memories(
 ):
     memories = [
         SocialEvent(
-            tick=1, participants=["char_1", "char_2"],
-            event_type="conversation",
-            summary="공원에서 처음 만나 인사를 나눴다",
-            emotional_impact={"char_1": 0.3, "char_2": 0.2},
+            id=1, type="conversation", participants=[1, 2],
+            day=1, location="공원",
         ),
     ]
     prompt = build_conversation_prompt(
@@ -71,7 +69,8 @@ def test_build_prompt_includes_memories(
         location="카페",
         time_of_day="저녁",
     )
-    assert "공원에서 처음 만나" in prompt
+    assert "공원" in prompt
+    assert "대화" in prompt or "conversation" in prompt
 
 
 def test_engine_generate_parses_llm_response(

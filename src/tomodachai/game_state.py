@@ -37,6 +37,16 @@ class GameState:
         self.day_count: int = day_count
         self.money: int = money
         self.time_flip: bool = time_flip
+        self.ending_credit_seen: bool = False
+        # Global item acquisition catalog (persisted in game.json).
+        # Keys: food, clothing, interior, treasure — values: sorted list of item IDs.
+        # ShopManager reads from this; do NOT maintain a separate catalog in ShopManager.
+        self.catalog: dict[str, list[int]] = {
+            "food": [],
+            "clothing": [],
+            "interior": [],
+            "treasure": [],
+        }
 
         # Location system
         self.location_manager: LocationManager = LocationManager()
@@ -90,6 +100,27 @@ class GameState:
             return False
         self.money -= amount
         return True
+
+    # ------------------------------------------------------------------
+    # Catalog helpers (game.json §1)
+    # ------------------------------------------------------------------
+
+    _CATALOG_CATEGORIES = frozenset({"food", "clothing", "interior", "treasure"})
+
+    def add_to_catalog(self, category: str, item_id: int) -> None:
+        """Record *item_id* as acquired under *category*. No-op if already present."""
+        if category not in self._CATALOG_CATEGORIES:
+            valid = sorted(self._CATALOG_CATEGORIES)
+            raise ValueError(f"Unknown catalog category '{category}'. Must be one of: {valid}")
+        if item_id not in self.catalog[category]:
+            self.catalog[category].append(item_id)
+
+    def is_in_catalog(self, category: str, item_id: int) -> bool:
+        """Return True if *item_id* has been acquired in *category* before."""
+        if category not in self._CATALOG_CATEGORIES:
+            valid = sorted(self._CATALOG_CATEGORIES)
+            raise ValueError(f"Unknown catalog category '{category}'. Must be one of: {valid}")
+        return item_id in self.catalog[category]
 
     # ------------------------------------------------------------------
     # Simulation access

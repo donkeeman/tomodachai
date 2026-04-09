@@ -11,7 +11,6 @@ from tomodachai.memory import MemoryStore, SocialEvent
 from tomodachai.personality import PersonalityType
 from tomodachai.relationship import (
     Fight,
-    RelationshipEvent,
     RelationshipStage,
     RelationshipTracker,
     apply_jealousy,
@@ -150,14 +149,11 @@ class Simulation:
 
         self.memory.add_event(
             SocialEvent(
-                tick=self._tick_count,
-                participants=[str(char_a.id), str(char_b.id)],
-                event_type="conversation",
-                summary=result.summary,
-                emotional_impact={
-                    str(char_a.id): sum(result.deltas.get(char_a.name, {}).values()),
-                    str(char_b.id): sum(result.deltas.get(char_b.name, {}).values()),
-                },
+                id=0,  # auto-assigned
+                type="conversation",
+                participants=[int(char_a.id), int(char_b.id)],
+                day=self._tick_count,
+                location=location,
             )
         )
 
@@ -211,23 +207,12 @@ class Simulation:
         self.relationships.update(a_id, b_id, {"friendship": -5})
         self.relationships.update(b_id, a_id, {"friendship": -5})
 
-        # Log event
-        rel = self.relationships.get(a_id, b_id)
-        rel.event_log.append(
-            RelationshipEvent(
-                day=self._tick_count,
-                event_type="fight",
-                summary="긴장이 폭발하여 싸움 발생",
-            )
-        )
-
         self.memory.add_event(
             SocialEvent(
-                tick=self._tick_count,
-                participants=[str(a_id), str(b_id)],
-                event_type="fight",
-                summary=f"{self._name(a_id)}와(과) {self._name(b_id)}가 싸움",
-                emotional_impact={str(a_id): -5.0, str(b_id): -5.0},
+                id=0,
+                type="fight",
+                participants=[int(a_id), int(b_id)],
+                day=self._tick_count,
             )
         )
 
@@ -248,8 +233,8 @@ class Simulation:
         rel_ab = self.relationships.get(a_id, b_id)
         rel_ba = self.relationships.get(b_id, a_id)
 
-        # Check if B has mutual feelings
-        success = rel_ba.romance >= 40.0
+        # 기획서 §3-3: 상대 수치 미참조 랜덤
+        success = self._rng.random() < 0.5
 
         if success:
             # Both transition to LOVER
@@ -263,24 +248,13 @@ class Simulation:
             event_type = "confession_fail"
             summary = f"{self._name(a_id)}가 {self._name(b_id)}에게 고백했지만 거절당했다."
 
-        rel_ab.event_log.append(
-            RelationshipEvent(
-                day=self._tick_count,
-                event_type=event_type,
-                summary=summary,
-            )
-        )
-
         self.memory.add_event(
             SocialEvent(
-                tick=self._tick_count,
-                participants=[str(a_id), str(b_id)],
-                event_type=event_type,
-                summary=summary,
-                emotional_impact={
-                    str(a_id): 10.0 if success else -8.0,
-                    str(b_id): 5.0 if success else -2.0,
-                },
+                id=0,
+                type="confession",
+                participants=[int(a_id), int(b_id)],
+                day=self._tick_count,
+                result="accepted" if success else "rejected",
             )
         )
 
@@ -439,14 +413,10 @@ class Simulation:
 
             self.memory.add_event(
                 SocialEvent(
-                    tick=self._tick_count,
-                    participants=[str(char_a.id), str(char_b.id)],
-                    event_type="catchup",
-                    summary=f"[오프라인] {char_a.name}와(과) {char_b.name}의 일상적인 교류",
-                    emotional_impact={
-                        str(char_a.id): f_delta,
-                        str(char_b.id): f_delta * 0.8,
-                    },
+                    id=0,
+                    type="catchup",
+                    participants=[int(char_a.id), int(char_b.id)],
+                    day=self._tick_count,
                 )
             )
 

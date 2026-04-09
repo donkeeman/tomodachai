@@ -11,7 +11,6 @@ from tomodachai.relationship import (
     BreakupReason,
     Fight,
     Relationship,
-    RelationshipEvent,
     RelationshipSlots,
     RelationshipStage,
     RelationshipTracker,
@@ -121,7 +120,6 @@ def test_relationship_serialize_roundtrip():
     tracker = RelationshipTracker()
     # Add a relationship pair
     rel = Relationship(friendship=72.0, romance=15.0, stage=RelationshipStage.BEST_FRIEND)
-    rel.event_log.append(RelationshipEvent(day=5, event_type="conversation", summary="대화함"))
     tracker._relationships[(1, 2)] = rel
 
     # Slots
@@ -138,7 +136,6 @@ def test_relationship_serialize_roundtrip():
     assert "1:2" in data["pairs"]
     assert data["pairs"]["1:2"]["friendship"] == 72.0
     assert data["pairs"]["1:2"]["stage"] == "best_friend"
-    assert len(data["pairs"]["1:2"]["events"]) == 1
 
     assert data["slots"]["1"]["best_friend"] == 2
     assert data["ex_lover_tags"]["1"][0]["reason"] == "fight"
@@ -148,7 +145,6 @@ def test_relationship_serialize_roundtrip():
     assert (1, 2) in restored._relationships
     assert restored._relationships[(1, 2)].friendship == 72.0
     assert restored._relationships[(1, 2)].stage == RelationshipStage.BEST_FRIEND
-    assert len(restored._relationships[(1, 2)].event_log) == 1
     assert restored._slots[1].best_friend == 2
     assert restored._ex_lover_tags[1][0].reason == BreakupReason.FIGHT
     assert restored._fights[0].cause == "말다툼"
@@ -170,29 +166,29 @@ def test_relationship_empty_roundtrip():
 def test_events_serialize_roundtrip():
     store = MemoryStore()
     store.add_event(SocialEvent(
-        tick=3,
-        event_type="conversation",
-        participants=["1", "2"],
-        summary="즐거운 대화",
-        emotional_impact={"1": 0.5, "2": 0.3},
+        id=0,
+        type="conversation",
+        participants=[1, 2],
+        day=3,
+        location="cafe",
     ))
     store.add_event(SocialEvent(
-        tick=7,
-        event_type="fight",
-        participants=["1", "3"],
-        summary="싸움",
-        emotional_impact={"1": -0.8},
+        id=0,
+        type="fight",
+        participants=[1, 3],
+        day=7,
     ))
 
     data = _serialize_events(store)
     assert len(data) == 2
-    assert data[0]["tick"] == 3
-    assert data[1]["event_type"] == "fight"
+    assert data[0]["day"] == 3
+    assert data[1]["type"] == "fight"
+    assert data[0]["location"] == "cafe"
 
     restored = _deserialize_events(data)
     assert len(restored._events) == 2
-    assert restored._events[0].summary == "즐거운 대화"
-    assert restored._events[1].emotional_impact["1"] == -0.8
+    assert restored._events[0].type == "conversation"
+    assert restored._events[1].participants == [1, 3]
 
 
 def test_events_empty_roundtrip():
@@ -457,16 +453,17 @@ def test_memory_events_preserved(tmp_path):
     gs = _make_game()
 
     gs.memory.add_event(SocialEvent(
-        tick=1,
-        event_type="conversation",
-        participants=["1", "2"],
-        summary="저녁 대화",
-        emotional_impact={"1": 0.2},
+        id=0,
+        type="conversation",
+        participants=[1, 2],
+        day=1,
+        location="cafe",
     ))
 
     mgr.save(1, gs)
     loaded = mgr.load(1)
 
-    events = loaded.memory.get_events_for("1", limit=10)
+    events = loaded.memory.get_events_for(1, limit=10)
     assert len(events) == 1
-    assert events[0].summary == "저녁 대화"
+    assert events[0].type == "conversation"
+    assert events[0].location == "cafe"

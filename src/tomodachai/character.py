@@ -131,7 +131,6 @@ class Voice(BaseModel):
 class Profile(BaseModel):
     name: str
     birthday: str = ""           # "MM-DD"
-    zodiac: str = ""             # 별자리 (birthday에서 자동 계산)
     blood_type: str = ""         # "A" / "B" / "O" / "AB"
     favorite_color: str = ""     # 좋아하는 색 (기본 복장 색상)
     gender: str = ""             # 자유 텍스트, 수정 불가
@@ -139,15 +138,10 @@ class Profile(BaseModel):
     personality: Personality = Field(default_factory=Personality)
     voice: Voice = Field(default_factory=Voice)
 
-    @model_validator(mode="before")
-    @classmethod
-    def _compute_zodiac(cls, data: dict) -> dict:
-        if isinstance(data, dict):
-            birthday = data.get("birthday", "")
-            zodiac = data.get("zodiac", "")
-            if birthday and not zodiac:
-                data["zodiac"] = calculate_zodiac(birthday)
-        return data
+    @property
+    def zodiac(self) -> str:
+        """birthday에서 런타임 계산 — 저장하지 않음."""
+        return calculate_zodiac(self.birthday)
 
 
 # ---------------------------------------------------------------------------
@@ -272,10 +266,6 @@ class Character(BaseModel):
     customizable: Customizable = Field(default_factory=Customizable)
     records: Records = Field(default_factory=Records)
 
-    # 성격 코드 — personality.py에서 참조하는 식별자
-    # (profile.personality 슬라이더와 별개로 유지되는 레거시 코드)
-    personality_code: str = ""
-
     # 구버전 하위 호환 필드 (flat 구조 접근용)
     food_preferences: dict[str, str] = Field(default_factory=dict)
     """구버전: item_id → 선호 등급("최애"/"좋아함"/"보통"/"싫어함"/"최악")."""
@@ -297,11 +287,15 @@ class Character(BaseModel):
             profile_fields = {
                 "name": data.pop("name", ""),
                 "birthday": data.pop("birthday", ""),
-                "zodiac": data.pop("zodiac", ""),
                 "blood_type": data.pop("blood_type", ""),
                 "favorite_color": data.pop("favorite_color", ""),
                 "gender": data.pop("gender", ""),
             }
+            # personality 슬라이더도 profile 하위로 이동
+            if "personality" in data:
+                profile_fields["personality"] = data.pop("personality")
+            # zodiac은 저장하지 않음 — birthday에서 런타임 계산
+            data.pop("zodiac", None)
             data["profile"] = profile_fields
 
         # 구버전 speech_habits / speech_habit → customizable.speech_habits 마이그레이션
@@ -325,8 +319,9 @@ class Character(BaseModel):
             if state_fields:
                 data["state"] = state_fields
 
-        # 구버전 backstory 필드 제거 (소비만 함)
+        # 구버전 필드 제거 (소비만 함, 저장하지 않음)
         data.pop("backstory", None)
+        data.pop("personality_code", None)  # 런타임 계산으로 전환
 
         # 구버전 food_preferences / clothing_preferences → 최상위 필드로 유지
         # (preferences.food_ranks와 별개 구조이므로 별도 보존)
@@ -347,6 +342,23 @@ class Character(BaseModel):
                 data["preferences"] = pref_fields
 
         return data
+
+    # ------------------------------------------------------------------
+    # Computed properties — runtime only, not stored
+    # ------------------------------------------------------------------
+
+    @property
+    def personality_code(self) -> str:
+        """성격 슬라이더에서 런타임으로 계산 — 저장하지 않음."""
+        from tomodachai.personality import PersonalitySliders, determine_personality
+        p = self.profile.personality
+        sliders = PersonalitySliders(
+            movement=p.movement / 10.0,
+            speech=p.speech / 10.0,
+            expressiveness=p.expressiveness / 10.0,
+            attitude=p.attitude / 10.0,
+        )
+        return determine_personality(sliders)
 
     # ------------------------------------------------------------------
     # Backward-compat properties — simulation.py / conversation.py 호환

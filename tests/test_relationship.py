@@ -1,18 +1,15 @@
 from tomodachai.relationship import (
-    ExLoverTag,
-    Fight,
     BreakupReason,
+    Fight,
     Relationship,
-    RelationshipEvent,
-    RelationshipSlots,
     RelationshipStage,
     RelationshipTracker,
     Triangle,
     apply_jealousy,
     calculate_compatibility,
+    check_breakup_conditions,
     detect_triangles,
 )
-
 
 # ---------------------------------------------------------------------------
 # Basic Relationship model
@@ -141,17 +138,6 @@ def test_romance_text():
 
 
 # ---------------------------------------------------------------------------
-# Event log & reconciliation
-# ---------------------------------------------------------------------------
-
-def test_can_reconcile():
-    r = Relationship()
-    assert not r.can_reconcile()
-    r.event_log.append(RelationshipEvent(day=10, event_type="breakup", summary="이별"))
-    assert r.can_reconcile()
-
-
-# ---------------------------------------------------------------------------
 # Tracker basics (int IDs)
 # ---------------------------------------------------------------------------
 
@@ -231,6 +217,76 @@ def test_ex_lover_tags():
     tags = tracker.get_ex_lover_tags(1)
     assert len(tags) == 1
     assert tags[0].target == 3
+
+
+# ---------------------------------------------------------------------------
+# BreakupReason enum values (spec §3 / 08-code-alignment §6)
+# ---------------------------------------------------------------------------
+
+def test_breakup_reason_values():
+    """All spec-defined reasons must exist with correct string values."""
+    assert BreakupReason.MUTUAL == "mutual"
+    assert BreakupReason.FIGHT == "fight"
+    assert BreakupReason.CHEATING == "cheating"
+    assert BreakupReason.BOREDOM == "boredom"
+    assert BreakupReason.TRIANGLE == "triangle"
+    assert BreakupReason.MISUNDERSTANDING == "misunderstanding"
+
+
+def test_breakup_reason_removed_values():
+    """Removed values must not exist in the enum."""
+    values = {r.value for r in BreakupReason}
+    assert "jealousy" not in values
+    assert "player_request" not in values
+    assert "other" not in values
+
+
+# ---------------------------------------------------------------------------
+# check_breakup_conditions
+# ---------------------------------------------------------------------------
+
+def test_check_breakup_cheating_priority():
+    """CHEATING takes priority over all other conditions."""
+    rel = Relationship(romance=5.0, stage=RelationshipStage.LOVER)
+    reason = check_breakup_conditions(
+        rel, has_cheating=True, has_triangle=True, fight_unresolved=True
+    )
+    assert reason == BreakupReason.CHEATING
+
+
+def test_check_breakup_triangle_priority():
+    """TRIANGLE fires before FIGHT and BOREDOM when no cheating."""
+    rel = Relationship(romance=5.0, stage=RelationshipStage.LOVER)
+    reason = check_breakup_conditions(rel, has_triangle=True, fight_unresolved=True)
+    assert reason == BreakupReason.TRIANGLE
+
+
+def test_check_breakup_fight():
+    """FIGHT fires when there is an unresolved fight and romance is low."""
+    rel = Relationship(romance=10.0, stage=RelationshipStage.LOVER)
+    reason = check_breakup_conditions(rel, fight_unresolved=True)
+    assert reason == BreakupReason.FIGHT
+
+
+def test_check_breakup_boredom():
+    """BOREDOM fires when romance drops below threshold with no other cause."""
+    rel = Relationship(romance=10.0, stage=RelationshipStage.LOVER)
+    reason = check_breakup_conditions(rel)
+    assert reason == BreakupReason.BOREDOM
+
+
+def test_check_breakup_none_when_romance_healthy():
+    """Returns None when romance is above the threshold."""
+    rel = Relationship(romance=50.0, stage=RelationshipStage.LOVER)
+    reason = check_breakup_conditions(rel)
+    assert reason is None
+
+
+def test_check_breakup_none_when_not_romantic_stage():
+    """Returns None for non-romantic stages even with low romance."""
+    rel = Relationship(romance=5.0, stage=RelationshipStage.FRIEND)
+    reason = check_breakup_conditions(rel)
+    assert reason is None
 
 
 # ---------------------------------------------------------------------------

@@ -20,6 +20,33 @@ class ConversationResult(BaseModel):
     summary: str
 
 
+def _format_memory(m: SocialEvent) -> str:
+    """SocialEvent를 LLM 프롬프트용 한 줄로 포맷."""
+    parts = [f"(Day {m.day})"]
+    type_labels = {
+        "conversation": "대화",
+        "fight": "싸움",
+        "reconciliation": "화해",
+        "confession": "고백",
+        "breakup": "이별",
+        "nickname": "별명 지음",
+        "donation": "모금",
+        "birthday": "생일",
+        "travel": "여행",
+        "dream": "꿈",
+        "cheating": "바람",
+        "catchup": "일상",
+    }
+    parts.append(type_labels.get(m.type, m.type))
+    if m.location:
+        parts.append(f"@ {m.location}")
+    if m.reason:
+        parts.append(f"(사유: {m.reason})")
+    if m.result:
+        parts.append(f"→ {m.result}")
+    return "- " + " ".join(parts)
+
+
 def _format_speech_habits(habits: dict[str, str]) -> str:
     if not habits:
         return "없음"
@@ -47,9 +74,7 @@ def build_conversation_prompt(
 ) -> str:
     memory_text = "없음"
     if memories:
-        memory_text = "\n".join(
-            f"- (틱 {m.tick}) {m.summary}" for m in memories
-        )
+        memory_text = "\n".join(_format_memory(m) for m in memories)
 
     habits_a = _format_speech_habits(char_a.speech_habits)
     habits_b = _format_speech_habits(char_b.speech_habits)

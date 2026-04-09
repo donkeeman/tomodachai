@@ -108,7 +108,8 @@ def test_simulation_stores_memory(
     sim._force_encounter(char_minsu, char_jieun, "공원")
     events = sim.memory.get_events_for(1)
     assert len(events) == 1
-    assert events[0].summary == "공원에서 인사"
+    assert events[0].type == "conversation"
+    assert events[0].location == "공원"
 
 
 def test_simulation_jealousy_emerges(

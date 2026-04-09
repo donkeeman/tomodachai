@@ -107,6 +107,49 @@ def _parse_char_id(char_id: str) -> int | str:
         return char_id
 
 
+_CODE_DEFAULT_SLIDERS: dict[str, dict[str, int]] = {
+    # group → (movement, speech) midpoint; type → (expressiveness, attitude) midpoint
+    # easygoing (0~0.25 normalized, i.e. 0~5 / 2 = 1~2)
+    "easygoing": {"movement": 1, "speech": 1},
+    # independent (0.25~0.5 → 2.5~5)
+    "independent": {"movement": 4, "speech": 4},
+    # confident (0.5~0.75 → 5~7.5)
+    "confident": {"movement": 6, "speech": 6},
+    # outgoing (0.75~1.0 → 7.5~10)
+    "outgoing": {"movement": 9, "speech": 9},
+}
+_TYPE_DEFAULT_SLIDERS: dict[int, dict[str, int]] = {
+    # type index 1~4 within group (ea_avg)
+    0: {"expressiveness": 1, "attitude": 1},
+    1: {"expressiveness": 4, "attitude": 4},
+    2: {"expressiveness": 6, "attitude": 6},
+    3: {"expressiveness": 9, "attitude": 9},
+}
+_TYPE_ORDER_WITHIN_GROUP = {
+    "easygoing": ["easygoing_softie", "easygoing_optimist", "easygoing_carer", "easygoing_dreamer"],
+    "independent": ["independent_dogooder", "independent_perfectionist", "independent_introvert", "independent_thinker"],
+    "confident": ["confident_busybee", "confident_gogetter", "confident_freespirit", "confident_brainiac"],
+    "outgoing": ["outgoing_charmer", "outgoing_dynamo", "outgoing_buddy", "outgoing_extrovert"],
+}
+
+
+def _code_to_sliders(code: str) -> dict[str, int] | None:
+    """Convert a personality code like 'outgoing_dynamo' to canonical slider values."""
+    if "_" not in code:
+        return None
+    group = code.split("_")[0]
+    if group not in _TYPE_ORDER_WITHIN_GROUP:
+        return None
+    if code not in _TYPE_ORDER_WITHIN_GROUP[group]:
+        return None
+    type_idx = _TYPE_ORDER_WITHIN_GROUP[group].index(code)
+    return {
+        **_CODE_DEFAULT_SLIDERS[group],
+        **_TYPE_DEFAULT_SLIDERS[type_idx],
+        "overall": 5,
+    }
+
+
 @router.post("/characters", response_model=CharacterOut, status_code=201)
 def create_character(body: CharacterCreate):
     gs = _gs()
@@ -117,9 +160,13 @@ def create_character(body: CharacterCreate):
         try:
             raw["id"] = int(raw_id)
         except ValueError:
-            # "char_1" 형태 → 숫자 부분 추출 시도
             digits = "".join(filter(str.isdigit, raw_id))
             raw["id"] = int(digits) if digits else abs(hash(raw_id)) % 100000
+    # personality_code → sliders 변환 (sliders가 없을 때만)
+    if raw.get("personality_code") and not raw.get("personality"):
+        sliders = _code_to_sliders(raw["personality_code"])
+        if sliders:
+            raw["personality"] = sliders
     char = Character(**raw)
     try:
         gs.add_character(char)

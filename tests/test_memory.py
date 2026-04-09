@@ -3,87 +3,110 @@ from tomodachai.memory import SocialEvent, MemoryStore
 
 def test_social_event_creation():
     event = SocialEvent(
-        tick=1,
-        participants=["a", "b"],
-        event_type="conversation",
-        summary="공원에서 만나 날씨 이야기를 했다",
-        emotional_impact={"a": 0.5, "b": 0.3},
+        id=1,
+        type="conversation",
+        participants=[1, 2],
+        day=15,
+        location="living_room",
+        time="14:32",
     )
-    assert event.tick == 1
+    assert event.id == 1
+    assert event.day == 15
     assert len(event.participants) == 2
+    assert event.location == "living_room"
+    assert event.time == "14:32"
+    assert event.reason is None
+    assert event.result is None
+
+
+def test_social_event_optional_fields():
+    event = SocialEvent(
+        id=2,
+        type="breakup",
+        participants=[1, 3],
+        day=42,
+        reason="fight",
+    )
+    assert event.reason == "fight"
+    assert event.time is None
+    assert event.location is None
+    assert event.result is None
+
+
+def test_social_event_confession():
+    event = SocialEvent(
+        id=3,
+        type="confession",
+        participants=[1, 4],
+        day=50,
+        result="rejected",
+    )
+    assert event.result == "rejected"
 
 
 def test_memory_store_add_and_get():
     store = MemoryStore()
     event = SocialEvent(
-        tick=1,
-        participants=["a", "b"],
-        event_type="conversation",
-        summary="인사를 나눴다",
-        emotional_impact={"a": 0.2, "b": 0.1},
+        id=1,
+        type="conversation",
+        participants=[1, 2],
+        day=1,
     )
     store.add_event(event)
-    events = store.get_events_for("a")
+    events = store.get_events_for(1)
     assert len(events) == 1
-    assert events[0].summary == "인사를 나눴다"
+    assert events[0].type == "conversation"
 
 
 def test_memory_store_get_for_participant():
     store = MemoryStore()
-    store.add_event(SocialEvent(
-        tick=1, participants=["a", "b"],
-        event_type="conversation", summary="a와 b 대화",
-        emotional_impact={},
-    ))
-    store.add_event(SocialEvent(
-        tick=2, participants=["b", "c"],
-        event_type="conversation", summary="b와 c 대화",
-        emotional_impact={},
-    ))
-    assert len(store.get_events_for("a")) == 1
-    assert len(store.get_events_for("b")) == 2
-    assert len(store.get_events_for("c")) == 1
+    store.add_event(SocialEvent(id=1, type="conversation", participants=[1, 2], day=1))
+    store.add_event(SocialEvent(id=2, type="conversation", participants=[2, 3], day=2))
+    assert len(store.get_events_for(1)) == 1
+    assert len(store.get_events_for(2)) == 2
+    assert len(store.get_events_for(3)) == 1
 
 
 def test_memory_store_get_between():
     store = MemoryStore()
-    store.add_event(SocialEvent(
-        tick=1, participants=["a", "b"],
-        event_type="conversation", summary="a-b 대화",
-        emotional_impact={},
-    ))
-    store.add_event(SocialEvent(
-        tick=2, participants=["a", "c"],
-        event_type="conversation", summary="a-c 대화",
-        emotional_impact={},
-    ))
-    between = store.get_events_between("a", "b")
+    store.add_event(SocialEvent(id=1, type="conversation", participants=[1, 2], day=1))
+    store.add_event(SocialEvent(id=2, type="conversation", participants=[1, 3], day=2))
+    between = store.get_events_between(1, 2)
     assert len(between) == 1
-    assert between[0].summary == "a-b 대화"
+    assert between[0].id == 1
 
 
 def test_memory_store_limit():
     store = MemoryStore()
     for i in range(20):
-        store.add_event(SocialEvent(
-            tick=i, participants=["a", "b"],
-            event_type="conversation", summary=f"대화 {i}",
-            emotional_impact={},
-        ))
-    events = store.get_events_for("a", limit=5)
+        store.add_event(SocialEvent(id=i + 1, type="conversation", participants=[1, 2], day=i))
+    events = store.get_events_for(1, limit=5)
     assert len(events) == 5
-    assert events[0].tick == 19  # most recent first
+    assert events[0].day == 19  # most recent first
 
 
 def test_memory_store_recent_first():
     store = MemoryStore()
-    store.add_event(SocialEvent(
-        tick=1, participants=["a"], event_type="solo",
-        summary="첫 번째", emotional_impact={},
-    ))
-    store.add_event(SocialEvent(
-        tick=5, participants=["a"], event_type="solo",
-        summary="두 번째", emotional_impact={},
-    ))
-    events = store.get_events_for("a")
-    assert events[0].summary == "두 번째"
+    store.add_event(SocialEvent(id=1, type="solo", participants=[1], day=1))
+    store.add_event(SocialEvent(id=2, type="solo", participants=[1], day=5))
+    events = store.get_events_for(1)
+    assert events[0].day == 5
+
+
+def test_memory_store_auto_increment_id():
+    store = MemoryStore()
+    # id=0 triggers auto-assign
+    e1 = SocialEvent(id=0, type="conversation", participants=[1, 2], day=1)
+    store.add_event(e1)
+    stored = store.get_events_for(1)
+    assert stored[0].id == 1
+
+
+def test_memory_store_str_char_id_compat():
+    # backward compat: passing str IDs should still work
+    store = MemoryStore()
+    store.add_event(SocialEvent(id=1, type="conversation", participants=[1, 2], day=1))
+    events = store.get_events_for("1")
+    assert len(events) == 1
+    between = store.get_events_between("1", "2")
+    assert len(between) == 1
