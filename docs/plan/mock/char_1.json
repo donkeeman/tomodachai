@@ -65,6 +65,7 @@
       "likes": "nature",
       "dislikes": "modern"
     },
+    "pet_preference": "cat",
     "personality_group": {
       "group": "steady",
       "is_positive": true

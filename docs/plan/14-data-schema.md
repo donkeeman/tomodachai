@@ -22,7 +22,7 @@
   "day_count": 52,
   "money": 45000,
   "time_flip": false,
-  "ending_credit_seen": false,
+  "today_announcer": 2,
   "catalog": {
     "food": [2, 4, 7],
     "clothing": [12],
@@ -33,8 +33,8 @@
 ```
 
 *   `day_count`: 게임 시작 후 경과한 날 수. 하루 리셋(새벽 5시)마다 +1.
+*   `today_announcer`: 오늘의 뉴스 아나운서 캐릭터 ID. 하루 리셋 시 랜덤 선정.
 *   `catalog`: 전역 입수 기록. 한번이라도 입수한 아이템은 재구매 가능. 플레이어(전역) 단위.
-*   `ending_credit_seen`: 최초 결혼 시 엔딩 크레딧 봤는지.
 
 ## 2. char_{id}.json
 
@@ -96,6 +96,11 @@
 ### clothing/interior 선호도
 
 스타일 카테고리 기반 (likes/dislikes). 아이템에 스타일 태그 필요. (태그 목록 TODO)
+
+### pet_preference
+
+*   선호하는 동물 종류: `"dog"`, `"cat"`, `"rabbit"`, `"hamster"`, `"bird"`, `"turtle"`
+*   `null`이면 펫 무관심 (안 키우는 게 best).
 
 ### mini_traits
 

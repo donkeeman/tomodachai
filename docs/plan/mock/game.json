@@ -3,7 +3,7 @@
   "day_count": 52,
   "money": 45000,
   "time_flip": false,
-  "ending_credit_seen": false,
+  "today_announcer": 2,
   "catalog": {
     "food": [2, 4, 7],
     "clothing": [12],
