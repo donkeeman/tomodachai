@@ -70,7 +70,6 @@ class GameState:
         # 실시간 이벤트 로그 (snapshot since 증분 페치 기준)
         self._event_seq: int = 0
         self._event_log: list[dict] = []
-        self._EVENT_LOG_CAP = 300
 
     # ------------------------------------------------------------------
     # Character management
@@ -121,6 +120,8 @@ class GameState:
     # ------------------------------------------------------------------
     # Catalog helpers (game.json §1)
     # ------------------------------------------------------------------
+
+    _EVENT_LOG_CAP: int = 300  # 실시간 이벤트 로그 ring buffer 상한
 
     _CATALOG_CATEGORIES = frozenset({"food", "clothing", "interior", "treasure"})
 
