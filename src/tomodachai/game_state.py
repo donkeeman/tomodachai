@@ -6,11 +6,14 @@ from datetime import datetime, timezone
 
 from tomodachai.character import Character
 from tomodachai.config import AppConfig, load_config
+from tomodachai.fountain import FountainManager
 from tomodachai.llm import LLMClient
 from tomodachai.location import LocationManager
 from tomodachai.memory import MemoryStore
+from tomodachai.news import NewsManager
 from tomodachai.personality import PersonalityType, load_personalities
 from tomodachai.relationship import RelationshipTracker
+from tomodachai.shop import ShopManager
 from tomodachai.simulation import Simulation
 from tomodachai.time_system import GameClock
 
@@ -50,6 +53,15 @@ class GameState:
 
         # Location system
         self.location_manager: LocationManager = LocationManager()
+
+        # News system
+        self.news: NewsManager = NewsManager()
+
+        # Shop system
+        self.shop: ShopManager = ShopManager()
+
+        # Fountain events (donation / rap battle / word chain)
+        self.fountain: FountainManager = FountainManager()
 
         # Real-time tracking
         self.last_online: datetime = datetime.now(tz=timezone.utc)
@@ -144,13 +156,6 @@ class GameState:
     @property
     def memory(self) -> MemoryStore:
         return self.simulation.memory
-
-    def tick(self, seed: int | None = None) -> list[dict]:
-        if not self.characters:
-            return []
-        result = self.simulation.tick(seed=seed)
-        self.day_count += 1
-        return result
 
     # ------------------------------------------------------------------
     # Real-time interface

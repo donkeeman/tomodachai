@@ -17,7 +17,6 @@ from tomodachai.relationship import (
     detect_triangles,
 )
 
-_TIME_SLOTS = ["아침", "오전", "점심", "오후", "저녁", "밤"]
 
 # 오프라인 catch-up: 큰 이벤트는 생성 금지
 _BIG_EVENT_TYPES = {"confession_success", "confession_fail", "marriage", "breakup"}
@@ -71,54 +70,9 @@ class Simulation:
         self.conversation_engine = ConversationEngine(llm, personalities)
         self.relationships = RelationshipTracker()
         self.memory = MemoryStore()
-        self._tick_count = 0
+        self._step_count = 0
         self._char_map = {c.id: c for c in characters}
         self._rng = random.Random()
-
-    def tick(self, seed: int | None = None) -> list[dict]:
-        """Run one simulation tick. Returns a list of event dicts."""
-        if seed is not None:
-            self._rng = random.Random(seed)
-
-        time_of_day = _TIME_SLOTS[self._tick_count % len(_TIME_SLOTS)]
-        assignments = assign_locations(
-            self.characters,
-            self.config.locations,
-            seed=seed,
-        )
-
-        events: list[dict] = []
-
-        # 1. Conversations
-        for loc_name, chars in assignments.items():
-            for char_a, char_b in combinations(chars, 2):
-                result = self._run_conversation(char_a, char_b, loc_name, time_of_day)
-                events.append(
-                    {
-                        "type": "conversation",
-                        "location": loc_name,
-                        "participants": [char_a.name, char_b.name],
-                        "result": result,
-                    }
-                )
-
-        # 2. Check for triggered events (fights, confessions)
-        triggered = self._check_triggered_events()
-        events.extend(triggered)
-
-        # 3. Update relationship stages
-        self._check_stage_transitions()
-
-        # 4. Process multi-party dynamics
-        triangles = detect_triangles(self.relationships)
-        if triangles:
-            apply_jealousy(self.relationships, triangles)
-
-        # 5. Update needs (hunger, satisfaction)
-        self._update_needs()
-
-        self._tick_count += 1
-        return events
 
     def _run_conversation(
         self,
@@ -152,7 +106,7 @@ class Simulation:
                 id=0,  # auto-assigned
                 type="conversation",
                 participants=[int(char_a.id), int(char_b.id)],
-                day=self._tick_count,
+                day=self._step_count,
                 location=location,
             )
         )
@@ -212,7 +166,7 @@ class Simulation:
                 id=0,
                 type="fight",
                 participants=[int(a_id), int(b_id)],
-                day=self._tick_count,
+                day=self._step_count,
             )
         )
 
@@ -253,7 +207,7 @@ class Simulation:
                 id=0,
                 type="confession",
                 participants=[int(a_id), int(b_id)],
-                day=self._tick_count,
+                day=self._step_count,
                 result="accepted" if success else "rejected",
             )
         )
@@ -335,7 +289,7 @@ class Simulation:
         # 욕구 업데이트
         self._update_needs()
 
-        self._tick_count += 1
+        self._step_count += 1
         return events
 
     def _check_triggered_events_for_pair(self, a_id, b_id) -> list[dict]:
@@ -416,11 +370,11 @@ class Simulation:
                     id=0,
                     type="catchup",
                     participants=[int(char_a.id), int(char_b.id)],
-                    day=self._tick_count,
+                    day=self._step_count,
                 )
             )
 
-            self._tick_count += 1
+            self._step_count += 1
 
             events.append(
                 {
@@ -452,42 +406,3 @@ class Simulation:
     ) -> ConversationResult:
         return self._run_conversation(char_a, char_b, location, "오후")
 
-    def run(self, num_ticks: int, seed: int | None = None) -> None:
-        for i in range(num_ticks):
-            tick_seed = seed + i if seed is not None else None
-            events = self.tick(seed=tick_seed)
-            self._print_tick(i, events)
-
-    def _print_tick(self, tick_num: int, events: list[dict]) -> None:
-        time_of_day = _TIME_SLOTS[tick_num % len(_TIME_SLOTS)]
-        print(f"\n{'=' * 60}")
-        print(f"  틱 {tick_num} | {time_of_day}")
-        print(f"{'=' * 60}")
-
-        if not events:
-            print("  (아무 일도 일어나지 않았다)")
-            return
-
-        for event in events:
-            etype = event["type"]
-
-            if etype == "conversation":
-                result: ConversationResult = event["result"]
-                print(f"\n  📍 {result.summary}")
-                print(f"  {'-' * 40}")
-                for line in result.dialogue:
-                    print(f"  {line.speaker}: {line.text}")
-                for name, deltas in result.deltas.items():
-                    parts = [f"{k}:{v:+.0f}" for k, v in deltas.items() if v != 0]
-                    if parts:
-                        print(f"  [{name}] {', '.join(parts)}")
-
-            elif etype == "fight":
-                print(f"\n  💥 {event['summary']}")
-
-            elif etype.startswith("confession"):
-                emoji = "💕" if etype == "confession_success" else "💔"
-                print(f"\n  {emoji} {event['summary']}")
-
-            else:
-                print(f"\n  📌 {event['summary']}")
