@@ -188,7 +188,8 @@ class GameState:
         return [e for e in self._event_log if e["seq"] > since]
 
     def reset_world(self) -> None:
-        """새 마을 시작 준비: 시뮬/이벤트로그/seq 초기화 (캐릭터·config는 호출측 책임)."""
+        """새 마을 시작: 캐릭터/시뮬/이벤트로그/seq 초기화 (config는 유지)."""
+        self.characters.clear()
         self._simulation = None
         self._event_seq = 0
         self._event_log = []

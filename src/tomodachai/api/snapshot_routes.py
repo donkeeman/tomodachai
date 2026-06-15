@@ -20,6 +20,8 @@ def get_snapshot(since: int = 0):
 
 @compat_router.post("/save")
 def save_snapshot():
+    # _save_manager는 set_save_manager()로 교체될 수 있어 호출 시점에 참조 (top-level import 금지).
+    # Babylon 레거시 계약용 alias — 동작은 routes.py의 /save/temp와 동일(save_temp).
     from tomodachai.api import routes
 
     gs = _gs()
@@ -33,6 +35,5 @@ def save_snapshot():
 @compat_router.post("/reset")
 def reset_world():
     gs = _gs()
-    gs.characters.clear()
     gs.reset_world()
     return {"message": "🔄 새 마을이 시작되었습니다"}

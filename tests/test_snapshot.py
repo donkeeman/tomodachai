@@ -165,4 +165,6 @@ def test_api_reset_clears(client_snap):
     gs.record_events([{"type": "x"}])
     resp = client.post("/api/reset", json={})
     assert resp.status_code == 200
-    assert client.get("/api/snapshot?since=0").json()["seq"] == 0
+    snap = client.get("/api/snapshot?since=0").json()
+    assert snap["seq"] == 0
+    assert snap["characters"] == []
