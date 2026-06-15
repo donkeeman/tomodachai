@@ -31,8 +31,9 @@ def char_dict(gs: GameState, char: Character) -> dict:
     int_id = _int_id(char.id)
     slots = gs.relationships.get_slots(int_id)
 
-    # crushes: spark==True AND 현재 연인이 아닌 상대
+    # 단일 패스로 crushes(설레는 상대)와 friends(우정 top5) 동시 수집
     crushes: list[str] = []
+    met: list[tuple[float, str, str]] = []
     for other in gs.characters:
         oid = _int_id(other.id)
         if oid == int_id:
@@ -40,14 +41,6 @@ def char_dict(gs: GameState, char: Character) -> dict:
         rel = gs.relationships.get(int_id, oid)
         if rel.spark and slots.lover != oid:
             crushes.append(other.name)
-
-    # friends: 만나본 상대를 우정 내림차순 top5, 라벨은 상태텍스트 (수치 비노출)
-    met = []
-    for other in gs.characters:
-        oid = _int_id(other.id)
-        if oid == int_id:
-            continue
-        rel = gs.relationships.get(int_id, oid)
         met.append((rel.friendship, other.name, rel.get_status_text()))
     met.sort(key=lambda t: t[0], reverse=True)
     friends = [{"name": n, "label": lbl} for _f, n, lbl in met[:5]]
@@ -66,7 +59,7 @@ def char_dict(gs: GameState, char: Character) -> dict:
         "best_friend": _name_of(gs, slots.best_friend),
         "enemy": _name_of(gs, slots.enemy),
         "crushes": crushes,
-        "food_eaten": list(char.preferences.food_eaten),
+        "food_eaten": list(char.preferences.food_eaten),  # bool[]: 음식 인덱스별 섭취 여부
         "friends": friends,
         "dex": [],  # Plan 2(feed)에서 채움
     }
