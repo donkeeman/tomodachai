@@ -163,6 +163,36 @@ def test_build_snapshot_events_since():
     assert build_snapshot(gs, since=1)["events"] == []
 
 
+def test_snapshot_foods_is_master_list():
+    from tomodachai.api.snapshot import build_snapshot
+    from tomodachai.food import FOODS
+
+    gs = _gs_with_two()
+    assert build_snapshot(gs, since=0)["foods"] == FOODS
+
+
+def test_char_dict_dex_filled_after_feed():
+    from tomodachai.api.snapshot import char_dict
+    from tomodachai.food import FOODS, feed, preference_tier
+
+    gs = _gs_with_two()
+    minsu = gs.get_character(1)
+    feed(minsu, food_id=0)  # 김치찌개 먹임 → dex에 1건
+
+    d = char_dict(gs, minsu)
+    assert len(d["dex"]) == 1
+    entry = d["dex"][0]
+    assert entry["name"] == FOODS[0]
+    assert entry["tier"] == preference_tier(minsu.preferences.food_ranks[0])
+
+
+def test_char_dict_dex_empty_before_feed():
+    from tomodachai.api.snapshot import char_dict
+
+    gs = _gs_with_two()
+    assert char_dict(gs, gs.get_character(2))["dex"] == []
+
+
 @pytest.fixture
 def client_snap():
     from fastapi.testclient import TestClient
