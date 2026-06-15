@@ -67,6 +67,11 @@ class GameState:
         self.last_online: datetime = datetime.now(tz=timezone.utc)
         self._clock: GameClock = GameClock(time_flip=time_flip)
 
+        # 실시간 이벤트 로그 (snapshot since 증분 페치 기준)
+        self._event_seq: int = 0
+        self._event_log: list[dict] = []
+        self._EVENT_LOG_CAP = 300
+
     # ------------------------------------------------------------------
     # Character management
     # ------------------------------------------------------------------
@@ -161,12 +166,41 @@ class GameState:
     # Real-time interface
     # ------------------------------------------------------------------
 
+    def _clock_str(self) -> str:
+        now = self._clock.now()
+        hour = self._clock.get_game_hour(now)
+        return f"{hour:02d}:{now.minute:02d}"
+
+    def record_events(self, raw_events: list[dict]) -> None:
+        """raw 이벤트들에 단조 seq + 기록 시점 day/clock을 붙여 로그에 적재."""
+        clock = self._clock_str()
+        for raw in raw_events:
+            self._event_seq += 1
+            self._event_log.append(
+                {"seq": self._event_seq, "day": self.day_count, "clock": clock, "raw": raw}
+            )
+        if len(self._event_log) > self._EVENT_LOG_CAP:
+            self._event_log = self._event_log[-self._EVENT_LOG_CAP :]
+
+    def events_since(self, since: int) -> list[dict]:
+        """seq > since 인 로그 항목만 (시간순)."""
+        return [e for e in self._event_log if e["seq"] > since]
+
+    def reset_world(self) -> None:
+        """새 마을 시작 준비: 시뮬/이벤트로그/seq 초기화 (캐릭터·config는 호출측 책임)."""
+        self._simulation = None
+        self._event_seq = 0
+        self._event_log = []
+        self.day_count = 0
+
     def step(self) -> list[dict]:
         """실시간 단일 이벤트 스텝. 서버 백그라운드 태스크에서 호출."""
         if not self.characters:
             return []
         self.touch()
-        return self.simulation.step()
+        events = self.simulation.step()
+        self.record_events(events)
+        return events
 
     def touch(self) -> None:
         """접속 시각 갱신 (플레이어가 온라인임을 표시)."""
