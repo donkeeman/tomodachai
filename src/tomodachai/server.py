@@ -108,6 +108,8 @@ def create_app(config_path: Path | None = None) -> FastAPI:
 
     set_game_state(game)
     app.include_router(router, prefix="/api")
+    from tomodachai.api.snapshot_routes import compat_router
+    app.include_router(compat_router, prefix="/api")
     _register_realtime_routes(app, game)
 
     return app

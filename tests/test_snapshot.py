@@ -136,3 +136,33 @@ def test_build_snapshot_events_since():
     assert snap["seq"] == 1
     assert len(snap["events"]) == 1
     assert build_snapshot(gs, since=1)["events"] == []
+
+
+@pytest.fixture
+def client_snap():
+    from fastapi.testclient import TestClient
+
+    from tomodachai.api.routes import set_game_state
+    from tomodachai.server import create_app
+
+    gs = _gs_with_two()
+    app = create_app()
+    set_game_state(gs)
+    return TestClient(app), gs
+
+
+def test_api_snapshot_returns_contract(client_snap):
+    client, _gs = client_snap
+    resp = client.get("/api/snapshot?since=0")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data["characters"]) == 2
+    assert "events" in data and "seq" in data
+
+
+def test_api_reset_clears(client_snap):
+    client, gs = client_snap
+    gs.record_events([{"type": "x"}])
+    resp = client.post("/api/reset", json={})
+    assert resp.status_code == 200
+    assert client.get("/api/snapshot?since=0").json()["seq"] == 0
