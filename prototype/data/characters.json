@@ -1,0 +1,182 @@
+[
+  {
+    "name": "제우스",
+    "gender": "M",
+    "birthday": "07-01",
+    "blood_type": "O",
+    "personality": { "movement": 7, "speech": 8, "expressiveness": 6, "attitude": 5, "overall": 6 },
+    "speech_habits": {
+      "normal": "제 말대로 하시면 됩니다",
+      "happy": "그래요, 그게 정답입니다",
+      "angry": "지금 저한테 토 다는 겁니까?",
+      "sad": "...조종간을 놓친 기분이군요",
+      "worried": "관제탑이 응답이 없는 기분입니다"
+    },
+    "mini_traits": { "walking": "성큼성큼", "eating": "위엄 있게", "idle": "뒷짐 지고 내려다보기" }
+  },
+  {
+    "name": "아폴론",
+    "gender": "M",
+    "birthday": "02-14",
+    "blood_type": "A",
+    "personality": { "movement": 3, "speech": 4, "expressiveness": 1, "attitude": 2, "overall": 7 },
+    "speech_habits": {
+      "normal": "확률적으로는요",
+      "happy": "예측이 적중했네요",
+      "angry": "그건 변수 침범입니다",
+      "sad": "기댓값 이하네요...",
+      "worried": "신뢰구간을 벗어났어요"
+    },
+    "mini_traits": { "walking": "일정한 보폭으로", "eating": "정량씩 나눠서", "idle": "허공에 계산하기" }
+  },
+  {
+    "name": "아레스",
+    "gender": "M",
+    "birthday": "11-11",
+    "blood_type": "B",
+    "personality": { "movement": 8, "speech": 7, "expressiveness": 3, "attitude": 1, "overall": 5 },
+    "speech_habits": {
+      "normal": "일단 몸부터 움직이자고요",
+      "happy": "좋았어요, 출동입니다!",
+      "angry": "그건 선 넘었습니다!",
+      "sad": "...구하지 못한 기분이에요",
+      "worried": "어째 연기 냄새가 나는데요"
+    },
+    "mini_traits": { "walking": "뛰다시피", "eating": "허겁지겁", "idle": "제자리 스트레칭" }
+  },
+  {
+    "name": "헤르메스",
+    "gender": "M",
+    "birthday": "05-23",
+    "blood_type": "O",
+    "personality": { "movement": 6, "speech": 6, "expressiveness": 6, "attitude": 6, "overall": 3 },
+    "speech_habits": {
+      "normal": "정보는 이미 입수했습니다",
+      "happy": "오, 백도어 뚫린 기분인데요?",
+      "angry": "방화벽 올립니다?",
+      "sad": "로그가 다 지워졌네요...",
+      "worried": "이거 보안 허점인데요..."
+    },
+    "mini_traits": { "walking": "잰걸음으로", "eating": "빠르게 해치움", "idle": "두리번" }
+  },
+  {
+    "name": "헤파이스토스",
+    "gender": "M",
+    "birthday": "09-30",
+    "blood_type": "A",
+    "personality": { "movement": 2, "speech": 3, "expressiveness": 3, "attitude": 3, "overall": 4 },
+    "speech_habits": {
+      "normal": "구조를 보면 알 수 있어요",
+      "happy": "설계대로 맞물렸네요",
+      "angry": "사람을 부품 취급하는군요",
+      "sad": "이음새가 헐거워졌네요...",
+      "worried": "어디서 삐걱거리는데..."
+    },
+    "mini_traits": { "walking": "느릿느릿", "eating": "천천히 음미", "idle": "뭔가 만지작거리기" }
+  },
+  {
+    "name": "디오니소스",
+    "gender": "M",
+    "birthday": "12-25",
+    "blood_type": "AB",
+    "personality": { "movement": 5, "speech": 7, "expressiveness": 8, "attitude": 7, "overall": 0 },
+    "speech_habits": {
+      "normal": "재밌어지는데요?",
+      "happy": "자, 축배를 들어요",
+      "angry": "흥이 깨지네요",
+      "sad": "파티가 끝났군요...",
+      "worried": "이성이란 게 참 얇아요"
+    },
+    "mini_traits": { "walking": "흐느적흐느적", "eating": "즐기면서 천천히", "idle": "콧노래 부르기" }
+  },
+  {
+    "name": "헤라",
+    "gender": "F",
+    "birthday": "06-18",
+    "blood_type": "A",
+    "personality": { "movement": 2, "speech": 2, "expressiveness": 2, "attitude": 2, "overall": 5 },
+    "speech_habits": {
+      "normal": "어머, 그랬군요",
+      "happy": "역시 보는 눈이 있으셔",
+      "angry": "그 말, 후회하실 텐데요",
+      "sad": "전시가 끝난 기분이네요...",
+      "worried": "액자가 삐뚤어진 느낌이에요"
+    },
+    "mini_traits": { "walking": "우아하게", "eating": "우아하게 조금씩", "idle": "머리카락 정리하기" }
+  },
+  {
+    "name": "데메테르",
+    "gender": "F",
+    "birthday": "03-03",
+    "blood_type": "A",
+    "personality": { "movement": 3, "speech": 3, "expressiveness": 4, "attitude": 2, "overall": 6 },
+    "speech_habits": {
+      "normal": "리스크부터 봐야죠",
+      "happy": "손익이 딱 맞네요",
+      "angry": "그건 보장 범위 밖입니다",
+      "sad": "전손 처리네요...",
+      "worried": "면책 조항부터 확인할게요"
+    },
+    "mini_traits": { "walking": "조심조심", "eating": "꼼꼼하게 확인하며", "idle": "수첩 확인하기" }
+  },
+  {
+    "name": "아테나",
+    "gender": "F",
+    "birthday": "01-09",
+    "blood_type": "AB",
+    "personality": { "movement": 4, "speech": 5, "expressiveness": 2, "attitude": 2, "overall": 5 },
+    "speech_habits": {
+      "normal": "수순대로네요",
+      "happy": "묘수였어요",
+      "angry": "그건 악수예요",
+      "sad": "복기가 필요하네요...",
+      "worried": "몇 수 앞이 안 보여요"
+    },
+    "mini_traits": { "walking": "반듯하게", "eating": "천천히 음미", "idle": "팔짱 끼고 생각하기" }
+  },
+  {
+    "name": "아르테미스",
+    "gender": "F",
+    "birthday": "10-31",
+    "blood_type": "B",
+    "personality": { "movement": 7, "speech": 8, "expressiveness": 2, "attitude": 4, "overall": 4 },
+    "speech_habits": {
+      "normal": "그래서, 결론은요?",
+      "happy": "오늘 밤은 평화롭네요",
+      "angry": "바이탈 떨어지기 전에 비켜 주세요",
+      "sad": "...새벽 4시 같은 기분이에요",
+      "worried": "출혈 지점부터 찾아보죠"
+    },
+    "mini_traits": { "walking": "성큼성큼", "eating": "빠르게 해치움", "idle": "벽에 기대기" }
+  },
+  {
+    "name": "아프로디테",
+    "gender": "F",
+    "birthday": "04-14",
+    "blood_type": "O",
+    "personality": { "movement": 3, "speech": 1, "expressiveness": 7, "attitude": 2, "overall": 3 },
+    "speech_habits": {
+      "normal": "향이 그렇게 말하네요",
+      "happy": "오늘은 좋은 향이 나요",
+      "angry": "지금, 거짓말 냄새가 나요",
+      "sad": "향이 다 날아갔어요...",
+      "worried": "불안의 노트가 느껴져요"
+    },
+    "mini_traits": { "walking": "사뿐사뿐", "eating": "향부터 맡고", "idle": "손목 향 맡기" }
+  },
+  {
+    "name": "헤스티아",
+    "gender": "F",
+    "birthday": "08-08",
+    "blood_type": "A",
+    "personality": { "movement": 2, "speech": 2, "expressiveness": 5, "attitude": 4, "overall": 2 },
+    "speech_habits": {
+      "normal": "따뜻하게 받아들일게요",
+      "happy": "불빛이 참 곱네요",
+      "angry": "조도가 좀 낮아졌네요?",
+      "sad": "그림자가 길어졌어요...",
+      "worried": "사각지대가 보여서요"
+    },
+    "mini_traits": { "walking": "조용조용", "eating": "천천히 음미", "idle": "구석에서 전체 둘러보기" }
+  }
+]

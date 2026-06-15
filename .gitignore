@@ -8,3 +8,11 @@ venv/
 .env
 *.log
 .pytest_cache/
+
+# 프로토타입 런타임 세이브 (게임 진행 상태)
+prototype/saves/
+prototype/saves_web/
+
+# OS / 에디터 잡파일
+.DS_Store
+.cate/

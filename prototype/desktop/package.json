@@ -1,0 +1,14 @@
+{
+  "name": "byeolbit-village-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "description": "별빛 마을 — Babylon.js 웹 프론트엔드를 감싸는 Tauri 데스크탑 셸",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}
