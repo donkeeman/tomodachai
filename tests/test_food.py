@@ -95,7 +95,7 @@ def test_feed_favorite_boosts_satisfaction_and_mood():
     before = c.state.satisfaction
     feed(c, fav_id)
     assert c.state.satisfaction == before + 8  # favorite sat delta
-    assert c.state.mood.happiness >= 5  # 상승 방향
+    assert c.state.mood.happiness == 8  # 5 + favorite(+2.5) → round(7.5)
 
 
 def test_feed_invalid_food_id_raises():
