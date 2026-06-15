@@ -63,3 +63,69 @@ def char_dict(gs: GameState, char: Character) -> dict:
         "friends": friends,
         "dex": [],  # Plan 2(feed)에서 채움
     }
+
+
+# 메이저(자동 일시정지/강조) 이벤트 타입
+_MAJOR_TYPES = {"fight", "confession", "breakup", "new_lover", "new_best_friend", "spark"}
+
+# 23:00(-5분)~07:00 수면창
+_SLEEP_START_MIN = 23 * 60 - 5
+_WAKE_MIN = 7 * 60
+
+
+def map_event(gs: GameState, entry: dict) -> dict:
+    """이벤트 로그 항목 → 프론트 EventItem dict."""
+    raw = entry["raw"]
+    etype = raw.get("type", "")
+
+    dialogue: list[list[str]] = []
+    result = raw.get("result")
+    if etype == "conversation" and result is not None and not isinstance(result, str):
+        dialogue = [[ln.speaker, ln.text] for ln in getattr(result, "dialogue", [])]
+
+    summary = None
+    if isinstance(result, str):
+        summary = result
+    elif result is not None and getattr(result, "summary", None):
+        summary = result.summary
+
+    scene = summary or raw.get("reason") or ""
+    return {
+        "seq": entry["seq"],
+        "day": entry["day"],
+        "clock": entry["clock"],
+        "scene": scene,
+        "dialogue": dialogue,
+        "messages": [],
+        "major": etype in _MAJOR_TYPES,
+    }
+
+
+def _clock_and_minutes(gs: GameState) -> tuple[str, int]:
+    now = gs._clock.now()
+    hour = gs._clock.get_game_hour(now)
+    return f"{hour:02d}:{now.minute:02d}", hour * 60 + now.minute
+
+
+def build_snapshot(gs: GameState, since: int) -> dict:
+    """프론트 계약 Snapshot 전체 조립."""
+    clock, minutes = _clock_and_minutes(gs)
+    locations = {e["id"]: e["name"] for e in gs.location_manager.snapshot()}
+    return {
+        "village": gs.island_name,
+        "provider": gs.config.llm.provider,
+        "day": gs.day_count,
+        "clock": clock,
+        "minutes": minutes,
+        "seq": gs._event_seq,
+        "locations": locations,
+        "foods": [],
+        "rankings": {"best_couple": [], "popular_m": [], "popular_f": [], "fighters": []},
+        "asleep": minutes >= _SLEEP_START_MIN or minutes < _WAKE_MIN,
+        "realtime": True,
+        "photos": [],
+        "dishes": [],
+        "characters": [char_dict(gs, c) for c in gs.characters],
+        "events": [map_event(gs, e) for e in gs.events_since(since)],
+        "bubbles": [],
+    }

@@ -63,3 +63,76 @@ def test_char_dict_gender_female():
 
     gs = _gs_with_two()
     assert char_dict(gs, gs.get_character(2))["gender"] == "F"
+
+
+def test_map_event_conversation_shape():
+    from tomodachai.api.snapshot import map_event
+
+    gs = _gs_with_two()
+    entry = {
+        "seq": 1,
+        "day": 2,
+        "clock": "09:30",
+        "raw": {
+            "type": "conversation",
+            "participants": [1, 2],
+            "location": "분수대",
+            "reason": "우연히 만남",
+        },
+    }
+    ev = map_event(gs, entry)
+    assert ev["seq"] == 1
+    assert ev["day"] == 2
+    assert ev["clock"] == "09:30"
+    assert isinstance(ev["dialogue"], list)
+    assert isinstance(ev["messages"], list)
+    assert ev["major"] is False
+
+
+def test_map_event_fight_is_major():
+    from tomodachai.api.snapshot import map_event
+
+    gs = _gs_with_two()
+    entry = {"seq": 5, "day": 1, "clock": "10:00", "raw": {"type": "fight", "participants": [1, 2]}}
+    assert map_event(gs, entry)["major"] is True
+
+
+def test_build_snapshot_contract_keys():
+    from tomodachai.api.snapshot import build_snapshot
+
+    gs = _gs_with_two()
+    snap = build_snapshot(gs, since=0)
+    for key in (
+        "village",
+        "provider",
+        "day",
+        "clock",
+        "minutes",
+        "seq",
+        "locations",
+        "foods",
+        "rankings",
+        "asleep",
+        "realtime",
+        "photos",
+        "dishes",
+        "characters",
+        "events",
+        "bubbles",
+    ):
+        assert key in snap, f"missing {key}"
+    assert len(snap["characters"]) == 2
+    assert snap["locations"]["fountain"] == "분수대"
+    assert snap["rankings"] == {"best_couple": [], "popular_m": [], "popular_f": [], "fighters": []}
+    assert snap["photos"] == [] and snap["dishes"] == [] and snap["bubbles"] == []
+
+
+def test_build_snapshot_events_since():
+    from tomodachai.api.snapshot import build_snapshot
+
+    gs = _gs_with_two()
+    gs.record_events([{"type": "conversation", "participants": [1, 2]}])
+    snap = build_snapshot(gs, since=0)
+    assert snap["seq"] == 1
+    assert len(snap["events"]) == 1
+    assert build_snapshot(gs, since=1)["events"] == []
