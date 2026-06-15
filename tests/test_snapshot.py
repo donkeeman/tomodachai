@@ -73,12 +73,7 @@ def test_map_event_conversation_shape():
         "seq": 1,
         "day": 2,
         "clock": "09:30",
-        "raw": {
-            "type": "conversation",
-            "participants": [1, 2],
-            "location": "분수대",
-            "reason": "우연히 만남",
-        },
+        "raw": {"type": "conversation", "participants": [1, 2], "location": "분수대"},
     }
     ev = map_event(gs, entry)
     assert ev["seq"] == 1
@@ -89,12 +84,42 @@ def test_map_event_conversation_shape():
     assert ev["major"] is False
 
 
-def test_map_event_fight_is_major():
+def test_map_event_fight_scene_and_major():
     from tomodachai.api.snapshot import map_event
 
     gs = _gs_with_two()
-    entry = {"seq": 5, "day": 1, "clock": "10:00", "raw": {"type": "fight", "participants": [1, 2]}}
-    assert map_event(gs, entry)["major"] is True
+    entry = {
+        "seq": 5,
+        "day": 1,
+        "clock": "10:00",
+        "raw": {
+            "type": "fight",
+            "participants": ["민수", "지은"],
+            "summary": "민수와(과) 지은의 긴장이 폭발하여 싸움이 벌어졌다!",
+        },
+    }
+    ev = map_event(gs, entry)
+    assert ev["major"] is True
+    assert ev["scene"] == "민수와(과) 지은의 긴장이 폭발하여 싸움이 벌어졌다!"
+
+
+def test_map_event_confession_success_is_major_with_scene():
+    from tomodachai.api.snapshot import map_event
+
+    gs = _gs_with_two()
+    entry = {
+        "seq": 9,
+        "day": 1,
+        "clock": "20:00",
+        "raw": {
+            "type": "confession_success",
+            "participants": ["민수", "지은"],
+            "summary": "민수가 지은에게 고백하여 연인이 되었다!",
+        },
+    }
+    ev = map_event(gs, entry)
+    assert ev["major"] is True
+    assert ev["scene"] == "민수가 지은에게 고백하여 연인이 되었다!"
 
 
 def test_build_snapshot_contract_keys():

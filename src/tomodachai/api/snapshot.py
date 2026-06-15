@@ -45,7 +45,11 @@ def char_dict(gs: GameState, char: Character) -> dict:
     met.sort(key=lambda t: t[0], reverse=True)
     friends = [{"name": n, "label": lbl} for _f, n, lbl in met[:5]]
 
-    loc_id = gs.location_manager.get_character_location(int_id) or char.state.current_location
+    loc_id = gs.location_manager.get_character_location(int_id)
+    if not loc_id:
+        # 위치 미등록 시 current_location(이름)을 장소 id로 역매핑 (프론트 locations는 id 키)
+        name_to_id = {e["name"]: e["id"] for e in gs.location_manager.snapshot()}
+        loc_id = name_to_id.get(char.state.current_location, char.state.current_location)
 
     return {
         "id": int_id,
@@ -65,8 +69,8 @@ def char_dict(gs: GameState, char: Character) -> dict:
     }
 
 
-# 메이저(자동 일시정지/강조) 이벤트 타입
-_MAJOR_TYPES = {"fight", "confession", "breakup", "new_lover", "new_best_friend", "spark"}
+# 메이저(자동 일시정지/강조) 이벤트 타입 — simulation.py가 실제 내보내는 type 값 기준
+_MAJOR_TYPES = {"fight", "confession_success", "confession_fail"}
 
 # 23:00(-5분)~07:00 수면창
 _SLEEP_START_MIN = 23 * 60 - 5
@@ -83,13 +87,13 @@ def map_event(gs: GameState, entry: dict) -> dict:
     if etype == "conversation" and result is not None and not isinstance(result, str):
         dialogue = [[ln.speaker, ln.text] for ln in getattr(result, "dialogue", [])]
 
+    # scene: conversation은 result.summary, 그 외 이벤트(fight/confession/catchup)는 raw["summary"]
     summary = None
     if isinstance(result, str):
         summary = result
     elif result is not None and getattr(result, "summary", None):
         summary = result.summary
-
-    scene = summary or raw.get("reason") or ""
+    scene = summary or raw.get("summary") or ""
     return {
         "seq": entry["seq"],
         "day": entry["day"],
