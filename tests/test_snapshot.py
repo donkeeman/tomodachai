@@ -271,3 +271,44 @@ def test_snapshot_photos_dishes_empty_by_default():
     snap = build_snapshot(gs, since=0)
     assert snap["photos"] == []
     assert snap["dishes"] == []
+
+
+class _GiveMockLLM:
+    def chat_json(self, messages, **kwargs) -> dict:
+        return {"title": "한 컷", "caption": "찰칵", "dish": "민수볶음", "comment": "완성"}
+
+
+def test_api_give_camera(client_snap):
+    client, gs = client_snap
+    gs.llm = _GiveMockLLM()
+    resp = client.post("/api/give", json={"char_id": 1, "tool": "camera"})
+    assert resp.status_code == 200
+    assert "📸" in resp.json()["message"]
+
+    snap = client.get("/api/snapshot?since=0").json()
+    assert len(snap["photos"]) == 1
+    assert snap["photos"][0]["author"] == "민수"
+    assert any("📸" in e["scene"] for e in snap["events"])
+
+
+def test_api_give_frying_pan(client_snap):
+    client, gs = client_snap
+    gs.llm = _GiveMockLLM()
+    resp = client.post("/api/give", json={"char_id": 1, "tool": "frying_pan"})
+    assert resp.status_code == 200
+    snap = client.get("/api/snapshot?since=0").json()
+    assert len(snap["dishes"]) == 1
+    assert snap["dishes"][0]["dish"] == "민수볶음"
+
+
+def test_api_give_unknown_char(client_snap):
+    client, _gs = client_snap
+    resp = client.post("/api/give", json={"char_id": 999, "tool": "camera"})
+    assert resp.status_code == 404
+
+
+def test_api_give_unknown_tool(client_snap):
+    client, gs = client_snap
+    gs.llm = _GiveMockLLM()
+    resp = client.post("/api/give", json={"char_id": 1, "tool": "hammer"})
+    assert resp.status_code == 400
