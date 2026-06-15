@@ -385,7 +385,10 @@ def main() -> None:
 
     threading.Thread(target=game.ticker, daemon=True).start()
 
-    handler = functools.partial(Handler, directory=os.path.join(BASE_DIR, "web"))
+    # 프론트는 Vite로 빌드한 web/dist 를 서빙 (없으면 web/ 폴백 — dev는 보통 Vite가 직접 서빙)
+    web_dist = os.path.join(BASE_DIR, "web", "dist")
+    static_dir = web_dist if os.path.isdir(web_dist) else os.path.join(BASE_DIR, "web")
+    handler = functools.partial(Handler, directory=static_dir)
     server = ThreadingHTTPServer(("127.0.0.1", args.port), handler)
     where = "이어하기" if game.resumed else "새 마을"
     mode = ("⏰ 리얼타임 (현실 1분=게임 1분, 23시~7시 취침)" if args.interval is None
