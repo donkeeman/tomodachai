@@ -223,3 +223,28 @@ def test_api_reset_clears(client_snap):
     snap = client.get("/api/snapshot?since=0").json()
     assert snap["seq"] == 0
     assert snap["characters"] == []
+
+
+def test_api_feed_succeeds_and_fills_dex(client_snap):
+    client, gs = client_snap
+    resp = client.post("/api/feed", json={"char_id": 1, "food_id": 0})
+    assert resp.status_code == 200
+    assert "🍽" in resp.json()["message"]
+
+    snap = client.get("/api/snapshot?since=0").json()
+    minsu = next(c for c in snap["characters"] if c["id"] == 1)
+    assert len(minsu["dex"]) == 1
+    # feed 이벤트가 로그에 기록되어 scene으로 재생됨
+    assert any("🍽" in e["scene"] for e in snap["events"])
+
+
+def test_api_feed_unknown_char(client_snap):
+    client, _gs = client_snap
+    resp = client.post("/api/feed", json={"char_id": 999, "food_id": 0})
+    assert resp.status_code == 404
+
+
+def test_api_feed_invalid_food(client_snap):
+    client, _gs = client_snap
+    resp = client.post("/api/feed", json={"char_id": 1, "food_id": 99})
+    assert resp.status_code == 400
