@@ -8,12 +8,13 @@ from pydantic import BaseModel
 # Character
 # ---------------------------------------------------------------------------
 
+
 class PersonalitySliders(BaseModel):
-    movement: int       # 0~10
-    speech: int         # 0~10
-    expressiveness: int # 0~10
-    attitude: int       # 0~10
-    overall: int        # 0~10
+    movement: int  # 0~10
+    speech: int  # 0~10
+    expressiveness: int  # 0~10
+    attitude: int  # 0~10
+    overall: int  # 0~10
 
 
 class CharacterCreate(BaseModel):
@@ -22,6 +23,7 @@ class CharacterCreate(BaseModel):
     플랫 구조(구버전 호환)와 중첩 구조(신버전) 모두 수용.
     id는 int 또는 str("char_1" 등) 허용.
     """
+
     id: int | str
     name: str
     personality_code: str = ""
@@ -39,6 +41,7 @@ class CharacterCreate(BaseModel):
 
 
 # --- Sub-schemas for CharacterOut ---
+
 
 class PreferencesOut(BaseModel):
     food_ranks: list[int]
@@ -100,6 +103,7 @@ class CharacterOut(BaseModel):
 # Relationship
 # ---------------------------------------------------------------------------
 
+
 class RelationshipOut(BaseModel):
     char_a: int
     char_b: int
@@ -112,6 +116,7 @@ class RelationshipOut(BaseModel):
 # ---------------------------------------------------------------------------
 # Game status
 # ---------------------------------------------------------------------------
+
 
 class GameStatusOut(BaseModel):
     island_name: str
@@ -133,6 +138,7 @@ class StatusResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Simulation
 # ---------------------------------------------------------------------------
+
 
 class EventOut(BaseModel):
     id: int | None = None
@@ -156,6 +162,7 @@ class StepResponse(BaseModel):
 # Personalities
 # ---------------------------------------------------------------------------
 
+
 class PersonalityTypeOut(BaseModel):
     code: str
     name: str
@@ -166,6 +173,7 @@ class PersonalityTypeOut(BaseModel):
 # ---------------------------------------------------------------------------
 # Locations
 # ---------------------------------------------------------------------------
+
 
 class LocationOut(BaseModel):
     id: str
@@ -187,6 +195,7 @@ class MoveResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Save / Load
 # ---------------------------------------------------------------------------
+
 
 class SlotInfoOut(BaseModel):
     slot: int
@@ -215,6 +224,7 @@ class LoadResponse(BaseModel):
 # News
 # ---------------------------------------------------------------------------
 
+
 class NewsArticleOut(BaseModel):
     id: int
     day: int
@@ -230,6 +240,7 @@ class NewsGenerateRequest(BaseModel):
 # ---------------------------------------------------------------------------
 # Shop
 # ---------------------------------------------------------------------------
+
 
 class MorningMarketOut(BaseModel):
     item: int
@@ -253,6 +264,55 @@ class BuyResponse(BaseModel):
     item_id: int
     remaining_money: int
     message: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Fountain events
+# ---------------------------------------------------------------------------
+
+
+class DonationOut(BaseModel):
+    day: int
+    character_count: int
+    amount: int
+    remaining_money: int
+
+
+class DonationStatusOut(BaseModel):
+    day: int
+    donated: bool
+
+
+class RapVerseOut(BaseModel):
+    name: str
+    line: str
+
+
+class RapBattleOut(BaseModel):
+    participants: list[str]
+    verses: list[RapVerseOut]
+    winner: str
+
+
+class WordChainRoundOut(BaseModel):
+    name: str
+    word: str
+
+
+class WordChainOut(BaseModel):
+    participants: list[str]
+    rounds: list[WordChainRoundOut]
+    eliminated: str | None = None
+    winner: str
+
+
+class RapBattleRequest(BaseModel):
+    char_ids: list[int]
+
+
+class WordChainRequest(BaseModel):
+    char_ids: list[int]
+    item_pool: list[str] = []
 
 
 class BuyMarketResponse(BaseModel):

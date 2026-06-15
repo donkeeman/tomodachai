@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 from tomodachai.character import Character
 from tomodachai.config import AppConfig, load_config
+from tomodachai.fountain import FountainManager
 from tomodachai.llm import LLMClient
 from tomodachai.location import LocationManager
 from tomodachai.memory import MemoryStore
@@ -58,6 +59,9 @@ class GameState:
 
         # Shop system
         self.shop: ShopManager = ShopManager()
+
+        # Fountain events (donation / rap battle / word chain)
+        self.fountain: FountainManager = FountainManager()
 
         # Real-time tracking
         self.last_online: datetime = datetime.now(tz=timezone.utc)

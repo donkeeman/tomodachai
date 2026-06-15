@@ -5,33 +5,39 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 
 from tomodachai.api.schemas import (
+    BuyMarketResponse,
+    BuyResponse,
     CharacterCreate,
     CharacterOut,
     CustomizableOut,
+    DonationOut,
+    DonationStatusOut,
     EventOut,
     GameStatusOut,
     LoadResponse,
     LocationOut,
     MiniTraitEntry,
     MoodOut,
+    MorningMarketOut,
     MoveResponse,
+    NewsArticleOut,
+    NewsGenerateRequest,
     PersonalitySliders,
     PersonalityTypeOut,
     PreferencesOut,
+    RapBattleOut,
+    RapBattleRequest,
     RecordsOut,
     RelationshipOut,
     SaveResponse,
+    ShopDailyOut,
+    ShopOut,
     SlotInfoOut,
     StateOut,
     StatusResponse,
-    BuyMarketResponse,
-    BuyResponse,
-    MorningMarketOut,
-    NewsArticleOut,
-    NewsGenerateRequest,
-    ShopDailyOut,
-    ShopOut,
     StepResponse,
+    WordChainOut,
+    WordChainRequest,
 )
 from tomodachai.character import Character
 from tomodachai.game_state import GameState
@@ -64,6 +70,7 @@ def _gs() -> GameState:
 # Status
 # ---------------------------------------------------------------------------
 
+
 @router.get("/status", response_model=StatusResponse)
 def get_status():
     gs = _gs()
@@ -91,6 +98,7 @@ def get_game():
 # ---------------------------------------------------------------------------
 # Characters
 # ---------------------------------------------------------------------------
+
 
 @router.get("/characters", response_model=list[CharacterOut])
 def list_characters():
@@ -133,8 +141,18 @@ _TYPE_DEFAULT_SLIDERS: dict[int, dict[str, int]] = {
 }
 _TYPE_ORDER_WITHIN_GROUP = {
     "easygoing": ["easygoing_softie", "easygoing_optimist", "easygoing_carer", "easygoing_dreamer"],
-    "independent": ["independent_dogooder", "independent_perfectionist", "independent_introvert", "independent_thinker"],
-    "confident": ["confident_busybee", "confident_gogetter", "confident_freespirit", "confident_brainiac"],
+    "independent": [
+        "independent_dogooder",
+        "independent_perfectionist",
+        "independent_introvert",
+        "independent_thinker",
+    ],
+    "confident": [
+        "confident_busybee",
+        "confident_gogetter",
+        "confident_freespirit",
+        "confident_brainiac",
+    ],
     "outgoing": ["outgoing_charmer", "outgoing_dynamo", "outgoing_buddy", "outgoing_extrovert"],
 }
 
@@ -295,6 +313,7 @@ def _char_to_out(c: Character) -> CharacterOut:
 # Relationships
 # ---------------------------------------------------------------------------
 
+
 @router.get("/relationships", response_model=list[RelationshipOut])
 def list_relationships():
     gs = _gs()
@@ -334,6 +353,7 @@ def _rel_to_out(a_id, b_id, rel) -> RelationshipOut:
 # ---------------------------------------------------------------------------
 # Simulation
 # ---------------------------------------------------------------------------
+
 
 @router.post("/step", response_model=StepResponse)
 def do_step():
@@ -389,6 +409,7 @@ def _event_to_out(event: dict) -> EventOut:
 # Memory
 # ---------------------------------------------------------------------------
 
+
 @router.get("/memory/{char_id}")
 def get_memory(char_id: str, limit: int = 10):
     char_id = _parse_char_id(char_id)  # type: ignore[assignment]
@@ -408,6 +429,7 @@ def get_memory(char_id: str, limit: int = 10):
 # ---------------------------------------------------------------------------
 # Personalities
 # ---------------------------------------------------------------------------
+
 
 @router.get("/personalities", response_model=list[PersonalityTypeOut])
 def list_personalities():
@@ -717,3 +739,69 @@ def get_catalog(category: str):
             detail=f"Unknown category '{category}'. Valid: {list(CATEGORIES)}",
         )
     return {"category": category, "items": gs.shop.get_catalog(category)}
+
+
+# ---------------------------------------------------------------------------
+# Fountain events (donation / rap battle / word chain)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/fountain/donation/status", response_model=DonationStatusOut)
+def fountain_donation_status():
+    gs = _gs()
+    return DonationStatusOut(day=gs.day_count, donated=gs.fountain.has_donated(gs.day_count))
+
+
+@router.post("/fountain/donation", response_model=DonationOut, status_code=201)
+def fountain_donation():
+    gs = _gs()
+    result = gs.fountain.run_donation(
+        day=gs.day_count,
+        character_count=len(gs.characters),
+        game_state=gs,
+    )
+    if result is None:
+        raise HTTPException(status_code=409, detail="오늘 모금은 이미 진행되었습니다.")
+    return DonationOut(
+        day=result.day,
+        character_count=result.character_count,
+        amount=result.amount,
+        remaining_money=gs.money,
+    )
+
+
+@router.post("/fountain/rap-battle", response_model=RapBattleOut, status_code=201)
+def fountain_rap_battle(body: RapBattleRequest):
+    gs = _gs()
+    char_a, char_b = _resolve_two_characters(gs, body.char_ids)
+    try:
+        result = gs.fountain.generate_rap_battle(char_a, char_b, gs.llm)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"랩배틀 생성 실패: {e}")
+    return RapBattleOut(**result.model_dump())
+
+
+@router.post("/fountain/word-chain", response_model=WordChainOut, status_code=201)
+def fountain_word_chain(body: WordChainRequest):
+    gs = _gs()
+    characters = [_resolve_character(gs, cid) for cid in body.char_ids]
+    try:
+        result = gs.fountain.generate_word_chain(characters, body.item_pool, gs.llm)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"끝말잇기 생성 실패: {e}")
+    return WordChainOut(**result.model_dump())
+
+
+def _resolve_character(gs: GameState, char_id: int):
+    char = gs.get_character(char_id)
+    if char is None:
+        raise HTTPException(status_code=404, detail=f"Character {char_id} not found")
+    return char
+
+
+def _resolve_two_characters(gs: GameState, char_ids: list[int]):
+    if len(char_ids) != 2:
+        raise HTTPException(status_code=400, detail="char_ids는 정확히 2명이어야 합니다.")
+    return _resolve_character(gs, char_ids[0]), _resolve_character(gs, char_ids[1])
