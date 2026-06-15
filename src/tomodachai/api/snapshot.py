@@ -102,9 +102,9 @@ def map_event(gs: GameState, entry: dict) -> dict:
 
 
 def _clock_and_minutes(gs: GameState) -> tuple[str, int]:
-    now = gs._clock.now()
-    hour = gs._clock.get_game_hour(now)
-    return f"{hour:02d}:{now.minute:02d}", hour * 60 + now.minute
+    clock_str = gs._clock_str()  # 포맷 소스 단일화 (GameState._clock_str)
+    h, m = int(clock_str[:2]), int(clock_str[3:])
+    return clock_str, h * 60 + m
 
 
 def build_snapshot(gs: GameState, since: int) -> dict:
@@ -119,13 +119,14 @@ def build_snapshot(gs: GameState, since: int) -> dict:
         "minutes": minutes,
         "seq": gs._event_seq,
         "locations": locations,
-        "foods": [],
+        "foods": [],  # Plan 2(feed)에서 채움
+        # Plan 2(rankings)에서 채움
         "rankings": {"best_couple": [], "popular_m": [], "popular_f": [], "fighters": []},
         "asleep": minutes >= _SLEEP_START_MIN or minutes < _WAKE_MIN,
         "realtime": True,
-        "photos": [],
-        "dishes": [],
+        "photos": [],  # Plan 2(give)에서 채움
+        "dishes": [],  # Plan 2(give)에서 채움
         "characters": [char_dict(gs, c) for c in gs.characters],
         "events": [map_event(gs, e) for e in gs.events_since(since)],
-        "bubbles": [],
+        "bubbles": [],  # Plan 2(bubble)에서 채움
     }
