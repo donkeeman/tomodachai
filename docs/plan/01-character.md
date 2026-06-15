@@ -88,6 +88,9 @@
 
 ### 배고픔
 *   시간 경과에 따라 발생. 음식을 주면 해소.
+*   **hunger 100 도달 시:**
+    *   즉시 말풍선 뜨지 않음. 지속되는 동안 랜덤 시점에 "배고파요" 말풍선.
+    *   일정 시간마다 satisfaction↓, mood(happiness↓, energy↓, stress↑) 도트 데미지로 지속 악영향.
 *   배고프면 satisfaction↓, mood(happiness↓, energy↓, stress↑).
 
 ### 아픔
