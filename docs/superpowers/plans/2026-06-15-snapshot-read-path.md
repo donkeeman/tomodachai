@@ -815,3 +815,10 @@ git commit -m "feat(web): API 베이스를 FastAPI(:8000)로 전환"
 - **Placeholder:** 없음. 빈 스텁(rankings/photos/dishes/bubbles/foods/dex)은 "Plan 2에서 채움" 주석으로 의도 명시 — 미완성이 아니라 증분 경계.
 - **타입 일관성:** `record_events`/`events_since`/`reset_world`/`_event_seq`/`_event_log`(Task3) ↔ `build_snapshot`/`map_event`/`char_dict`(Task4/5) ↔ 라우터(Task6) 시그니처 일치. `slots.lover/best_friend/enemy`는 `RelationshipSlots`(relationship.py:46-48) 실제 필드명과 일치. `gs.relationships.get_slots`/`get`/`get_status_text`/`location_manager.get_character_location`/`snapshot` 모두 실재 메서드.
 - **알려진 확인거리(구현 중):** `location_manager.snapshot()` 항목 키가 `id`/`name`인지 첫 실행 시 확인(아니면 Task5 locations 컴프리헨션 키 조정). conversation `result.dialogue` 라인 객체의 `.speaker/.text` 속성명 확인(routes.py:390과 동일 가정).
+
+---
+
+## 구현 후 정정 / 후속 메모 (최종 통합 리뷰 반영)
+
+- **이벤트 타입·scene 정합 (수정 완료, commit `d594371`):** 본 계획 §Task5의 `_MAJOR_TYPES`와 scene 폴백은 추측값이었고 `simulation.py` 실제 출력과 어긋났음. 실제 emit 타입은 `conversation`(→`result.summary`/`result.dialogue`) / `fight`·`confession_success`·`confession_fail`·`catchup`(→`raw["summary"]`)이며 `reason` 키는 존재하지 않음. 구현은 `_MAJOR_TYPES={"fight","confession_success","confession_fail"}`, scene 폴백 `result.summary → raw["summary"] → ""`로 정정. fight/confession이 빈 scene으로 렌더되던 결함 해소. 위치도 미등록 시 이름→id 역매핑하도록 수정(프론트 `locations` id 키 정합).
+- **후속(Plan 2+):** `GameState.reset_world()`는 `location_manager`의 `_positions`/`_private_rooms`를 초기화하지 않음 — snapshot 경로(빈 characters 순회)엔 무해하나, reset 후 새 마을 시작 시 방 재등록이 필요하면 별도 처리. write 메커닉(feed/give/bubble/rankings)·foods·dex는 본 계획 범위 밖.
