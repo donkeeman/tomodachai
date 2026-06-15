@@ -136,8 +136,8 @@ def build_snapshot(gs: GameState, since: int) -> dict:
         "rankings": {"best_couple": [], "popular_m": [], "popular_f": [], "fighters": []},
         "asleep": minutes >= _SLEEP_START_MIN or minutes < _WAKE_MIN,
         "realtime": True,
-        "photos": [],  # Plan 2(give)에서 채움
-        "dishes": [],  # Plan 2(give)에서 채움
+        "photos": list(reversed(gs.photos[-40:])),
+        "dishes": list(reversed(gs.dishes[-40:])),
         "characters": [char_dict(gs, c) for c in gs.characters],
         "events": [map_event(gs, e) for e in gs.events_since(since)],
         "bubbles": [],  # Plan 2(bubble)에서 채움

@@ -248,3 +248,26 @@ def test_api_feed_invalid_food(client_snap):
     client, _gs = client_snap
     resp = client.post("/api/feed", json={"char_id": 1, "food_id": 99})
     assert resp.status_code == 400
+
+
+def test_snapshot_photos_dishes_newest_first_capped():
+    from tomodachai.api.snapshot import build_snapshot
+
+    gs = _gs_with_two()
+    for i in range(45):
+        gs.photos.append({"day": 1, "author": "민수", "title": f"p{i}", "subject": "공원"})
+    gs.dishes.append({"day": 1, "author": "지은", "dish": "수상한 볶음"})
+
+    snap = build_snapshot(gs, since=0)
+    assert len(snap["photos"]) == 40  # 최대 40개
+    assert snap["photos"][0]["title"] == "p44"  # 최신 우선
+    assert snap["dishes"][0]["dish"] == "수상한 볶음"
+
+
+def test_snapshot_photos_dishes_empty_by_default():
+    from tomodachai.api.snapshot import build_snapshot
+
+    gs = _gs_with_two()
+    snap = build_snapshot(gs, since=0)
+    assert snap["photos"] == []
+    assert snap["dishes"] == []
