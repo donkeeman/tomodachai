@@ -365,3 +365,17 @@ def test_compatibility_low_pair():
     )
     assert 0.0 <= score <= 1.0
     assert score < 0.5
+
+
+# ---------------------------------------------------------------------------
+# spark 필드
+# ---------------------------------------------------------------------------
+
+def test_relationship_spark_defaults_false():
+    rel = Relationship()
+    assert rel.spark is False
+
+
+def test_relationship_spark_settable():
+    rel = Relationship(spark=True)
+    assert rel.spark is True

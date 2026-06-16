@@ -186,6 +186,18 @@ class Mood(BaseModel):
     energy: int = 5      # ↑ 대화/활동, ↓ 배고픔/거절
     stress: int = 2      # ↑ 싸움/배고픔/거절, ↓ 친구 대화/시간 경과
 
+    def label(self) -> str:
+        """3축 조합을 한 단어 한글 감정으로 (prototype/game Mood.label 규칙)."""
+        if self.stress >= 7:
+            return "짜증남" if self.energy >= 5 else "지침"
+        if self.happiness >= 7:
+            return "신남" if self.energy >= 6 else "흐뭇함"
+        if self.happiness <= 3:
+            return "우울함" if self.energy <= 4 else "심술남"
+        if self.energy <= 3:
+            return "나른함"
+        return "평온함"
+
 
 class CharacterState(BaseModel):
     satisfaction: float = 50.0   # 장기 레벨업 경험치, 마이너스 가능 → 절망

@@ -1,4 +1,4 @@
-from tomodachai.character import Character, calculate_zodiac
+from tomodachai.character import Character, Mood, calculate_zodiac
 
 
 def test_character_creation():
@@ -118,3 +118,25 @@ def test_personality_group_in_preferences():
     c = Character(id="1", name="A", preferences=prefs)
     assert c.preferences.personality_group.group == "steady"
     assert c.preferences.personality_group.is_positive is True
+
+
+def test_mood_label_stressed():
+    assert Mood(happiness=5, energy=6, stress=8).label() == "짜증남"
+    assert Mood(happiness=5, energy=3, stress=8).label() == "지침"
+    assert Mood(happiness=5, energy=6, stress=7).label() == "짜증남"
+
+
+def test_mood_label_happy():
+    assert Mood(happiness=8, energy=7, stress=2).label() == "신남"
+    assert Mood(happiness=8, energy=4, stress=2).label() == "흐뭇함"
+    assert Mood(happiness=7, energy=7, stress=2).label() == "신남"
+
+
+def test_mood_label_sad():
+    assert Mood(happiness=2, energy=3, stress=2).label() == "우울함"
+    assert Mood(happiness=2, energy=6, stress=2).label() == "심술남"
+
+
+def test_mood_label_tired_and_calm():
+    assert Mood(happiness=5, energy=2, stress=2).label() == "나른함"
+    assert Mood(happiness=5, energy=5, stress=2).label() == "평온함"

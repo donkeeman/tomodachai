@@ -81,6 +81,7 @@ _STAGE_STATUS_TEXT: dict[RelationshipStage, str] = {
 class Relationship(BaseModel):
     friendship: float = 0.0  # -100 ~ 100
     romance: float = 0.0  # 0 ~ 100
+    spark: bool = False  # 반함(짝사랑 점화) 플래그. 연인 성사/문맥 반함 시 True
     stage: RelationshipStage = RelationshipStage.STRANGER
 
     def apply_deltas(self, deltas: dict[str, float]) -> None:
