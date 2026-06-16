@@ -1,0 +1,14 @@
+[
+  { "id": 1,  "name": "제우스",       "gender": "M", "personality_code": "confident_gogetter",      "location": "plaza" },
+  { "id": 2,  "name": "헤라",         "gender": "F", "personality_code": "confident_freespirit",     "location": "city_hall" },
+  { "id": 3,  "name": "포세이돈",     "gender": "M", "personality_code": "independent_thinker",      "location": "beach" },
+  { "id": 4,  "name": "데메테르",     "gender": "F", "personality_code": "easygoing_carer",          "location": "grocery" },
+  { "id": 5,  "name": "아테나",       "gender": "F", "personality_code": "independent_perfectionist","location": "news_station" },
+  { "id": 6,  "name": "아폴론",       "gender": "M", "personality_code": "outgoing_charmer",         "location": "concert_hall" },
+  { "id": 7,  "name": "아르테미스",   "gender": "F", "personality_code": "independent_introvert",    "location": "park" },
+  { "id": 8,  "name": "아레스",       "gender": "M", "personality_code": "confident_busybee",        "location": "amusement_park" },
+  { "id": 9,  "name": "아프로디테",   "gender": "F", "personality_code": "outgoing_charmer",         "location": "clothing" },
+  { "id": 10, "name": "헤파이스토스", "gender": "M", "personality_code": "independent_thinker",      "location": "interior" },
+  { "id": 11, "name": "헤르메스",     "gender": "M", "personality_code": "outgoing_dynamo",          "location": "fountain" },
+  { "id": 12, "name": "헤스티아",     "gender": "F", "personality_code": "easygoing_softie",         "location": "cafe" }
+]
