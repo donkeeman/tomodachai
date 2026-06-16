@@ -198,6 +198,16 @@ class Mood(BaseModel):
             return "나른함"
         return "평온함"
 
+    def adjust(self, happiness: float = 0, energy: float = 0, stress: float = 0) -> None:
+        """3축을 델타만큼 조정하고 0~10으로 클램프 (int 저장, round)."""
+
+        def _clamp(v: float) -> int:
+            return max(0, min(10, round(v)))
+
+        self.happiness = _clamp(self.happiness + happiness)
+        self.energy = _clamp(self.energy + energy)
+        self.stress = _clamp(self.stress + stress)
+
 
 class CharacterState(BaseModel):
     satisfaction: float = 50.0   # 장기 레벨업 경험치, 마이너스 가능 → 절망

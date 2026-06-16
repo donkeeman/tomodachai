@@ -7,6 +7,7 @@ prototype/web_server.py snapshot()의 직렬화 규칙을 src/tomodachai 모델 
 from __future__ import annotations
 
 from tomodachai.character import Character
+from tomodachai.food import FOODS, preference_tier
 from tomodachai.game_state import GameState
 
 
@@ -45,6 +46,13 @@ def char_dict(gs: GameState, char: Character) -> dict:
     met.sort(key=lambda t: t[0], reverse=True)
     friends = [{"name": n, "label": lbl} for _f, n, lbl in met[:5]]
 
+    prefs = char.preferences
+    dex = [
+        {"name": FOODS[fid], "tier": preference_tier(prefs.food_ranks[fid])}
+        for fid, eaten in enumerate(prefs.food_eaten)
+        if eaten and fid < len(prefs.food_ranks)
+    ]
+
     loc_id = gs.location_manager.get_character_location(int_id)
     if not loc_id:
         # 위치 미등록 시 current_location(이름)을 장소 id로 역매핑 (프론트 locations는 id 키)
@@ -65,7 +73,7 @@ def char_dict(gs: GameState, char: Character) -> dict:
         "crushes": crushes,
         "food_eaten": list(char.preferences.food_eaten),  # bool[]: 음식 인덱스별 섭취 여부
         "friends": friends,
-        "dex": [],  # Plan 2(feed)에서 채움
+        "dex": dex,
     }
 
 
@@ -123,7 +131,7 @@ def build_snapshot(gs: GameState, since: int) -> dict:
         "minutes": minutes,
         "seq": gs._event_seq,
         "locations": locations,
-        "foods": [],  # Plan 2(feed)에서 채움
+        "foods": FOODS,
         # Plan 2(rankings)에서 채움
         "rankings": {"best_couple": [], "popular_m": [], "popular_f": [], "fighters": []},
         "asleep": minutes >= _SLEEP_START_MIN or minutes < _WAKE_MIN,
