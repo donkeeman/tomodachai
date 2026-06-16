@@ -162,6 +162,7 @@ function makeBubble(text: string, opts: { thought?: boolean; grey?: boolean } = 
 
 const INTERIOR_X = 200;
 interface Anchor { x: number; z: number; r: number; labelY: number; label?: Mesh; named?: boolean; }
+// 백엔드(FastAPI)의 15개 장소를 모두 매핑. living_room/balcony 는 실내(INTERIOR_X), 나머지는 마을.
 const ANCHORS: Record<string, Anchor> = {
   fountain: { x: 0, z: 0, r: 3.0, labelY: 3.2 },
   living_room: { x: INTERIOR_X, z: 0, r: 4.6, labelY: 5.2 },
@@ -169,7 +170,18 @@ const ANCHORS: Record<string, Anchor> = {
   park: { x: 10, z: -7, r: 3.4, labelY: 4.6 },
   cafe: { x: -10.5, z: 6.5, r: 2.4, labelY: 4.2 },
   beach: { x: 9.5, z: 10, r: 3.0, labelY: 3.4 },
+  grocery: { x: -15, z: 3, r: 2.4, labelY: 4.0 },
+  clothing: { x: -15, z: -4, r: 2.4, labelY: 4.0 },
+  interior: { x: -4, z: 15, r: 2.4, labelY: 4.0 },
+  news_station: { x: 15, z: 3, r: 2.4, labelY: 4.6 },
+  plaza: { x: 1, z: -14, r: 3.0, labelY: 3.0 },
+  concert_hall: { x: 9, z: -14, r: 2.6, labelY: 4.6 },
+  amusement_park: { x: 16, z: -10, r: 3.0, labelY: 4.8 },
+  city_hall: { x: -7, z: -14, r: 2.6, labelY: 4.8 },
+  photo_studio: { x: 5, z: 15, r: 2.4, labelY: 4.0 },
 };
+
+// 마을 시야(분수대 중심)에서 너무 멀어 안개에 묻히지 않게 지면도 살짝 키운다 (radius 30→34)
 
 let boardMesh: Mesh | null = null, houseMesh: Mesh | null = null;
 let fountainWater: Mesh | null = null;
@@ -191,7 +203,7 @@ function addTree(x: number, z: number, s = 1) {
 }
 
 function buildVillage() {
-  disc(30, "#9ed487", 0, 0, 0.01);
+  disc(34, "#9ed487", 0, 0, 0.01);  // 장소 15곳 + 가장자리 나무까지 담도록 확장
   disc(4.4, "#ead9b5", 0, 0, 0.02);
   cyl(4.4, 4.8, 0.5, "#b8c4cc", 0, 0.25, 0);
   fountainWater = cyl(3.8, 3.8, 0.46, "#7fd3f0", 0, 0.32, 0, false);
@@ -237,8 +249,47 @@ function buildVillage() {
   box(1.2, 1.0, 0.1, "#bfe3ef", hp.x - 1.4, 1.9, hp.z + 2.32);
   const hlabel = makeLocLabel("공동주택 🚪클릭"); hlabel.position.set(hp.x, 6.0, hp.z);
 
-  for (const [x, z, s] of [[-3, -12, 1.2], [4, -11, 1], [16, 2, 1.3], [-16, -1, 1.1],
-    [-4, 13, 1.15], [3, 14, 0.9], [15, -13, 1], [-15, 12, 0.95]] as number[][]) addTree(x, z, s);
+  // ---- 백엔드 15개 장소를 모두 채우는 추가 건물 9곳 ----
+  const shop = (key: string, wall: string, roof: string, accent: string) => {
+    const a = ANCHORS[key];
+    disc(a.r + 0.5, "#ead9b5", a.x, a.z, 0.012);
+    box(3.2, 2.2, 2.8, wall, a.x, 1.1, a.z);
+    const rf = cone(4.7, 1.6, roof, a.x, 2.9, a.z, 4); rf.rotation.y = Math.PI / 4;
+    box(2.6, 0.45, 0.35, accent, a.x, 1.95, a.z + 1.45);    // 차양/간판
+    box(0.95, 1.4, 0.12, "#9a6b4f", a.x, 0.7, a.z + 1.42);  // 문
+    box(0.8, 0.7, 0.1, "#bfe3ef", a.x - 1.0, 1.5, a.z + 1.42); // 창
+  };
+  shop("grocery", "#fff1e0", "#8bc34a", "#ff8e7a");
+  shop("clothing", "#fde0ef", "#ba68c8", "#f06292");
+  shop("interior", "#efe2c8", "#a1887f", "#8d6e63");
+  shop("concert_hall", "#ede7f6", "#7e57c2", "#ffd54f");
+  shop("photo_studio", "#e0f7fa", "#26a69a", "#4dd0e1");
+
+  shop("news_station", "#eceff1", "#5c6bc0", "#fdd835");   // 방송국 + 안테나
+  { const a = ANCHORS.news_station; cyl(0.1, 0.1, 2.4, "#b0bec5", a.x + 1.0, 3.4, a.z); sphere(0.42, "#ff5252", a.x + 1.0, 4.7, a.z); }
+
+  shop("city_hall", "#f5f5f5", "#90a4ae", "#b0bec5");      // 시청 + 돔
+  { const a = ANCHORS.city_hall; cyl(0.75, 0.75, 0.5, "#eceff1", a.x, 2.5, a.z); sphere(1.3, "#cfd8dc", a.x, 3.2, a.z); }
+
+  // 광장: 트인 포장 광장 + 중앙 기념비 + 벤치
+  { const a = ANCHORS.plaza;
+    disc(a.r + 0.6, "#d8cdb6", a.x, a.z, 0.014);
+    cyl(0.5, 0.7, 2.2, "#c9bfa6", a.x, 1.1, a.z); sphere(0.7, "#ffd166", a.x, 2.4, a.z);
+    box(1.4, 0.12, 0.4, "#a9763f", a.x - 2.2, 0.45, a.z); box(1.4, 0.12, 0.4, "#a9763f", a.x + 2.2, 0.45, a.z);
+  }
+
+  // 놀이공원: 천막 + 미니 관람차
+  { const a = ANCHORS.amusement_park;
+    disc(a.r + 0.4, "#e8f0c8", a.x, a.z, 0.012);
+    cone(3.6, 2.8, "#ff7eae", a.x - 1.2, 1.6, a.z + 0.6, 12);
+    cyl(0.12, 0.12, 2.4, "#bdbdbd", a.x + 1.6, 1.2, a.z - 0.9);
+    const wheel = CreateTorus("wheel", { diameter: 2.6, thickness: 0.16, tessellation: 16 }, scene);
+    wheel.material = mat("#4dd0e1"); wheel.rotation.x = Math.PI / 2;
+    wheel.position.set(a.x + 1.6, 2.5, a.z - 0.9);
+  }
+
+  for (const [x, z, s] of [[-22, -14, 1.2], [21, -16, 1], [25, 5, 1.3], [-25, -1, 1.1],
+    [-13, 23, 1.15], [11, 24, 0.9], [23, 18, 1], [-23, 17, 0.95], [0, -25, 1.1], [-26, 9, 1]] as number[][]) addTree(x, z, s);
   const flowerColors = ["#ff8fab", "#ffd166", "#c77dff", "#ff6b6b", "#fff3b0"];
   const rng = mulberry(42);
   for (let i = 0; i < 28; i++) {
@@ -255,7 +306,7 @@ function buildVillage() {
   }
   for (const key of Object.keys(ANCHORS)) {
     const a = ANCHORS[key];
-    if (key === "balcony") continue;
+    if (key === "balcony" || key === "living_room") continue;  // 실내는 buildInterior가 라벨 담당
     a.label = makeLocLabel(key);
     a.label.position.set(a.x, a.labelY, a.z);
   }
@@ -642,7 +693,7 @@ export function initVillage(canvas: HTMLCanvasElement) {
   scene.clearColor = Color4.FromHexString("#a9d7eeff");
   scene.ambientColor = new Color3(1, 1, 1);
   scene.fogMode = Scene.FOGMODE_LINEAR;
-  scene.fogStart = 40; scene.fogEnd = 110;
+  scene.fogStart = 52; scene.fogEnd = 120;
   scene.fogColor = Color3.FromHexString("#a9d7ee");
 
   camera = new UniversalCamera("cam", new Vector3(0, 10, -20), scene);
