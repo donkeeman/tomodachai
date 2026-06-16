@@ -12,8 +12,14 @@ from tomodachai.game_state import GameState
 
 
 def _gender(text: str) -> str:
-    """자유텍스트 성별 → 'M'/'F' (기타는 'M' 폴백)."""
-    return "F" if "여" in text else "M"
+    """자유텍스트 성별 → 'M'/'F' (인식 못 하면 'M' 폴백).
+
+    한국어("여성")뿐 아니라 영어 표기("F"/"female")도 수용한다.
+    """
+    t = (text or "").strip().lower()
+    if "여" in t or t in ("f", "female", "w", "woman", "girl"):
+        return "F"
+    return "M"
 
 
 def _int_id(char_id) -> int:

@@ -65,6 +65,16 @@ def test_char_dict_gender_female():
     assert char_dict(gs, gs.get_character(2))["gender"] == "F"
 
 
+def test_gender_normalization():
+    """한국어/영어 성별 표기를 모두 'M'/'F' 로 정규화."""
+    from tomodachai.api.snapshot import _gender
+
+    for female in ("여성", "여", "F", "f", "Female", "woman"):
+        assert _gender(female) == "F", female
+    for male in ("남성", "M", "male", "", "기타"):
+        assert _gender(male) == "M", male
+
+
 def test_map_event_conversation_shape():
     from tomodachai.api.snapshot import map_event
 
