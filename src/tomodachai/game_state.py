@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from tomodachai.bubble import Bubble
 from tomodachai.character import Character
 from tomodachai.config import AppConfig, load_config
 from tomodachai.fountain import FountainManager
@@ -168,7 +169,7 @@ class GameState:
         return self.simulation.memory
 
     @property
-    def bubbles(self) -> list:
+    def bubbles(self) -> list[Bubble]:
         """플레이어 응답 대기 말풍선 큐 (시뮬 소유)."""
         return self.simulation.bubbles
 
@@ -206,6 +207,7 @@ class GameState:
         """프론트 말풍선 응답 처리.
 
         반환: {"error": ...} | {"message": ...} | {"scene": ..., "messages": [...]}.
+        (resolve_confession은 단일 이벤트 dict 반환 가정. messages는 프론트 계약상 예약 필드.)
         """
         bubbles = self.bubbles
         if not (0 <= index < len(bubbles)):
