@@ -119,7 +119,10 @@ class Simulation:
         return result
 
     def _check_triggered_events(self) -> list[dict]:
-        """Check relationship metrics and trigger fights/confessions."""
+        """[LEGACY] all-pairs 일괄 처리. live 경로는 _check_triggered_events_for_pair 사용.
+
+        Check relationship metrics and trigger fights/confessions.
+        """
         events: list[dict] = []
 
         for a_id, b_id, rel in self.relationships.all_pairs():
@@ -199,7 +202,7 @@ class Simulation:
         if self.relationships.get_slots(a_id).lover == b_id:
             return None  # 이미 연인
         if self._confession_count.get((a_id, b_id), 0) >= 3:
-            return None  # 3회 거절 후 단념
+            return None  # 3회 거절 후 단념 (카운트는 resolve_confession이 증가시킴)
         rel = self.relationships.get(a_id, b_id)
         if not (rel.romance >= 50.0 and rel.friendship >= 20.0):
             return None
@@ -207,8 +210,8 @@ class Simulation:
             return None
 
         a_name, b_name = self._name(a_id), self._name(b_id)
-        retry = self._confession_count.get((a_id, b_id), 0)
-        suffix = " (재도전이에요...)" if retry else ""
+        rejection_count = self._confession_count.get((a_id, b_id), 0)
+        suffix = " (재도전이에요...)" if rejection_count else ""
         self.bubbles.append(
             Bubble(
                 kind="confess_request",
