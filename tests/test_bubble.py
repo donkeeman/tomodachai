@@ -126,6 +126,9 @@ def test_resolve_confession_success(make_sim, monkeypatch):
     assert sim.relationships.get_slots(2).lover == 1
     assert sim.relationships.get(1, 2).spark is True
     assert sim._confession_count[(1, 2)] == 0
+    # 뉴스/대화 맥락용으로 memory에도 confession 이벤트가 남아야 함 (legacy 패리티)
+    mem = sim.memory.get_events_between(1, 2)
+    assert any(e.type == "confession" and e.result == "accepted" for e in mem)
 
 
 def test_resolve_confession_fail_increments_count(make_sim, monkeypatch):

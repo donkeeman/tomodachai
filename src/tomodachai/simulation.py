@@ -252,6 +252,7 @@ class Simulation:
             rel_ba = self.relationships.get(b_id, a_id)
             rel_ab.spark = True
             rel_ba.spark = True
+            # 보정치는 prototype 게임 밸런스 그대로 (고백자 a 쪽 가중치가 더 큼)
             self.relationships.update(a_id, b_id, {"romance": 18, "friendship": 10})
             self.relationships.update(b_id, a_id, {"romance": 10, "friendship": 10})
             rel_ab.check_stage_transition(allow_romantic_transition=True)
@@ -263,13 +264,14 @@ class Simulation:
                 b.satisfaction += 10
                 b.state.mood.adjust(happiness=2)
             self._confession_count[(a_id, b_id)] = 0
+            self._record_confession_memory(a_id, b_id, "accepted")
             return {
                 "type": "confession_success",
                 "participants": [a_name, b_name],
                 "summary": f"{a_name}이(가) {b_name}에게 고백하여 연인이 되었다!",
             }
 
-        # 거절
+        # 거절 — 페널티는 고백자 a에게만 (거절한 b는 무처리, prototype 규칙)
         self.relationships.update(a_id, b_id, {"friendship": -5, "romance": -10})
         self.relationships.update(b_id, a_id, {"friendship": -3})
         count = self._confession_count.get((a_id, b_id), 0) + 1
@@ -279,11 +281,24 @@ class Simulation:
             a.state.mood.adjust(happiness=-3, energy=-1, stress=2)
         if count >= 3:
             self.relationships.update(a_id, b_id, {"romance": -self._rng.uniform(40, 50)})
+        self._record_confession_memory(a_id, b_id, "rejected")
         return {
             "type": "confession_fail",
             "participants": [a_name, b_name],
             "summary": f"{a_name}이(가) {b_name}에게 고백했지만 거절당했다.",
         }
+
+    def _record_confession_memory(self, a_id, b_id, result: str) -> None:
+        """고백 결과를 memory에 기록 (뉴스/대화 맥락용 — legacy _trigger_confession과 동일)."""
+        self.memory.add_event(
+            SocialEvent(
+                id=0,
+                type="confession",
+                participants=[int(a_id), int(b_id)],
+                day=self._step_count,
+                result=result,
+            )
+        )
 
     def _trigger_confession(self, a_id: int, b_id: int) -> dict | None:
         rel_ab = self.relationships.get(a_id, b_id)
