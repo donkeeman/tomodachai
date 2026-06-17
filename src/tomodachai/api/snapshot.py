@@ -6,6 +6,7 @@ prototype/web_server.py snapshot()의 직렬화 규칙을 src/tomodachai 모델 
 
 from __future__ import annotations
 
+from tomodachai.bubble import Bubble
 from tomodachai.character import Character
 from tomodachai.food import FOODS, preference_tier
 from tomodachai.game_state import GameState
@@ -91,7 +92,7 @@ _SLEEP_START_MIN = 23 * 60 - 5
 _WAKE_MIN = 7 * 60
 
 
-def bubble_dict(gs: GameState, bubble) -> dict:
+def bubble_dict(gs: GameState, bubble: Bubble) -> dict:
     """Bubble → 프론트 DTO {kind, char, target|null, text}."""
     return {
         "kind": bubble.kind,
