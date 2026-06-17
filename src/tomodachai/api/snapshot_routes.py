@@ -93,5 +93,7 @@ class BubbleRequest(BaseModel):
 
 @compat_router.post("/bubble")
 def answer_bubble(body: BubbleRequest):
+    # 프론트 계약: 에러도 200 + {"error": ...}로 반환한다 (/feed·/give와 달리 HTTPException 미사용).
+    # 프론트가 out.error로 분기하므로 절대 HTTP 에러 코드로 바꾸지 말 것.
     gs = _gs()
     return gs.answer_bubble(body.index, body.char, allow=body.answer == "allow")
