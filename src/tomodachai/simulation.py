@@ -229,7 +229,10 @@ class Simulation:
             rel.check_stage_transition(allow_romantic_transition=False)
 
     def _update_needs(self) -> None:
-        """Decay satisfaction and increase hunger each tick."""
+        """Decay satisfaction and increase hunger each tick.
+
+        Queues a 'hungry' bubble (once per character) when hunger reaches the threshold.
+        """
         for char in self.characters:
             char.hunger = min(100.0, char.hunger + _HUNGER_PER_TICK)
             char.satisfaction = max(0.0, char.satisfaction - _SATISFACTION_DECAY)
