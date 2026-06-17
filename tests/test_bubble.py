@@ -44,3 +44,23 @@ def test_simulation_starts_with_empty_bubbles(make_sim):
     sim = make_sim()
     assert sim.bubbles == []
     assert sim._confession_count == {}
+
+
+def test_hungry_bubble_added_once(make_sim):
+    sim = make_sim()
+    sim.characters[0].hunger = 85.0
+    sim._update_needs()
+    hungry = [b for b in sim.bubbles if b.kind == "hungry" and b.char_id == 1]
+    assert len(hungry) == 1
+    assert "배고" in hungry[0].text
+    # 다시 호출해도 중복 추가 안 함
+    sim._update_needs()
+    hungry = [b for b in sim.bubbles if b.kind == "hungry" and b.char_id == 1]
+    assert len(hungry) == 1
+
+
+def test_no_hungry_bubble_below_threshold(make_sim):
+    sim = make_sim()
+    sim.characters[0].hunger = 50.0
+    sim._update_needs()
+    assert not any(b.kind == "hungry" for b in sim.bubbles)

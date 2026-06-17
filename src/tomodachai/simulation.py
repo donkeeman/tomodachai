@@ -32,6 +32,7 @@ _CONFESSION_ROMANCE_THRESHOLD = 60.0
 _CONFESSION_CHANCE = 0.2
 _HUNGER_PER_TICK = 5.0
 _SATISFACTION_DECAY = 1.0
+_HUNGER_BUBBLE_THRESHOLD = 80.0  # 이 이상이면 "배고파요" 말풍선 (prototype 규칙)
 
 
 def assign_locations(
@@ -232,6 +233,13 @@ class Simulation:
         for char in self.characters:
             char.hunger = min(100.0, char.hunger + _HUNGER_PER_TICK)
             char.satisfaction = max(0.0, char.satisfaction - _SATISFACTION_DECAY)
+            cid = char.id
+            if char.hunger >= _HUNGER_BUBBLE_THRESHOLD and not any(
+                b.kind == "hungry" and b.char_id == cid for b in self.bubbles
+            ):
+                self.bubbles.append(
+                    Bubble(kind="hungry", char_id=cid, text=f'{char.name}: "배고파요..."')
+                )
 
     def _name(self, char_id) -> str:
         return self._char_map[char_id].name if char_id in self._char_map else str(char_id)
