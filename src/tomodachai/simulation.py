@@ -75,6 +75,7 @@ class Simulation:
         self._rng = random.Random()
         # 플레이어 응답 대기 말풍선 큐 + 고백 거절 누적(세션 한정)
         self.bubbles: list[Bubble] = []
+        # 키: (고백자 id, 대상 id) → 거절/단념 누적 횟수
         self._confession_count: dict[tuple[int, int], int] = {}
 
     def _run_conversation(
