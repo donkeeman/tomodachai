@@ -105,10 +105,17 @@ function makeTextPlane(draw: (g: any, w: number, h: number) => void, tw: number,
   plane.renderingGroupId = 1;
   return plane;
 }
+// 텍스처 폭을 넘치는 긴 텍스트(예: 긴 한글 이름)는 폰트를 줄여 잘리지 않게 맞춘다.
+function fitFont(g: any, text: string, maxW: number, base: number, weight = 700): void {
+  const f = (s: number) => `${weight} ${s}px 'Apple SD Gothic Neo', system-ui, sans-serif`;
+  g.font = f(base);
+  const w = g.measureText(text).width;
+  if (w > maxW) g.font = f(Math.max(15, Math.floor(base * (maxW / w))));
+}
 function makeNameLabel(text: string, color: string) {
   return makeTextPlane((g, w, h) => {
     g.clearRect(0, 0, w, h);
-    g.font = "700 40px 'Apple SD Gothic Neo', system-ui, sans-serif";
+    fitFont(g, text, w - 20, 40);
     g.textAlign = "center"; g.textBaseline = "middle";
     g.lineWidth = 8; g.strokeStyle = "rgba(40,40,40,.9)";
     g.strokeText(text, w / 2, h / 2);
@@ -118,7 +125,7 @@ function makeNameLabel(text: string, color: string) {
 function makeLocLabel(text: string) {
   return makeTextPlane((g, w, h) => {
     g.clearRect(0, 0, w, h);
-    g.font = "700 40px 'Apple SD Gothic Neo', system-ui, sans-serif";
+    fitFont(g, text, w - 24, 40);
     g.textAlign = "center"; g.textBaseline = "middle";
     g.lineWidth = 9; g.strokeStyle = "rgba(50,80,50,.7)";
     g.strokeText(text, w / 2, h / 2);
@@ -239,15 +246,7 @@ function buildVillage() {
   cyl(0.12, 0.12, 1.9, "#eee6d4", bh.x - 1.1, 0.95, bh.z - 0.8);
   cone(2.4, 0.6, "#ff8e7a", bh.x - 1.1, 2.0, bh.z - 0.8, 10);
 
-  const hp = { x: -11, z: -8 };
-  disc(4.2, "#ead9b5", hp.x, hp.z, 0.012);
-  houseMesh = box(6, 3, 4.6, "#f5e6c8", hp.x, 1.5, hp.z);
-  houseMesh.metadata = { house: true };
-  const roof = cone(8.8, 2.2, "#d98f6e", hp.x, 4.1, hp.z, 4); roof.rotation.y = Math.PI / 4;
-  const door = box(1.1, 1.7, 0.15, "#9a6b4f", hp.x + 1.2, 0.85, hp.z + 2.33);
-  door.metadata = { house: true };
-  box(1.2, 1.0, 0.1, "#bfe3ef", hp.x - 1.4, 1.9, hp.z + 2.32);
-  const hlabel = makeLocLabel("공동주택 🚪클릭"); hlabel.position.set(hp.x, 6.0, hp.z);
+  buildApartment();  // 공동주택(복도식) — 입구→공용 거실, 2층+ 방문→개인 방
 
   // ---- 백엔드 15개 장소를 모두 채우는 추가 건물 9곳 ----
   const shop = (key: string, wall: string, roof: string, accent: string) => {
@@ -338,36 +337,54 @@ function buildInterior() {
   const il = makeLocLabel("공동주택 거실"); il.position.set(X, 5.0, 0);
 }
 
-// ---------- 개인 집(마을) / 개인 방(별개 씬) ----------
+// ---------- 공동주택(복도식) / 개인 방(별개 씬) ----------
 
-const HOUSE_RING_R = 30, HOUSE_RING_N = 14;
-function housePoint(slot: number) {
-  const ring = Math.floor(slot / HOUSE_RING_N), idx = slot % HOUSE_RING_N;
-  const r = HOUSE_RING_R + ring * 3.5;
-  const ang = idx * ((Math.PI * 2) / HOUSE_RING_N) + ring * 0.4;
-  return { x: Math.cos(ang) * r, z: Math.sin(ang) * r };
-}
+// 공동주택 한 채: 1층 = 공용 거실 입구, 2층부터 복도식으로 주민별 방문 배치.
+const APT = { x: -2, z: -9, W: 14, D: 5, floorH: 3, floors: 4, perFloor: 7 };
+const FACADE_Z = APT.z + APT.D / 2;  // 정면(+z, 마을 중심을 향함)
+const DOOR_TINT = ["#c98a5a", "#a86b9a", "#5a9ab0", "#8a7ec0", "#6bae6b", "#d0a24a", "#cf7aae"];
+
 const ROOM_BASE_X = -360, ROOM_GAP = 44;
 function roomOriginX(slot: number) { return ROOM_BASE_X - slot * ROOM_GAP; }
 
-const HOUSE_WALL = ["#fff1e0", "#fde0ef", "#e0f7fa", "#ede7f6", "#e8f5e9", "#fff8e1"];
-const HOUSE_ROOF = ["#d98f6e", "#ba68c8", "#26a69a", "#7e57c2", "#66bb6a", "#ffb300"];
+// 주민 slot → 복도식 방문 위치 (2층부터 채움)
+function doorSlotPos(slot: number) {
+  const floor = 2 + Math.floor(slot / APT.perFloor);
+  const col = slot % APT.perFloor;
+  const x = APT.x - APT.W / 2 + 1.4 + col * ((APT.W - 2.8) / (APT.perFloor - 1));
+  const y = (floor - 1) * APT.floorH + 1.0;
+  return { x, y, z: FACADE_Z + 0.18, floor };
+}
 
-// 마을 맵의 캐릭터별 집(즉시 생성, 클릭→개인 방 진입)
-function buildHouse(e: Entry, data: Character, slot: number) {
-  const p = housePoint(slot);
-  const wall = HOUSE_WALL[data.id % HOUSE_WALL.length];
-  const roofC = HOUSE_ROOF[data.id % HOUSE_ROOF.length];
-  disc(2.4, "#ead9b5", p.x, p.z, 0.012);
-  const body = box(2.8, 2.0, 2.6, wall, p.x, 1.0, p.z);
-  body.metadata = { houseOf: data.id };
-  const roof = cone(4.2, 1.4, roofC, p.x, 2.7, p.z, 4); roof.rotation.y = Math.PI / 4;
-  const door = box(0.9, 1.3, 0.12, "#9a6b4f", p.x, 0.65, p.z + 1.32);
-  door.metadata = { houseOf: data.id };
-  box(0.7, 0.6, 0.1, "#bfe3ef", p.x - 0.9, 1.45, p.z + 1.32);
-  const lbl = makeLocLabel(data.name + "의 집"); lbl.scaling.scaleInPlace(0.78);
-  lbl.position.set(p.x, 3.7, p.z);
-  e.house = body;
+function buildApartment() {
+  const totalH = APT.floors * APT.floorH;
+  disc(APT.W / 2 + 2.4, "#ead9b5", APT.x, APT.z, 0.012);
+  const body = box(APT.W, totalH, APT.D, "#f1e6cf", APT.x, totalH / 2, APT.z);
+  body.metadata = { apartment: true }; houseMesh = body;
+  box(APT.W + 0.8, 0.4, APT.D + 0.8, "#cdbfa0", APT.x, totalH + 0.2, APT.z);   // 옥상 슬래브
+  for (let f = 2; f <= APT.floors; f++) {                                       // 복도 + 난간(2층~)
+    const y = (f - 1) * APT.floorH;
+    box(APT.W, 0.16, 1.3, "#d8ccb0", APT.x, y + 0.02, FACADE_Z + 0.65);
+    box(APT.W, 0.5, 0.12, "#b7a98a", APT.x, y + 0.55, FACADE_Z + 1.28);
+  }
+  for (let f = 1; f < APT.floors; f++)                                          // 층 구분 띠
+    box(APT.W + 0.3, 0.1, APT.D + 0.3, "#e6dcc2", APT.x, f * APT.floorH, APT.z);
+  const ent = box(1.6, 2.0, 0.2, "#9a6b4f", APT.x, 1.0, FACADE_Z + 0.12);       // 1층 입구 → 공용 거실
+  ent.metadata = { house: true };
+  box(1.0, 1.0, 0.06, "#bfe3ef", APT.x - 3.2, 1.6, FACADE_Z + 0.06);
+  box(1.0, 1.0, 0.06, "#bfe3ef", APT.x + 3.2, 1.6, FACADE_Z + 0.06);
+  const lbl = makeLocLabel("공동주택"); lbl.position.set(APT.x, totalH + 1.4, APT.z);
+}
+
+// 주민 방문(복도, 2층+) — 클릭 시 그 주민의 개인 방으로
+function addResidentDoor(e: Entry, data: Character, slot: number) {
+  const p = doorSlotPos(slot);
+  const door = box(0.95, 1.8, 0.16, DOOR_TINT[data.id % DOOR_TINT.length], p.x, p.y, p.z);
+  door.metadata = { roomDoorOf: data.id };
+  box(0.6, 0.18, 0.04, "#ffe9a8", p.x, p.y + 1.02, p.z + 0.02);   // 문패 바탕
+  const plate = makeNameLabel(data.name, "#5a4632"); plate.scaling.scaleInPlace(0.5);
+  plate.position.set(p.x, p.y + 1.06, p.z + 0.06);
+  e.door = door;
 }
 
 // 개인 방: 마을에서 멀리 떨어진 별개 공간. 진입 시 lazy 빌드(점유자 figure 포함, 그림자 캐스트 X로 섀도 프러스텀 보호)
@@ -457,7 +474,7 @@ interface Entry {
   root: TransformNode; data: Character; target: Vector3; wanderAt: number;
   bubble: Mesh | null; bubbleUntil: number; heading: number;
   appliedLoc: string; pendingLoc: string | null; px: number; pz: number;
-  house: Mesh | null; houseBubble: Mesh | null; roomSlot: number;
+  door: Mesh | null; doorBubble: Mesh | null; roomSlot: number;
   roomBuilt: boolean; roomOrigin: Vector3; roomOccupant: TransformNode | null;
   roomBubble: Mesh | null; roomBubbleUntil: number; worryText: string | null;
 }
@@ -494,11 +511,11 @@ function upsertChar(data: Character) {
     const slot = roomSlotCounter++;
     e = { root, data, target: p.clone(), wanderAt: performance.now() + 3000 + Math.random() * 5000,
       bubble: null, bubbleUntil: 0, heading: 0, appliedLoc: data.location, pendingLoc: null, px: p.x, pz: p.z,
-      house: null, houseBubble: null, roomSlot: slot, roomBuilt: false,
+      door: null, doorBubble: null, roomSlot: slot, roomBuilt: false,
       roomOrigin: new Vector3(roomOriginX(slot), 0, 0), roomOccupant: null,
       roomBubble: null, roomBubbleUntil: 0, worryText: null };
     entries.set(data.id, e);
-    buildHouse(e, data, slot);
+    addResidentDoor(e, data, slot);
   } else {
     if (e.appliedLoc !== data.location) {
       if (curSelectedId === data.id) e.pendingLoc = data.location;
@@ -528,13 +545,13 @@ function showRoomBubble(e: Entry, text: string) {
   e.roomBubble = plane;
   e.roomBubbleUntil = performance.now() + 6000;  // 고민은 좀 더 길게 유지
 }
-function setHouseWorry(e: Entry, on: boolean) {
-  if (on && !e.houseBubble && e.house) {
+function setDoorWorry(e: Entry, on: boolean) {
+  if (on && !e.doorBubble && e.door) {
     const b = makeBubble("💭", { thought: true });
-    b.position.set(e.house.position.x, 3.2, e.house.position.z);
-    e.houseBubble = b;
-  } else if (!on && e.houseBubble) {
-    e.houseBubble.dispose(); e.houseBubble = null;
+    b.position.set(e.door.position.x, e.door.position.y + 1.5, e.door.position.z + 0.1);
+    e.doorBubble = b;
+  } else if (!on && e.doorBubble) {
+    e.doorBubble.dispose(); e.doorBubble = null;
   }
 }
 
@@ -585,7 +602,7 @@ export function applySnapshot(snap: Snapshot) {
   for (const e of entries.values()) {
     const w = worry.get(e.data.name) ?? null;
     e.worryText = w;
-    setHouseWorry(e, w != null);
+    setDoorWorry(e, w != null);
     if (w && currentRoomId === e.data.id && e.roomBuilt && !e.roomBubble) showRoomBubble(e, "💭 " + w);
   }
   // 꿈(dream): 잠든 캐릭터 위 — 개인 방 밖(벤치 등)도 허용
@@ -720,7 +737,8 @@ function pickAt(x: number, y: number) {
   const pick = scene.pick(x, y, (m: AbstractMesh) => m.isPickable && !!m.metadata);
   if (pick && pick.hit && pick.pickedMesh && pick.pickedMesh.metadata) {
     const md: any = pick.pickedMesh.metadata;
-    if (md.houseOf != null) { enterRoom(md.houseOf); return; }
+    if (md.roomDoorOf != null) { enterRoom(md.roomDoorOf); return; }
+    if (md.apartment) { focusApartment(); return; }
     if (md.house) { setView("interior"); return; }
     if (md.board) { boardOpen.update((v) => !v); return; }
     if (md.charId != null) { const e = entries.get(md.charId); if (e) { cardMode.set("info"); selectedId.set(md.charId); if (view === "village") focusOn(e); return; } }
@@ -732,6 +750,13 @@ function focusOn(e: Entry) {
   e.target = e.root.position.clone();
   freeTarget.set(e.root.position.x, 1.0, e.root.position.z);
   camRadius = Math.min(camRadius, 15);
+}
+// 공동주택 정면(복도식 방문)을 보도록 카메라를 맞춘다 — 방문 클릭이 쉬워지게
+function focusApartment() {
+  autoFollow = null; selectedId.set(null);
+  const totalH = APT.floors * APT.floorH;
+  freeTarget.set(APT.x, totalH * 0.45, FACADE_Z);
+  camRadius = 17; camPhi = 1.12; camTheta = 0;
 }
 
 export function setView(v: "village" | "interior" | "room") {
@@ -892,6 +917,6 @@ export function initVillage(canvas: HTMLCanvasElement) {
   enterRoom(name: string) { const e = charByName(name); if (e) enterRoom(e.data.id); },
   exitRoom() { setView("village"); },
   roomBuilt(name: string) { const e = charByName(name); return !!(e && e.roomBuilt); },
-  mockWorry(name: string, text: string) { const e = charByName(name); if (e) { e.worryText = text; setHouseWorry(e, true); if (currentRoomId === e.data.id && e.roomBuilt) showRoomBubble(e, "💭 " + text); } },
+  mockWorry(name: string, text: string) { const e = charByName(name); if (e) { e.worryText = text; setDoorWorry(e, true); if (currentRoomId === e.data.id && e.roomBuilt) showRoomBubble(e, "💭 " + text); } },
   view() { return view; },
 };
