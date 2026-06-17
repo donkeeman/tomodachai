@@ -5,6 +5,7 @@ import pytest
 from tomodachai.bubble import Bubble
 from tomodachai.character import Character, CharacterState, Customizable, Profile, SpeechHabits
 from tomodachai.config import AppConfig, LLMConfig, LocationConfig, SimulationConfig
+from tomodachai.game_state import GameState
 from tomodachai.simulation import Simulation
 
 
@@ -139,3 +140,75 @@ def test_resolve_confession_fail_increments_count(make_sim, monkeypatch):
     assert ev["type"] == "confession_fail"
     assert sim._confession_count[(1, 2)] == 1
     assert sim.relationships.get_slots(1).lover != 2
+
+
+# ------------------------------------------------------------------
+# GameState 통합 테스트
+# ------------------------------------------------------------------
+
+
+def _gs_two():
+    cfg = AppConfig(
+        llm=LLMConfig(provider="litellm", model="ollama/gemma3", temperature=0.8),
+        simulation=SimulationConfig(),
+        locations=[LocationConfig(name="공원", capacity=5)],
+    )
+    gs = GameState(config=cfg)
+    gs.add_character(_char(1, "A"))
+    gs.add_character(_char(2, "B"))
+    return gs
+
+
+def test_gs_bubbles_property(monkeypatch):
+    gs = _gs_two()
+    sim = gs.simulation
+    sim.relationships.update(1, 2, {"friendship": 50, "romance": 75})
+    monkeypatch.setattr(sim._rng, "random", lambda: 0.0)
+    sim._maybe_confession_bubble(1, 2)
+    assert len(gs.bubbles) == 1
+
+
+def test_answer_bubble_allow_records_event(monkeypatch):
+    gs = _gs_two()
+    sim = gs.simulation
+    sim.relationships.update(1, 2, {"friendship": 50, "romance": 75})
+    monkeypatch.setattr(sim._rng, "random", lambda: 0.0)
+    sim._maybe_confession_bubble(1, 2)
+
+    out = gs.answer_bubble(0, "A", allow=True)
+    assert "scene" in out
+    assert gs.bubbles == []
+    assert any(e["raw"]["type"].startswith("confession") for e in gs.events_since(0))
+
+
+def test_answer_bubble_name_mismatch(monkeypatch):
+    gs = _gs_two()
+    sim = gs.simulation
+    sim.relationships.update(1, 2, {"friendship": 50, "romance": 75})
+    monkeypatch.setattr(sim._rng, "random", lambda: 0.0)
+    sim._maybe_confession_bubble(1, 2)
+    out = gs.answer_bubble(0, "B", allow=True)  # index 0의 owner는 A
+    assert "error" in out
+    assert len(gs.bubbles) == 1
+
+
+def test_answer_bubble_out_of_range():
+    gs = _gs_two()
+    out = gs.answer_bubble(5, "A", allow=True)
+    assert "error" in out
+
+
+def test_answer_bubble_hungry_guard():
+    gs = _gs_two()
+    gs.bubbles.append(Bubble(kind="hungry", char_id=1, text='A: "배고파요..."'))
+    out = gs.answer_bubble(0, "A", allow=True)
+    assert "error" in out
+    assert len(gs.bubbles) == 1
+
+
+def test_clear_hungry_bubble():
+    gs = _gs_two()
+    gs.bubbles.append(Bubble(kind="hungry", char_id=1, text='A: "배고파요..."'))
+    gs.bubbles.append(Bubble(kind="hungry", char_id=2, text='B: "배고파요..."'))
+    gs.clear_hungry_bubble(1)
+    assert [b.char_id for b in gs.bubbles] == [2]
