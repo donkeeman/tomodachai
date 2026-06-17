@@ -64,3 +64,37 @@ def test_no_hungry_bubble_below_threshold(make_sim):
     sim.characters[0].hunger = 50.0
     sim._update_needs()
     assert not any(b.kind == "hungry" for b in sim.bubbles)
+
+
+def test_confession_creates_bubble_not_event(make_sim, monkeypatch):
+    sim = make_sim()
+    sim.relationships.update(1, 2, {"friendship": 50, "romance": 75})
+    monkeypatch.setattr(sim._rng, "random", lambda: 0.0)
+    ev = sim._maybe_confession_bubble(1, 2)
+    assert any(b.kind == "confess_request" and b.char_id == 1 and b.target_id == 2
+               for b in sim.bubbles)
+    assert ev is not None and ev["type"] == "bubble"
+
+
+def test_only_one_confess_request_pending(make_sim, monkeypatch):
+    sim = make_sim()
+    sim.relationships.update(1, 2, {"friendship": 50, "romance": 75})
+    monkeypatch.setattr(sim._rng, "random", lambda: 0.0)
+    sim._maybe_confession_bubble(1, 2)
+    assert sim._maybe_confession_bubble(1, 2) is None
+    assert sum(b.kind == "confess_request" for b in sim.bubbles) == 1
+
+
+def test_no_confession_bubble_below_thresholds(make_sim, monkeypatch):
+    sim = make_sim()
+    sim.relationships.update(1, 2, {"friendship": 10, "romance": 75})  # friendship<20
+    monkeypatch.setattr(sim._rng, "random", lambda: 0.0)
+    assert sim._maybe_confession_bubble(1, 2) is None
+
+
+def test_no_confession_when_already_lover(make_sim, monkeypatch):
+    sim = make_sim()
+    sim.relationships.update(1, 2, {"friendship": 50, "romance": 75})
+    sim.relationships.set_lover(1, 2)
+    monkeypatch.setattr(sim._rng, "random", lambda: 0.0)
+    assert sim._maybe_confession_bubble(1, 2) is None

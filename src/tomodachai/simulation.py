@@ -188,6 +188,41 @@ class Simulation:
             "summary": f"{a_name}와(과) {b_name}의 긴장이 폭발하여 싸움이 벌어졌다!",
         }
 
+    def _maybe_confession_bubble(self, a_id, b_id) -> dict | None:
+        """조건 충족 시 confess_request 말풍선을 큐에 추가하고 알림 이벤트를 반환.
+
+        prototype 규칙: A→B romance>=50 AND friendship>=20, 이미 연인 아님,
+        거절 누적<3, 대기 중 confess_request 없음, 50% 확률.
+        """
+        if any(b.kind == "confess_request" for b in self.bubbles):
+            return None  # 동시 1개만
+        if self.relationships.get_slots(a_id).lover == b_id:
+            return None  # 이미 연인
+        if self._confession_count.get((a_id, b_id), 0) >= 3:
+            return None  # 3회 거절 후 단념
+        rel = self.relationships.get(a_id, b_id)
+        if not (rel.romance >= 50.0 and rel.friendship >= 20.0):
+            return None
+        if self._rng.random() > 0.5:
+            return None
+
+        a_name, b_name = self._name(a_id), self._name(b_id)
+        retry = self._confession_count.get((a_id, b_id), 0)
+        suffix = " (재도전이에요...)" if retry else ""
+        self.bubbles.append(
+            Bubble(
+                kind="confess_request",
+                char_id=a_id,
+                target_id=b_id,
+                text=f'{a_name}: "{b_name}에게 고백하고 싶어요...{suffix} 해도 될까요?"',
+            )
+        )
+        return {
+            "type": "bubble",
+            "participants": [a_name, b_name],
+            "summary": f"💗 {a_name}이(가) 할 말이 있대요. (말풍선 확인)",
+        }
+
     def _trigger_confession(self, a_id: int, b_id: int) -> dict | None:
         rel_ab = self.relationships.get(a_id, b_id)
         rel_ba = self.relationships.get(b_id, a_id)
@@ -321,14 +356,9 @@ class Simulation:
             if fight:
                 events.append(fight)
 
-        if (
-            rel.romance >= _CONFESSION_ROMANCE_THRESHOLD
-            and rel.stage in (RelationshipStage.FRIEND, RelationshipStage.BEST_FRIEND)
-            and self._rng.random() < _CONFESSION_CHANCE
-        ):
-            confession = self._trigger_confession(a_id, b_id)
-            if confession:
-                events.append(confession)
+        bubble_note = self._maybe_confession_bubble(a_id, b_id)
+        if bubble_note:
+            events.append(bubble_note)
 
         return events
 
