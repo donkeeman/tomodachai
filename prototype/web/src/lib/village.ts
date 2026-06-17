@@ -27,7 +27,7 @@ import "@babylonjs/core/Culling/ray";
 import "@babylonjs/loaders/glTF/2.0";
 
 import type { Snapshot, Character, EventItem } from "./types";
-import { toast, selectedId, viewMode, followName, modelLoaded, boardOpen, cardMode } from "./store";
+import { toast, selectedId, viewMode, roomName, followName, modelLoaded, boardOpen, cardMode } from "./store";
 
 let engine: Engine, scene: Scene, camera: UniversalCamera, shadow: ShadowGenerator;
 let sun: DirectionalLight;
@@ -338,6 +338,60 @@ function buildInterior() {
   const il = makeLocLabel("공동주택 거실"); il.position.set(X, 5.0, 0);
 }
 
+// ---------- 개인 집(마을) / 개인 방(별개 씬) ----------
+
+const HOUSE_RING_R = 30, HOUSE_RING_N = 14;
+function housePoint(slot: number) {
+  const ring = Math.floor(slot / HOUSE_RING_N), idx = slot % HOUSE_RING_N;
+  const r = HOUSE_RING_R + ring * 3.5;
+  const ang = idx * ((Math.PI * 2) / HOUSE_RING_N) + ring * 0.4;
+  return { x: Math.cos(ang) * r, z: Math.sin(ang) * r };
+}
+const ROOM_BASE_X = -360, ROOM_GAP = 44;
+function roomOriginX(slot: number) { return ROOM_BASE_X - slot * ROOM_GAP; }
+
+const HOUSE_WALL = ["#fff1e0", "#fde0ef", "#e0f7fa", "#ede7f6", "#e8f5e9", "#fff8e1"];
+const HOUSE_ROOF = ["#d98f6e", "#ba68c8", "#26a69a", "#7e57c2", "#66bb6a", "#ffb300"];
+
+// 마을 맵의 캐릭터별 집(즉시 생성, 클릭→개인 방 진입)
+function buildHouse(e: Entry, data: Character, slot: number) {
+  const p = housePoint(slot);
+  const wall = HOUSE_WALL[data.id % HOUSE_WALL.length];
+  const roofC = HOUSE_ROOF[data.id % HOUSE_ROOF.length];
+  disc(2.4, "#ead9b5", p.x, p.z, 0.012);
+  const body = box(2.8, 2.0, 2.6, wall, p.x, 1.0, p.z);
+  body.metadata = { houseOf: data.id };
+  const roof = cone(4.2, 1.4, roofC, p.x, 2.7, p.z, 4); roof.rotation.y = Math.PI / 4;
+  const door = box(0.9, 1.3, 0.12, "#9a6b4f", p.x, 0.65, p.z + 1.32);
+  door.metadata = { houseOf: data.id };
+  box(0.7, 0.6, 0.1, "#bfe3ef", p.x - 0.9, 1.45, p.z + 1.32);
+  const lbl = makeLocLabel(data.name + "의 집"); lbl.scaling.scaleInPlace(0.78);
+  lbl.position.set(p.x, 3.7, p.z);
+  e.house = body;
+}
+
+// 개인 방: 마을에서 멀리 떨어진 별개 공간. 진입 시 lazy 빌드(점유자 figure 포함, 그림자 캐스트 X로 섀도 프러스텀 보호)
+function buildRoom(e: Entry, data: Character) {
+  const X = e.roomOrigin.x, Z = 0;
+  box(16, 0.12, 12, "#dcc09a", X, 0.06, Z, false);             // 바닥
+  box(16, 3.2, 0.25, "#f6ecd9", X, 1.6, Z - 6, false);         // 뒷벽
+  box(0.25, 3.2, 12, "#efe2c8", X - 8, 1.6, Z, false);         // 좌벽
+  box(3.2, 1.5, 0.1, "#a8d8ef", X - 1, 1.85, Z - 5.88, false); // 창
+  box(2.4, 0.5, 3.4, "#9fc6e8", X - 5.2, 0.3, Z - 3.0, false); // 침대
+  box(2.4, 0.85, 0.3, "#cfe5f5", X - 5.2, 0.7, Z - 4.55, false); // 헤드보드
+  box(1.0, 0.18, 0.7, "#ffffff", X - 5.2, 0.62, Z - 4.0, false); // 베개
+  const rug = disc(2.4, "#f2b3b3", X + 1, Z + 1.2, 0.08); rug.scaling.x = 1.2;
+  box(2.2, 0.5, 1.0, "#c89f6a", X + 4.4, 0.7, Z - 4.0, false); // 책상
+  box(0.8, 0.55, 0.8, "#8a6a4a", X + 4.4, 0.28, Z - 2.9, false); // 의자
+  cyl(0.5, 0.6, 0.5, "#e7dccb", X + 6, 0.3, Z + 3, false);     // 화분
+  cone(1.0, 1.0, "#5fa463", X + 6, 1.1, Z + 3, 8, false);
+  box(1.2, 0.9, 0.08, "#ffe9a8", X - 2.2, 1.95, Z - 5.9, false); // 액자
+  const lbl = makeLocLabel(data.name + "의 방"); lbl.position.set(X, 4.4, Z);
+  const occ = makeFigure(data, false);                          // 점유자(그림자 X)
+  occ.position.set(X + 1, 0, Z + 0.4); occ.rotation.y = -0.5;
+  e.roomOccupant = occ; e.roomBuilt = true;
+}
+
 // ---------- Blender glTF 파이프라인 ----------
 
 const MODEL_DIR = "models/";
@@ -375,25 +429,25 @@ const PALETTE = ["#e57373", "#64b5f6", "#81c784", "#ffb74d", "#ba68c8", "#4db6ac
   "#f06292", "#7986cb", "#a1887f", "#90a4ae", "#dce775", "#4dd0e1"];
 const HAIR = ["#4e342e", "#263238", "#6d4c41", "#8d6e63", "#3e2723"];
 
-function buildProcedural(root: TransformNode, data: Character) {
+function buildProcedural(root: TransformNode, data: Character, cast = true) {
   const color = PALETTE[(data.id - 1) % PALETTE.length];
   const body = CreateCapsule("body", { radius: 0.42, height: 1.5 }, scene);
-  body.material = mat(color); body.position.y = 0.85; body.parent = root; shadow.addShadowCaster(body);
-  const head = sphere(0.68, "#ffe0bd", 0, 1.6, 0); head.parent = root;
+  body.material = mat(color); body.position.y = 0.85; body.parent = root; if (cast) shadow.addShadowCaster(body);
+  const head = sphere(0.68, "#ffe0bd", 0, 1.6, 0, cast); head.parent = root;
   const hairColor = HAIR[(data.id * 3 + 1) % HAIR.length];
   if (data.gender === "F") {
-    const hr = sphere(0.74, hairColor, 0, 1.7, -0.03); hr.scaling.y = 0.85; hr.parent = root;
+    const hr = sphere(0.74, hairColor, 0, 1.7, -0.03, cast); hr.scaling.y = 0.85; hr.parent = root;
   } else {
     const hr = CreateSphere("hair", { diameter: 0.71, segments: 12, slice: 0.5 }, scene);
     hr.material = mat(hairColor); hr.position.set(0, 1.62, 0); hr.parent = root;
   }
   for (const dx of [-0.12, 0.12]) { const eye = sphere(0.07, "#222222", dx, 1.64, 0.31, false); eye.parent = root; }
 }
-function buildModel(root: TransformNode, data: Character) {
+function buildModel(root: TransformNode, data: Character, cast = true) {
   const container = modelContainers[data.gender] || modelContainers.any;
   const inst = container.instantiateModelsToScene((n: string) => n, false);
   for (const node of inst.rootNodes) node.parent = root;
-  for (const m of root.getChildMeshes()) shadow.addShadowCaster(m);
+  if (cast) for (const m of root.getChildMeshes()) shadow.addShadowCaster(m);
   if (inst.animationGroups && inst.animationGroups.length) inst.animationGroups[0].start(true);
 }
 
@@ -403,14 +457,18 @@ interface Entry {
   root: TransformNode; data: Character; target: Vector3; wanderAt: number;
   bubble: Mesh | null; bubbleUntil: number; heading: number;
   appliedLoc: string; pendingLoc: string | null; px: number; pz: number;
+  house: Mesh | null; houseBubble: Mesh | null; roomSlot: number;
+  roomBuilt: boolean; roomOrigin: Vector3; roomOccupant: TransformNode | null;
+  roomBubble: Mesh | null; roomBubbleUntil: number; worryText: string | null;
 }
 const entries = new Map<number, Entry>();
+let roomSlotCounter = 0;
 const LABEL_Y = 2.35;
 
-function makeFigure(data: Character): TransformNode {
+function makeFigure(data: Character, cast = true): TransformNode {
   const root = new TransformNode("char" + data.id, scene);
-  if (anyModelLoaded && (modelContainers[data.gender] || modelContainers.any)) buildModel(root, data);
-  else buildProcedural(root, data);
+  if (anyModelLoaded && (modelContainers[data.gender] || modelContainers.any)) buildModel(root, data, cast);
+  else buildProcedural(root, data, cast);
   for (const m of root.getChildMeshes()) { m.metadata = { charId: data.id }; m.isPickable = true; }
   const label = makeNameLabel(data.name, data.gender === "F" ? "#ffd9e8" : "#d6ecff");
   label.position.set(0, LABEL_Y, 0); label.parent = root;
@@ -433,9 +491,14 @@ function upsertChar(data: Character) {
     const root = makeFigure(data);
     const p = anchorPoint(data.location);
     root.position.copyFrom(p);
+    const slot = roomSlotCounter++;
     e = { root, data, target: p.clone(), wanderAt: performance.now() + 3000 + Math.random() * 5000,
-      bubble: null, bubbleUntil: 0, heading: 0, appliedLoc: data.location, pendingLoc: null, px: p.x, pz: p.z };
+      bubble: null, bubbleUntil: 0, heading: 0, appliedLoc: data.location, pendingLoc: null, px: p.x, pz: p.z,
+      house: null, houseBubble: null, roomSlot: slot, roomBuilt: false,
+      roomOrigin: new Vector3(roomOriginX(slot), 0, 0), roomOccupant: null,
+      roomBubble: null, roomBubbleUntil: 0, worryText: null };
     entries.set(data.id, e);
+    buildHouse(e, data, slot);
   } else {
     if (e.appliedLoc !== data.location) {
       if (curSelectedId === data.id) e.pendingLoc = data.location;
@@ -455,6 +518,24 @@ function showBubble(e: Entry, text: string, opts: { thought?: boolean; grey?: bo
   plane.parent = e.root;
   e.bubble = plane;
   e.bubbleUntil = performance.now() + (opts.dur || 2600);
+}
+function showRoomBubble(e: Entry, text: string) {
+  if (!e.roomOccupant) return;
+  if (e.roomBubble) e.roomBubble.dispose();
+  const plane = makeBubble(text, { thought: true });
+  plane.position.set(0, 2.95 + plane.bubbleH / 2, 0);
+  plane.parent = e.roomOccupant;
+  e.roomBubble = plane;
+  e.roomBubbleUntil = performance.now() + 6000;  // 고민은 좀 더 길게 유지
+}
+function setHouseWorry(e: Entry, on: boolean) {
+  if (on && !e.houseBubble && e.house) {
+    const b = makeBubble("💭", { thought: true });
+    b.position.set(e.house.position.x, 3.2, e.house.position.z);
+    e.houseBubble = b;
+  } else if (!on && e.houseBubble) {
+    e.houseBubble.dispose(); e.houseBubble = null;
+  }
 }
 
 // ---------- 이벤트 연출 (병렬 트랙) ----------
@@ -496,8 +577,19 @@ selectedId.subscribe((v) => { curSelectedId = v; });
 export function applySnapshot(snap: Snapshot) {
   locNames = snap.locations;
   for (const c of snap.characters) upsertChar(c);
-  const hungry = new Set(snap.bubbles.filter((b) => b.kind === "hungry").map((b) => b.char));
+  const byKind = (k: string) => snap.bubbles.filter((b) => b.kind === k);
+  const hungry = new Set(byKind("hungry").map((b) => b.char));
   for (const e of entries.values()) if (hungry.has(e.data.name) && !e.bubble) showBubble(e, "🍚 배고파요...", { grey: true, dur: 2300 });
+  // 고민(worry): 집 외관 힌트 + (그 방에 들어가 있으면) 방 안 표출
+  const worry = new Map(byKind("worry").map((b) => [b.char, b.text] as const));
+  for (const e of entries.values()) {
+    const w = worry.get(e.data.name) ?? null;
+    e.worryText = w;
+    setHouseWorry(e, w != null);
+    if (w && currentRoomId === e.data.id && e.roomBuilt && !e.roomBubble) showRoomBubble(e, "💭 " + w);
+  }
+  // 꿈(dream): 잠든 캐릭터 위 — 개인 방 밖(벤치 등)도 허용
+  for (const b of byKind("dream")) { const e = charByName(b.char); if (e && !e.bubble) showBubble(e, "💤 " + (b.text || "Zzz..."), { thought: true, dur: 2600 }); }
   updateSky(snap.minutes);
   for (const key of Object.keys(ANCHORS)) {
     const a = ANCHORS[key];
@@ -518,7 +610,7 @@ function updateSky(minutes: number) {
   lastMinutes = minutes;
   const h = minutes / 60;
   let c: Color3;
-  if (view === "interior") c = Color3.FromHexString("#f4e8d2");
+  if (view !== "village") c = Color3.FromHexString("#f4e8d2");
   else if (h < 5) c = skyDusk.clone();
   else if (h < 7) c = lerpC(skyDusk, skyDay, (h - 5) / 2);
   else if (h <= 16) c = skyDay.clone();
@@ -526,7 +618,7 @@ function updateSky(minutes: number) {
   else c = lerpC(skySunset, skyDusk, (h - 19) / 3.5);
   scene.clearColor = new Color4(c.r, c.g, c.b, 1);
   scene.fogColor = c;
-  const dim = view === "interior" ? 0.95 : h < 6 ? 0.5 : h > 17 ? Math.max(0.55, 1 - (h - 17) * 0.09) : 1;
+  const dim = view !== "village" ? 0.95 : h < 6 ? 0.5 : h > 17 ? Math.max(0.55, 1 - (h - 17) * 0.09) : 1;
   sun.intensity = 1.5 * dim;
 }
 
@@ -548,7 +640,8 @@ const HOME_TARGET = new Vector3(0, 0.6, 0);
 const freeTarget = HOME_TARGET.clone();
 let camEngaged = false;
 let reticle: Mesh, reticleMat: StandardMaterial;
-let view: "village" | "interior" = "village";
+let view: "village" | "interior" | "room" = "village";
+let currentRoomId: number | null = null;
 
 function panCamera(dx: number, dy: number) {
   const s = camRadius * 0.0016;
@@ -556,8 +649,9 @@ function panCamera(dx: number, dy: number) {
   const rx = Math.cos(camTheta), rz = -Math.sin(camTheta);
   freeTarget.x -= (rx * dx + fx * dy) * s;
   freeTarget.z -= (rz * dx + fz * dy) * s;
-  const cx = view === "interior" ? INTERIOR_X : 0;
-  const lim = view === "interior" ? 12 : 26;
+  let cx = 0, lim = 26;
+  if (view === "interior") { cx = INTERIOR_X; lim = 12; }
+  else if (view === "room" && currentRoomId != null) { const re = entries.get(currentRoomId); cx = re ? re.roomOrigin.x : 0; lim = 8; }
   const offx = freeTarget.x - cx;
   const len = Math.hypot(offx, freeTarget.z);
   if (len > lim) { freeTarget.x = cx + offx * lim / len; freeTarget.z *= lim / len; }
@@ -569,7 +663,7 @@ let lastPinch = 0, downPos: { x: number; y: number; btn: number } | null = null,
 function setupInput() {
   canvasEl.addEventListener("contextmenu", (e) => e.preventDefault());
   canvasEl.addEventListener("dblclick", () => {
-    if (view === "interior") { setView("village"); return; }
+    if (view !== "village") { setView("village"); return; }
     autoFollow = null; freeTarget.copyFrom(HOME_TARGET);
   });
   canvasEl.addEventListener("pointerdown", (e) => {
@@ -626,9 +720,10 @@ function pickAt(x: number, y: number) {
   const pick = scene.pick(x, y, (m: AbstractMesh) => m.isPickable && !!m.metadata);
   if (pick && pick.hit && pick.pickedMesh && pick.pickedMesh.metadata) {
     const md: any = pick.pickedMesh.metadata;
+    if (md.houseOf != null) { enterRoom(md.houseOf); return; }
     if (md.house) { setView("interior"); return; }
     if (md.board) { boardOpen.update((v) => !v); return; }
-    if (md.charId != null) { const e = entries.get(md.charId); if (e) { cardMode.set("info"); selectedId.set(md.charId); focusOn(e); return; } }
+    if (md.charId != null) { const e = entries.get(md.charId); if (e) { cardMode.set("info"); selectedId.set(md.charId); if (view === "village") focusOn(e); return; } }
   }
   selectedId.set(null);
 }
@@ -639,16 +734,36 @@ function focusOn(e: Entry) {
   camRadius = Math.min(camRadius, 15);
 }
 
-export function setView(v: "village" | "interior") {
-  if (view === v) return;
+export function setView(v: "village" | "interior" | "room") {
+  if (view === v && v !== "room") return;
   view = v;
   viewMode.set(v);
+  if (v !== "room") { currentRoomId = null; roomName.set(null); }
   setTimeout(() => {
     autoFollow = null; selectedId.set(null);
     if (v === "interior") { freeTarget.set(INTERIOR_X, 0.8, 0.5); camRadius = 14; camPhi = 1.0; }
-    else { freeTarget.copyFrom(HOME_TARGET); camRadius = 27; }
+    else if (v === "village") { freeTarget.copyFrom(HOME_TARGET); camRadius = 27; }
     camTarget.copyFrom(freeTarget);
     updateCamera(); updateSky(lastMinutes);
+  }, 260);
+}
+
+// 개인 방 진입 — 방 미빌드 시 lazy 빌드 후 카메라를 그 방 원점으로 이동
+export function enterRoom(id: number) {
+  const e = entries.get(id);
+  if (!e) return;
+  if (!e.roomBuilt) buildRoom(e, e.data);
+  currentRoomId = id;
+  view = "room";
+  viewMode.set("room");
+  roomName.set(e.data.name);
+  setTimeout(() => {
+    autoFollow = null; selectedId.set(null);
+    freeTarget.set(e.roomOrigin.x, 0.8, 0);
+    camRadius = 13; camPhi = 1.0; camTheta = -0.5;
+    camTarget.copyFrom(freeTarget);
+    updateCamera(); updateSky(lastMinutes);
+    if (e.worryText) showRoomBubble(e, "💭 " + e.worryText);
   }, 260);
 }
 
@@ -656,7 +771,7 @@ function inFollowView(e: Entry) { return (view === "interior") === (e.root.posit
 function updateAutoFollow(t: number) {
   const inspecting = curSelectedId != null;
   reticle.setEnabled(camEngaged && !inspecting && view === "village");
-  if (inspecting || !camEngaged) { if (autoFollow) { autoFollow = null; followName.set(null); } }
+  if (view !== "village" || inspecting || !camEngaged) { if (autoFollow) { autoFollow = null; followName.set(null); } }
   else {
     if (autoFollow) {
       const cp = autoFollow.root.position;
@@ -755,6 +870,7 @@ export function initVillage(canvas: HTMLCanvasElement) {
         }
       }
       if (e.bubble && now > e.bubbleUntil) { e.bubble.dispose(); e.bubble = null; }
+      if (e.roomBubble && now > e.roomBubbleUntil) { e.roomBubble.dispose(); e.roomBubble = null; }
     }
     for (const c of clouds) { c.position.x += dt * 0.25; if (c.position.x > 38) c.position.x = -76; }
     if (fountainWater) fountainWater.position.y = 0.32 + Math.sin(t * 2.2) * 0.03;
@@ -773,5 +889,9 @@ export function initVillage(canvas: HTMLCanvasElement) {
   charCount() { return entries.size; },
   modelLoaded() { return anyModelLoaded; },
   enterHouse() { setView("interior"); },
+  enterRoom(name: string) { const e = charByName(name); if (e) enterRoom(e.data.id); },
+  exitRoom() { setView("village"); },
+  roomBuilt(name: string) { const e = charByName(name); return !!(e && e.roomBuilt); },
+  mockWorry(name: string, text: string) { const e = charByName(name); if (e) { e.worryText = text; setHouseWorry(e, true); if (currentRoomId === e.data.id && e.roomBuilt) showRoomBubble(e, "💭 " + text); } },
   view() { return view; },
 };
