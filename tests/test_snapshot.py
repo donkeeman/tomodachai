@@ -346,3 +346,35 @@ def test_snapshot_bubbles_empty_by_default():
 
     gs = _gs_with_two()
     assert build_snapshot(gs, since=0)["bubbles"] == []
+
+
+def test_api_bubble_allow(client_snap, monkeypatch):
+    client, gs = client_snap
+    sim = gs.simulation
+    sim.relationships.update(1, 2, {"friendship": 50, "romance": 75})
+    monkeypatch.setattr(sim._rng, "random", lambda: 0.0)
+    sim._maybe_confession_bubble(1, 2)
+
+    resp = client.post("/api/bubble", json={"index": 0, "char": gs.get_character(1).name,
+                                            "answer": "allow"})
+    assert resp.status_code == 200
+    assert "scene" in resp.json()
+    snap = client.get("/api/snapshot?since=0").json()
+    assert snap["bubbles"] == []
+    assert any(e["major"] for e in snap["events"])  # confession 결과는 major
+
+
+def test_api_bubble_stale_index(client_snap):
+    client, _gs = client_snap
+    resp = client.post("/api/bubble", json={"index": 9, "char": "A", "answer": "allow"})
+    assert resp.status_code == 200
+    assert "error" in resp.json()
+
+
+def test_api_feed_clears_hungry_bubble(client_snap):
+    client, gs = client_snap
+    from tomodachai.bubble import Bubble
+    gs.bubbles.append(Bubble(kind="hungry", char_id=1, text='A: "배고파요..."'))
+    resp = client.post("/api/feed", json={"char_id": 1, "food_id": 0})
+    assert resp.status_code == 200
+    assert not any(b.kind == "hungry" and b.char_id == 1 for b in gs.bubbles)
