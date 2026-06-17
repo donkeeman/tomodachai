@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 from itertools import combinations
 
+from tomodachai.bubble import Bubble
 from tomodachai.character import Character
 from tomodachai.config import AppConfig, LocationConfig
 from tomodachai.conversation import ConversationEngine, ConversationResult
@@ -16,7 +17,6 @@ from tomodachai.relationship import (
     apply_jealousy,
     detect_triangles,
 )
-
 
 # 오프라인 catch-up: 큰 이벤트는 생성 금지
 _BIG_EVENT_TYPES = {"confession_success", "confession_fail", "marriage", "breakup"}
@@ -73,6 +73,9 @@ class Simulation:
         self._step_count = 0
         self._char_map = {c.id: c for c in characters}
         self._rng = random.Random()
+        # 플레이어 응답 대기 말풍선 큐 + 고백 거절 누적(세션 한정)
+        self.bubbles: list[Bubble] = []
+        self._confession_count: dict[tuple[int, int], int] = {}
 
     def _run_conversation(
         self,
