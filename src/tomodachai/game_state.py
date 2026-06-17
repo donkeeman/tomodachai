@@ -71,6 +71,10 @@ class GameState:
         self._event_seq: int = 0
         self._event_log: list[dict] = []
 
+        # 도구 산출물 (세션 한정 — 사진 갤러리 / 요리 카탈로그)
+        self.photos: list[dict] = []
+        self.dishes: list[dict] = []
+
     # ------------------------------------------------------------------
     # Character management
     # ------------------------------------------------------------------
@@ -194,6 +198,8 @@ class GameState:
         self._event_seq = 0
         self._event_log = []
         self.day_count = 0
+        self.photos = []
+        self.dishes = []
 
     def step(self) -> list[dict]:
         """실시간 단일 이벤트 스텝. 서버 백그라운드 태스크에서 호출."""

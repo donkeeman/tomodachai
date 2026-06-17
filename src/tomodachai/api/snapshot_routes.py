@@ -60,3 +60,25 @@ def feed_character(body: FeedRequest):
     # 결과를 이벤트 로그에 기록 → 다음 폴링에서 피드 스트림에 재생 (scene = msg)
     gs.record_events([{"type": "feed", "participants": [char.name], "summary": msg}])
     return {"message": msg}
+
+
+class GiveRequest(BaseModel):
+    char_id: int
+    tool: str
+
+
+@compat_router.post("/give")
+def give_tool(body: GiveRequest):
+    from tomodachai.tools import use_tool
+
+    gs = _gs()
+    char = gs.get_character(body.char_id)
+    if char is None:
+        raise HTTPException(status_code=404, detail=f"Character {body.char_id} not found")
+    try:
+        msg = use_tool(gs, char, body.tool)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    event_type = "photo" if body.tool == "camera" else "cooking"
+    gs.record_events([{"type": event_type, "participants": [char.name], "summary": msg}])
+    return {"message": msg}

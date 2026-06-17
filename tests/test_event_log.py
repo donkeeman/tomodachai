@@ -44,3 +44,18 @@ def test_reset_world_clears_log_and_seq():
     assert gs.events_since(0) == []
     gs.record_events([{"type": "e2"}])
     assert gs.events_since(0)[0]["seq"] == 1
+
+
+def test_game_state_has_photo_dish_stores():
+    gs = GameState()
+    assert gs.photos == []
+    assert gs.dishes == []
+
+
+def test_reset_world_clears_photos_and_dishes():
+    gs = GameState()
+    gs.photos.append({"day": 1, "author": "민수", "title": "노을", "subject": "공원"})
+    gs.dishes.append({"day": 1, "author": "지은", "dish": "수상한 볶음"})
+    gs.reset_world()
+    assert gs.photos == []
+    assert gs.dishes == []
