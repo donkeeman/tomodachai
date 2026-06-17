@@ -226,6 +226,65 @@ class Simulation:
             "summary": f"💗 {a_name}이(가) 할 말이 있대요. (말풍선 확인)",
         }
 
+    def resolve_confession(self, bubble, approved: bool) -> dict:
+        """플레이어가 confess_request에 응답한 뒤 처리. 결과 이벤트 dict 반환."""
+        a_id, b_id = bubble.char_id, bubble.target_id
+        a = self._char_map.get(a_id)
+        b = self._char_map.get(b_id)
+        a_name, b_name = self._name(a_id), self._name(b_id)
+
+        if not approved:
+            # 만류 → 즉시 단념
+            self._confession_count[(a_id, b_id)] = 3
+            self.relationships.update(a_id, b_id, {"romance": -self._rng.uniform(40, 50)})
+            if a:
+                a.state.mood.adjust(happiness=-1, stress=1)
+            return {
+                "type": "confession_giveup",
+                "participants": [a_name, b_name],
+                "summary": f"{a_name}이(가) {b_name}에 대한 마음을 접었다. (플레이어 만류)",
+            }
+
+        success = self._rng.random() < 0.5
+        if success:
+            self.relationships.set_lover(a_id, b_id)
+            rel_ab = self.relationships.get(a_id, b_id)
+            rel_ba = self.relationships.get(b_id, a_id)
+            rel_ab.spark = True
+            rel_ba.spark = True
+            self.relationships.update(a_id, b_id, {"romance": 18, "friendship": 10})
+            self.relationships.update(b_id, a_id, {"romance": 10, "friendship": 10})
+            rel_ab.check_stage_transition(allow_romantic_transition=True)
+            rel_ba.check_stage_transition(allow_romantic_transition=True)
+            if a:
+                a.satisfaction += 15
+                a.state.mood.adjust(happiness=3, stress=-2)
+            if b:
+                b.satisfaction += 10
+                b.state.mood.adjust(happiness=2)
+            self._confession_count[(a_id, b_id)] = 0
+            return {
+                "type": "confession_success",
+                "participants": [a_name, b_name],
+                "summary": f"{a_name}이(가) {b_name}에게 고백하여 연인이 되었다!",
+            }
+
+        # 거절
+        self.relationships.update(a_id, b_id, {"friendship": -5, "romance": -10})
+        self.relationships.update(b_id, a_id, {"friendship": -3})
+        count = self._confession_count.get((a_id, b_id), 0) + 1
+        self._confession_count[(a_id, b_id)] = count
+        if a:
+            a.satisfaction = max(0.0, a.satisfaction - 12)
+            a.state.mood.adjust(happiness=-3, energy=-1, stress=2)
+        if count >= 3:
+            self.relationships.update(a_id, b_id, {"romance": -self._rng.uniform(40, 50)})
+        return {
+            "type": "confession_fail",
+            "participants": [a_name, b_name],
+            "summary": f"{a_name}이(가) {b_name}에게 고백했지만 거절당했다.",
+        }
+
     def _trigger_confession(self, a_id: int, b_id: int) -> dict | None:
         rel_ab = self.relationships.get(a_id, b_id)
         rel_ba = self.relationships.get(b_id, a_id)

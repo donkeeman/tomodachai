@@ -98,3 +98,41 @@ def test_no_confession_when_already_lover(make_sim, monkeypatch):
     sim.relationships.set_lover(1, 2)
     monkeypatch.setattr(sim._rng, "random", lambda: 0.0)
     assert sim._maybe_confession_bubble(1, 2) is None
+
+
+def _confess_bubble(sim, monkeypatch):
+    sim.relationships.update(1, 2, {"friendship": 50, "romance": 75})
+    monkeypatch.setattr(sim._rng, "random", lambda: 0.0)
+    sim._maybe_confession_bubble(1, 2)
+    return sim.bubbles[-1]
+
+
+def test_resolve_confession_giveup_when_not_approved(make_sim, monkeypatch):
+    sim = make_sim()
+    b = _confess_bubble(sim, monkeypatch)
+    ev = sim.resolve_confession(b, approved=False)
+    assert ev["type"] == "confession_giveup"
+    assert sim._confession_count[(1, 2)] == 3
+    assert sim.relationships.get_slots(1).lover != 2
+
+
+def test_resolve_confession_success(make_sim, monkeypatch):
+    sim = make_sim()
+    b = _confess_bubble(sim, monkeypatch)
+    monkeypatch.setattr(sim._rng, "random", lambda: 0.0)   # <0.5 → 수락
+    ev = sim.resolve_confession(b, approved=True)
+    assert ev["type"] == "confession_success"
+    assert sim.relationships.get_slots(1).lover == 2
+    assert sim.relationships.get_slots(2).lover == 1
+    assert sim.relationships.get(1, 2).spark is True
+    assert sim._confession_count[(1, 2)] == 0
+
+
+def test_resolve_confession_fail_increments_count(make_sim, monkeypatch):
+    sim = make_sim()
+    b = _confess_bubble(sim, monkeypatch)
+    monkeypatch.setattr(sim._rng, "random", lambda: 0.99)  # >=0.5 → 거절
+    ev = sim.resolve_confession(b, approved=True)
+    assert ev["type"] == "confession_fail"
+    assert sim._confession_count[(1, 2)] == 1
+    assert sim.relationships.get_slots(1).lover != 2
