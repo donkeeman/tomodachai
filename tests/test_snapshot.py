@@ -322,3 +322,27 @@ def test_api_give_unknown_tool(client_snap):
     gs.llm = _GiveMockLLM()
     resp = client.post("/api/give", json={"char_id": 1, "tool": "hammer"})
     assert resp.status_code == 400
+
+
+def test_snapshot_bubbles_serialized():
+    from tomodachai.api.snapshot import build_snapshot
+    from tomodachai.bubble import Bubble
+
+    gs = _gs_with_two()
+    gs.bubbles.append(
+        Bubble(kind="confess_request", char_id=1, target_id=2, text='A: "고백할래요"')
+    )
+    snap = build_snapshot(gs, since=0)
+    assert len(snap["bubbles"]) == 1
+    b = snap["bubbles"][0]
+    assert b["kind"] == "confess_request"
+    assert b["char"] == gs.get_character(1).name
+    assert b["target"] == gs.get_character(2).name
+    assert b["text"] == 'A: "고백할래요"'
+
+
+def test_snapshot_bubbles_empty_by_default():
+    from tomodachai.api.snapshot import build_snapshot
+
+    gs = _gs_with_two()
+    assert build_snapshot(gs, since=0)["bubbles"] == []
