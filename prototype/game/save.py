@@ -120,7 +120,13 @@ def load_game(save_dir: str) -> Optional[GameState]:
 
     events_path = os.path.join(save_dir, "events.json")
     if os.path.exists(events_path):
-        with open(events_path, encoding="utf-8") as f:
-            state.events = [GameEvent(**e) for e in json.load(f)]
+        try:
+            with open(events_path, encoding="utf-8") as f:
+                state.events = [GameEvent(**e) for e in json.load(f)]
+        except Exception as e:
+            # 저장 도중 종료 등으로 이벤트 로그가 손상돼도 기동을 막지 않는다.
+            # (이벤트 로그는 비핵심 — 비우고 진행하면 다음 저장에서 정상 파일로 덮인다.)
+            print(f"  ⚠️ events.json 손상, 이벤트 로그를 비우고 진행: {e}")
+            state.events = []
 
     return state
