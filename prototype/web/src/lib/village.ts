@@ -89,7 +89,7 @@ function makeTextPlane(draw: (g: any, w: number, h: number) => void, tw: number,
   const dt = new DynamicTexture("dt", { width: tw, height: th }, scene, false);
   dt.hasAlpha = true;
   draw(dt.getContext() as any, tw, th);
-  dt.update(false);
+  dt.update();  // invertY 기본(true) — 캔버스 텍스트가 똑바로 서도록(false면 위아래 반전)
   const plane = CreatePlane("txt", { width: pw, height: ph }, scene);
   const m = new StandardMaterial("txtm", scene);
   m.diffuseTexture = dt;
