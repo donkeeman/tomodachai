@@ -21,13 +21,14 @@ import { CreateSphere } from "@babylonjs/core/Meshes/Builders/sphereBuilder";
 import { CreateDisc } from "@babylonjs/core/Meshes/Builders/discBuilder";
 import { CreatePlane } from "@babylonjs/core/Meshes/Builders/planeBuilder";
 import { CreateTorus } from "@babylonjs/core/Meshes/Builders/torusBuilder";
-import { CreateCapsule } from "@babylonjs/core/Meshes/Builders/capsuleBuilder";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import "@babylonjs/core/Culling/ray";
 import "@babylonjs/loaders/glTF/2.0";
 
 import type { Snapshot, Character, EventItem } from "./types";
 import { toast, selectedId, viewMode, roomName, followName, modelLoaded, boardOpen, cardMode } from "./store";
+import { buildAvatar } from "./figures";
+import { lookFor, setLook, type AvatarLook } from "./appearance";
 
 let engine: Engine, scene: Scene, camera: UniversalCamera, shadow: ShadowGenerator;
 let sun: DirectionalLight;
@@ -442,23 +443,10 @@ export async function loadModels() {
   if (anyModelLoaded) console.log("[Blender] glTF 빌런 모델 로드됨");
 }
 
-const PALETTE = ["#e57373", "#64b5f6", "#81c784", "#ffb74d", "#ba68c8", "#4db6ac",
-  "#f06292", "#7986cb", "#a1887f", "#90a4ae", "#dce775", "#4dd0e1"];
-const HAIR = ["#4e342e", "#263238", "#6d4c41", "#8d6e63", "#3e2723"];
-
 function buildProcedural(root: TransformNode, data: Character, cast = true) {
-  const color = PALETTE[(data.id - 1) % PALETTE.length];
-  const body = CreateCapsule("body", { radius: 0.42, height: 1.5 }, scene);
-  body.material = mat(color); body.position.y = 0.85; body.parent = root; if (cast) shadow.addShadowCaster(body);
-  const head = sphere(0.68, "#ffe0bd", 0, 1.6, 0, cast); head.parent = root;
-  const hairColor = HAIR[(data.id * 3 + 1) % HAIR.length];
-  if (data.gender === "F") {
-    const hr = sphere(0.74, hairColor, 0, 1.7, -0.03, cast); hr.scaling.y = 0.85; hr.parent = root;
-  } else {
-    const hr = CreateSphere("hair", { diameter: 0.71, segments: 12, slice: 0.5 }, scene);
-    hr.material = mat(hairColor); hr.position.set(0, 1.62, 0); hr.parent = root;
-  }
-  for (const dx of [-0.12, 0.12]) { const eye = sphere(0.07, "#222222", dx, 1.64, 0.31, false); eye.parent = root; }
+  // 공유 아바타 빌더에 위임 — 외모(커스텀 또는 id 파생)를 미리보기와 동일하게 렌더.
+  const avatar = buildAvatar(scene, lookFor(data), { shadow: cast ? shadow : undefined });
+  avatar.parent = root;
 }
 function buildModel(root: TransformNode, data: Character, cast = true) {
   const container = modelContainers[data.gender] || modelContainers.any;
@@ -490,6 +478,14 @@ function makeFigure(data: Character, cast = true): TransformNode {
   const label = makeNameLabel(data.name, data.gender === "F" ? "#ffd9e8" : "#d6ecff");
   label.position.set(0, LABEL_Y, 0); label.parent = root;
   return root;
+}
+
+// 생성 UI 에서 만든 캐릭터를 즉시 마을에 등장시킨다(외모 적용 + 피규어 등록). 백엔드 POST 는 별도.
+export function spawnCharacter(data: Character, look?: AvatarLook) {
+  if (look) setLook(data.id, look);
+  upsertChar(data);
+  const e = entries.get(data.id);
+  if (e && view === "village") { cardMode.set("info"); selectedId.set(data.id); focusOn(e); }
 }
 function anchorPoint(locKey: string): Vector3 {
   const a = ANCHORS[locKey] || ANCHORS.fountain;

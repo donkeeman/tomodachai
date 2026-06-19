@@ -188,3 +188,18 @@
 *   **비주얼/연출 병맛:** 꿈 시퀀스, 과장된 리액션 애니메이션 등은 미리 만든 이벤트 템플릿 풀로 제공.
 *   **텍스트/서사 병맛:** LLM이 프롬프트 기반으로 매번 새로운 엉뚱한 대사/상황을 생성.
 *   **조합:** 미리 만든 연출 틀 + LLM이 생성한 텍스트를 끼워넣는 방식 (예: "꿈 시퀀스 연출 템플릿" + LLM이 생성한 꿈 내용).
+
+## 10. 캐릭터 생성 — 프론트엔드 구현 & 백엔드 요구사항
+
+동물의 숲/친구모아 아일랜드풍 생성 플로우. **외모 커스터마이즈·미리보기는 전적으로 프론트엔드**이며, 백엔드는 (1) 영속, (2) 시뮬 참여, (3) 외모 round-trip만 책임진다.
+
+**프론트엔드 (구현 완료):**
+*   `CharacterCreate.svelte` — 4단계(기본 → 외모 → 성격 → 완성) + **라이브 3D 미리보기**(턴테이블). 마을과 동일한 공유 `buildAvatar`(`lib/figures.ts`) 사용.
+*   외모 모델 `AvatarLook`(`lib/appearance.ts`): `{ gender, skin, hairColor, hairStyle('short'|'bob'|'long'|'bun'), bodyColor, eyeColor }`. 사용자가 만든 외모는 프론트 `appearance` 스토어에 보관(백엔드 영속 전까지 소스 오브 트루스).
+*   완성 시 `spawnCharacter()`로 **즉시 마을 등장**(외모 적용) + `POST /api/characters` 전송(베스트 에포트, 실패해도 로컬 등장 유지).
+
+**백엔드 요구사항 (영속·시뮬·외모 반영을 위해 필요):**
+1.  `POST /api/characters` 수락 필드: `id, name, gender, personality_code`(또는 슬라이더), `speech_habits, birthday, blood_type, favorite_color`. → **FastAPI 이미 구현.** dev 백엔드(web_server.py)는 **미구현**이라, dev에서 영속하려면 추가 필요.
+2.  **`appearance` 저장 추가:** `CharacterCreate` 스키마에 `appearance`(위 `AvatarLook` 5필드) 추가 → `Profile.appearance`에 저장. (현재 생성 스키마에 누락.)
+3.  **snapshot 회신에 `appearance` 포함:** 각 character DTO에 외모 5필드를 실어줘야 **새로고침 후에도** 마을이 커스텀 외모를 렌더(현재 미포함 → 프론트는 id 파생 룩으로 폴백).
+4.  **location 배치:** 생성 캐릭터가 시뮬에 참여하려면 위치 지정(생성이 `location` 수락 또는 `POST /api/locations/move/{id}/{loc}`).

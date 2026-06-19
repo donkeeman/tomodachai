@@ -14,6 +14,7 @@ export const modelLoaded = writable<boolean>(false);
 export const errorMsg = writable<string>("");
 export const albumOpen = writable<boolean>(false);
 export const boardOpen = writable<boolean>(false);
+export const createOpen = writable<boolean>(false);
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 export function toast(text: string) {

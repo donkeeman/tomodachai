@@ -24,3 +24,18 @@ export const answerBubble = (index: number, char: string, allow: boolean) =>
   post("/bubble", { index, char, answer: allow ? "allow" : "stop" });
 export const saveGame = () => post("/save", {});
 export const resetGame = () => post("/reset", {});
+
+// 캐릭터 생성 — 백엔드가 /api/characters 를 구현하면 영속/시뮬 참여. appearance 는 전방호환(현재 미저장).
+export interface CreatePayload {
+  id: number;
+  name: string;
+  gender: string;
+  personality_code: string;
+  speech_habits: Record<string, string>;
+  favorite_color: string;
+  birthday?: string;
+  blood_type?: string;
+  appearance?: unknown;
+  location?: string;
+}
+export const createCharacter = (p: CreatePayload) => post("/characters", p);

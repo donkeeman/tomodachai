@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { albumOpen, toast } from "../lib/store";
+  import { albumOpen, createOpen, toast } from "../lib/store";
   import { saveGame, resetGame } from "../lib/api";
 
   async function save() {
@@ -15,7 +15,12 @@
 </script>
 
 <div id="toolbar">
+  <button class="make" on:click={() => createOpen.set(true)}>✨ 새 친구</button>
   <button on:click={() => albumOpen.update((v) => !v)}>📒 기록</button>
   <button on:click={save}>💾 저장</button>
   <button class="reset" on:click={reset}>🔄 새 마을</button>
 </div>
+
+<style>
+  .make { background: #ff7eae !important; color: #fff !important; font-weight: 800; }
+</style>
