@@ -32,7 +32,7 @@ C 아키텍처를 end-to-end로 증명하는 최소 골격을 세운다.
 | Phase | 내용 | 의존 |
 |---|---|---|
 | **0. 골격** ← 이번 | LLM seam + 오라클 하니스 + 렌더러 인-프로세스 배선 + time_system 포팅 | — |
-| 1. 결정론 코어 | character·personality·mood (모델 정의 시 사용자 UI와 협의) | 0 |
+| 1. 결정론 코어 | character·personality·mood (TS 모델 정의 = 사용자 생성 UI의 계약, 외형·목소리 신규 필드 흡수) | 0 |
 | 2. 관계·기억 | relationship, memory | 1 |
 | 3. 욕구·도구 | food, tools (+LLM 콘텐츠는 seam 경유) | 1,0 |
 | 4. 사회 시스템 | conversation, news, fountain, shop | 2,3 |
@@ -40,9 +40,13 @@ C 아키텍처를 end-to-end로 증명하는 최소 골격을 세운다.
 | 6. 세이브 | 클라 영속화 (Tauri fs / localStorage) | 5 |
 | 7. Python 은퇴 | api/server 런타임 제거, Python은 레퍼런스로만 | 6 |
 
-> **경계 메모:** 사용자는 클라에서 **캐릭터 생성 UI만** 작업 중이며 Character 데이터 모델은 미확정이다.
-> Phase 0는 Character 모델을 정의하지 않는다(캐릭터 의존성 0인 것만 다룸). 모델 정의는 Phase 1에서
-> 사용자 UI와 맞춰 진행한다.
+> **경계 메모:** 사용자는 클라에서 **캐릭터 생성 UI**(성격·외형(눈·코·입 등)·목소리 선택 로직 포함)를
+> 작업 중이다. Character 데이터 **모델 소유권은 sim 포팅(이 작업)에 있다** — Python `character.py`(정답지)의
+> 충실한 TS 포팅으로 정의하고, 사용자의 생성 UI가 그 모델에 **맞춘다**(협의가 아니라 모델이 기준).
+> 단 생성 UI가 다루는 외형(눈·코·입)·목소리 중 Python 모델에 아직 없는 **신규 필드**는 Phase 1에서 TS
+> 모델을 정의할 때 흡수한다(UI가 필요로 하는 필드를 모델에 반영). Phase 0는 모델을 정의하지 않는다
+> (캐릭터 의존성 0인 것만 다룸); 모델 정의는 Phase 1. 그 전까지 사용자 UI는 `character.py` 형태를
+> 참조 기준으로 삼을 수 있다.
 
 ## 3. 아키텍처 & 프로젝트 구조
 
@@ -148,4 +152,5 @@ Python `time_system.GameClock` 미러.
 - Tauri HTTP 플러그인의 dev/패키징 fetch 동작 차이 — `isTauri()` 감지 신뢰성 스모크 확인.
 - Ollama 네이티브 `/api/chat` 응답 스키마(스트리밍 off)와 content 추출 경로 확인.
 - `GameClock.now()`가 벽시계 의존 — 골든 대조는 반드시 `at` 주입 케이스로만(현재시각 의존 케이스 금지).
-- 향후 Character 모델 정의 시 사용자 생성 UI와의 계약 조율(Phase 1 진입 전 협의).
+- Character 모델은 sim 포팅이 소유·정의(character.py 포팅)하고 사용자 생성 UI가 거기 맞춘다. Phase 1에서
+  TS 모델 정의가 곧 생성 UI의 계약이 되며, 외형(눈·코·입)·목소리 등 Python 모델에 없는 신규 필드를 흡수해야 함.
