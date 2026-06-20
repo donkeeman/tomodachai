@@ -4,6 +4,9 @@
   "type": "module",
   "version": "0.1.0",
   "description": "별빛 마을 — Babylon.js + Svelte 웹 프론트엔드 (Vite)",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "vite": "vite",
     "dev": "concurrently -k -n vite,api -c cyan,green \"vite\" \"python3 ../web_server.py --interval 5\"",
