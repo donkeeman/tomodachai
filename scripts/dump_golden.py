@@ -179,10 +179,6 @@ def dump_relationship_core() -> None:
         Relationship, RelationshipStage, check_breakup_conditions,
     )
 
-    def mk(f, r, stage):
-        rel = Relationship(friendship=f, romance=r, stage=stage)
-        return rel
-
     # friendshipStage / status / friendship_text / romance_text — friendship/romance 격자
     f_vals = [-100, -70, -69, -50, -49, -20, -19, 0, 10, 20, 39, 40, 59, 60, 79, 80, 100]
     r_vals = [-5, 0, 1, 20, 21, 49, 50, 79, 80, 100]

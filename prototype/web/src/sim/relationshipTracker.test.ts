@@ -4,7 +4,7 @@
  * 기대값은 Python relationship.py 규칙으로 손계산.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   RelationshipTracker,
   detectTriangles,
