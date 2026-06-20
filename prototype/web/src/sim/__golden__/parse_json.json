@@ -1,0 +1,42 @@
+[
+  {
+    "input": "{\"a\": 1}",
+    "expected": {
+      "a": 1
+    }
+  },
+  {
+    "input": "```json\n{\"b\": 2}\n```",
+    "expected": {
+      "b": 2
+    }
+  },
+  {
+    "input": "```\n{\"c\": 3}\n```",
+    "expected": {
+      "c": 3
+    }
+  },
+  {
+    "input": "설명입니다 {\"d\": 4} 끝",
+    "expected": {
+      "d": 4
+    }
+  },
+  {
+    "input": "앞 {\"e\": {\"f\": 5}} 뒤",
+    "expected": {
+      "e": {
+        "f": 5
+      }
+    }
+  },
+  {
+    "input": "",
+    "throws": true
+  },
+  {
+    "input": "no json here",
+    "throws": true
+  }
+]
