@@ -119,10 +119,29 @@ def dump_zodiac() -> None:
     _write("zodiac", cases)
 
 
+def dump_character_defaults() -> None:
+    from tomodachai.character import (
+        Appearance, Mood, CharacterState, Preferences, Customizable, Records, Voice,
+    )
+
+    # 각 서브모델의 기본 인스턴스를 JSON 직렬화 → TS 기본값이 일치해야 함
+    cases = [
+        {"input": "Appearance", "expected": Appearance().model_dump()},
+        {"input": "Voice", "expected": Voice().model_dump()},
+        {"input": "Mood", "expected": Mood().model_dump()},
+        {"input": "CharacterState", "expected": CharacterState().model_dump()},
+        {"input": "Preferences", "expected": Preferences().model_dump()},
+        {"input": "Customizable", "expected": Customizable().model_dump()},
+        {"input": "Records", "expected": Records().model_dump()},
+    ]
+    _write("character_defaults", cases)
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
     dump_zodiac()
+    dump_character_defaults()
 
 
 if __name__ == "__main__":
