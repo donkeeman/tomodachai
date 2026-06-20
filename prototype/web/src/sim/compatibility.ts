@@ -74,23 +74,14 @@ const COMPLEMENTARY = [
 ];
 
 // ---------------------------------------------------------------------------
-// Banker's rounding to 4 decimal places (matches Python round(x, 4))
+// Round to 4 decimal places
 // ---------------------------------------------------------------------------
-function roundHalfEven(x: number, decimals: number): number {
-  const factor = Math.pow(10, decimals);
-  const shifted = x * factor;
-  const floor = Math.floor(shifted);
-  const diff = shifted - floor;
-
-  if (Math.abs(diff - 0.5) > 1e-10) {
-    // Not exactly halfway — standard round
-    return Math.round(shifted) / factor;
-  }
-  // Exactly halfway — round to even
-  if (floor % 2 === 0) {
-    return floor / factor;
-  }
-  return (floor + 1) / factor;
+// Python은 calculate_compatibility를 round(x, 4)(banker's rounding)로 마감하지만,
+// 가중합 점수가 4번째 소수 halfway에 정확히 닿는 경우가 없어(골든 픽스처로 검증됨)
+// round-half-up과 결과가 동일하다. 부동소수에서 4자리 halfway를 신뢰성 있게 판별할 수
+// 없으므로 단순 라운드로 둔다(불일치가 생기면 골든에서 드러난다).
+function round4(x: number): number {
+  return Math.round(x * 10000) / 10000;
 }
 
 // ---------------------------------------------------------------------------
@@ -106,7 +97,7 @@ export function personalityGroup(code: string): string | null {
 /**
  * Calculate compatibility score between two characters.
  * Weights: personality 50%, blood type 30%, zodiac 20%.
- * Returns a value rounded to 4 decimal places (Python-compatible banker's rounding).
+ * Returns a value rounded to 4 decimal places.
  */
 export function calculateCompatibility(
   pA: string,
@@ -146,5 +137,5 @@ export function calculateCompatibility(
   }
 
   const raw = personalityScore * 0.5 + bloodScore * 0.3 + zodiacScore * 0.2;
-  return roundHalfEven(raw, 4);
+  return round4(raw);
 }
