@@ -48,9 +48,65 @@ def dump_parse_json() -> None:
     _write("parse_json", cases)
 
 
+def dump_game_clock() -> None:
+    from datetime import datetime, timezone
+    from tomodachai.time_system import GameClock
+
+    clock = GameClock()
+
+    def iso(y, mo, d, h, mi=0):
+        return datetime(y, mo, d, h, mi, tzinfo=timezone.utc)
+
+    # getGameHour / getTimePeriod — (iso, flip) → {hour, period}
+    period_inputs = [
+        (iso(2026, 6, 19, 7), False),
+        (iso(2026, 6, 19, 13), False),
+        (iso(2026, 6, 19, 19), False),
+        (iso(2026, 6, 19, 22), False),
+        (iso(2026, 6, 19, 2), False),
+        (iso(2026, 6, 19, 7), True),   # flip → 19시
+        (iso(2026, 6, 19, 23), True),  # flip → 11시
+    ]
+    period_cases = [
+        {
+            "input": {"at": t.isoformat(), "flip": flip},
+            "expected": {
+                "hour": clock.get_game_hour(t, time_flip=flip),
+                "period": clock.get_time_period(t) if not flip else None,
+            },
+        }
+        for t, flip in period_inputs
+    ]
+    _write("game_clock_period", period_cases)
+
+    # isNewDay — (lastCheck, now) → bool. now를 주입하기 위해 monkeypatch.
+    new_day_inputs = [
+        (iso(2026, 6, 19, 3), iso(2026, 6, 19, 6)),   # 같은날 5시 경계 넘음 → True
+        (iso(2026, 6, 19, 6), iso(2026, 6, 19, 9)),   # 둘 다 리셋 이후, 다음날 안 넘음 → False
+        (iso(2026, 6, 19, 6), iso(2026, 6, 20, 6)),   # 다음날 5시 도달 → True
+        (iso(2026, 6, 19, 10), iso(2026, 6, 19, 9)),  # now < lastCheck → False
+    ]
+    nd_cases = []
+    for last, now in new_day_inputs:
+        # GameClock.is_new_day는 self.now()를 쓰므로, now를 주입한 임시 서브클래스로 평가
+        fixed = type("Fixed", (GameClock,), {"now": lambda self, _n=now: _n})()
+        nd_cases.append(
+            {"input": {"lastCheck": last.isoformat(), "now": now.isoformat()},
+             "expected": fixed.is_new_day(last)}
+        )
+    _write("game_clock_newday", nd_cases)
+
+    # catchupEventCount — offline_hours → int (0.5 경계 회피)
+    catchup_inputs = [0, 0.4, 6, 12, 24, 48, 100]
+    cc_cases = [
+        {"input": h, "expected": clock.catchup_event_count(h)} for h in catchup_inputs
+    ]
+    _write("game_clock_catchup", cc_cases)
+
+
 def main() -> None:
     dump_parse_json()
-    # 이후 태스크에서 dump_game_clock() 추가
+    dump_game_clock()
 
 
 if __name__ == "__main__":
