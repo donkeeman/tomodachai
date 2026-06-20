@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { calculateZodiac } from "./character";
 import {
   defaultAppearance, defaultVoice, defaultMood, defaultCharacterState,
-  defaultPreferences, defaultCustomizable, defaultRecords,
+  defaultPreferences, defaultCustomizable, defaultRecords, defaultCharacter,
 } from "./character";
 import { loadGolden } from "./__golden__/loadGolden";
 
@@ -22,6 +22,7 @@ describe("Character 모델 기본값 (golden vs Python 서브모델)", () => {
     Preferences: defaultPreferences,
     Customizable: defaultCustomizable,
     Records: defaultRecords,
+    Character: () => defaultCharacter(1, "테스트"),
   };
   const cases = loadGolden<string, Record<string, unknown>>("character_defaults");
   it.each(cases)("default %s", (c) => {

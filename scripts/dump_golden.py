@@ -122,6 +122,7 @@ def dump_zodiac() -> None:
 def dump_character_defaults() -> None:
     from tomodachai.character import (
         Appearance, Mood, CharacterState, Preferences, Customizable, Records, Voice,
+        Character, Profile,
     )
 
     # 각 서브모델의 기본 인스턴스를 JSON 직렬화 → TS 기본값이 일치해야 함
@@ -133,6 +134,7 @@ def dump_character_defaults() -> None:
         {"input": "Preferences", "expected": Preferences().model_dump()},
         {"input": "Customizable", "expected": Customizable().model_dump()},
         {"input": "Records", "expected": Records().model_dump()},
+        {"input": "Character", "expected": Character(id=1, profile=Profile(name="테스트")).model_dump()},
     ]
     _write("character_defaults", cases)
 

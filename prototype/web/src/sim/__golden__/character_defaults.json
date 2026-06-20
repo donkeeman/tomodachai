@@ -155,5 +155,159 @@
       "confession_count": {},
       "photos": []
     }
+  },
+  {
+    "input": "Character",
+    "expected": {
+      "id": 1,
+      "profile": {
+        "name": "테스트",
+        "birthday": "",
+        "blood_type": "",
+        "favorite_color": "",
+        "gender": "",
+        "appearance": {
+          "face_shape": 1,
+          "skin_color": "#F5D6B8",
+          "eye": {
+            "base": 1,
+            "lash": 0,
+            "color": "#000000",
+            "adjust": {
+              "spacing": 0,
+              "height": 0,
+              "size": 0,
+              "angle": 0
+            }
+          },
+          "eyebrow": {
+            "id": 1,
+            "adjust": {
+              "spacing": 0,
+              "height": 0,
+              "size": 0,
+              "angle": 0
+            }
+          },
+          "nose": {
+            "id": 1,
+            "adjust": {
+              "spacing": 0,
+              "height": 0,
+              "size": 0,
+              "angle": 0
+            }
+          },
+          "mouth": {
+            "id": 1,
+            "adjust": {
+              "spacing": 0,
+              "height": 0,
+              "size": 0,
+              "angle": 0
+            }
+          },
+          "hair": {
+            "front": 1,
+            "back": 1,
+            "color": "#000000"
+          },
+          "glasses": null,
+          "body": {
+            "height": 5,
+            "build": 5
+          }
+        },
+        "personality": {
+          "movement": 5,
+          "speech": 5,
+          "expressiveness": 5,
+          "attitude": 5,
+          "overall": 5
+        },
+        "voice": {
+          "preset": "default",
+          "pitch": 5,
+          "speed": 5,
+          "quality": null,
+          "tone": null,
+          "accent": null,
+          "intonation": null
+        }
+      },
+      "preferences": {
+        "food_ranks": [],
+        "food_eaten": [],
+        "clothing": {
+          "likes": "",
+          "dislikes": ""
+        },
+        "interior": {
+          "likes": "",
+          "dislikes": ""
+        },
+        "personality_group": {
+          "group": "",
+          "is_positive": true
+        }
+      },
+      "state": {
+        "satisfaction": 50.0,
+        "level": 1,
+        "hunger": 0.0,
+        "mood": {
+          "happiness": 5,
+          "energy": 5,
+          "stress": 2
+        },
+        "sick": null,
+        "current_location": "",
+        "current_outfit": null,
+        "current_interior": null,
+        "photo_frame": null
+      },
+      "customizable": {
+        "speech_habits": {
+          "normal": "",
+          "happy": "",
+          "angry": "",
+          "sad": "",
+          "worried": ""
+        },
+        "mini_traits": {
+          "walking": {
+            "owned": [],
+            "active": null
+          },
+          "eating": {
+            "owned": [],
+            "active": null
+          },
+          "idle": {
+            "owned": [],
+            "active": null
+          }
+        },
+        "nicknames": {},
+        "songs": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "records": {
+        "treasure_collection": [],
+        "confession_count": {},
+        "photos": []
+      },
+      "food_preferences": {},
+      "clothing_preferences": {},
+      "mini_personality": []
+    }
   }
 ]

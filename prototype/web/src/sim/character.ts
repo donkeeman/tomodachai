@@ -215,6 +215,10 @@ export interface Character {
   state: CharacterState;
   customizable: Customizable;
   records: Records;
+  // 구버전 하위 호환 필드 (Python character.py와 동일 — flat 구조 접근용)
+  food_preferences: Record<string, string>;
+  clothing_preferences: Record<string, string>;
+  mini_personality: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -373,5 +377,8 @@ export function defaultCharacter(id: number, name: string): Character {
     state: defaultCharacterState(),
     customizable: defaultCustomizable(),
     records: defaultRecords(),
+    food_preferences: {},
+    clothing_preferences: {},
+    mini_personality: [],
   };
 }
