@@ -5,6 +5,7 @@
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
         .run(tauri::generate_context!())
         .expect("Tauri 앱 실행 중 오류");
 }
