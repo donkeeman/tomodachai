@@ -39,7 +39,12 @@ def dump_parse_json() -> None:
     for text in inputs:
         cases.append({"input": text, "expected": LLMClient._parse_json(text)})
     for text in throwing:
-        cases.append({"input": text, "throws": True})
+        try:
+            LLMClient._parse_json(text)
+        except (ValueError, json.JSONDecodeError):
+            cases.append({"input": text, "throws": True})
+        else:
+            raise AssertionError(f"expected _parse_json to raise for {text!r}")
     _write("parse_json", cases)
 
 

@@ -1,13 +1,13 @@
 // 골든 픽스처 JSON을 읽어 케이스 배열로 반환. Python dump_golden.py가 생성.
+import parseJsonCases from "./parse_json.json";
+
 export interface GoldenCase<I = unknown, E = unknown> {
   input: I;
   expected?: E;
   throws?: true;
 }
 
-import parseJsonCases from "./parse_json.json";
-
-const REGISTRY: Record<string, GoldenCase[]> = {
+const REGISTRY: Record<string, GoldenCase<unknown, unknown>[]> = {
   parse_json: parseJsonCases as GoldenCase[],
 };
 
