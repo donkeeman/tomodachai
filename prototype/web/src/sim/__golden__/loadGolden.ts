@@ -3,6 +3,7 @@ import parseJsonCases from "./parse_json.json";
 import periodCases from "./game_clock_period.json";
 import newdayCases from "./game_clock_newday.json";
 import catchupCases from "./game_clock_catchup.json";
+import zodiacCases from "./zodiac.json";
 
 export interface GoldenCase<I = unknown, E = unknown> {
   input: I;
@@ -15,6 +16,7 @@ const REGISTRY: Record<string, GoldenCase<unknown, unknown>[]> = {
   game_clock_period: periodCases as GoldenCase[],
   game_clock_newday: newdayCases as GoldenCase[],
   game_clock_catchup: catchupCases as GoldenCase[],
+  zodiac: zodiacCases as GoldenCase[],
 };
 
 export function loadGolden<I = unknown, E = unknown>(name: string): GoldenCase<I, E>[] {

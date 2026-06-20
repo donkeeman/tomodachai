@@ -104,9 +104,25 @@ def dump_game_clock() -> None:
     _write("game_clock_catchup", cc_cases)
 
 
+def dump_zodiac() -> None:
+    from tomodachai.character import calculate_zodiac
+
+    # 12 별자리 각 경계 양끝 + 무효 입력
+    inputs = [
+        "03-21", "04-19", "04-20", "05-20", "05-21", "06-20",
+        "06-21", "07-22", "07-23", "08-22", "08-23", "09-22",
+        "09-23", "10-22", "10-23", "11-21", "11-22", "12-21",
+        "12-22", "01-19", "01-20", "02-18", "02-19", "03-20",
+        "", "bad", "13-99",
+    ]
+    cases = [{"input": b, "expected": calculate_zodiac(b)} for b in inputs]
+    _write("zodiac", cases)
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
+    dump_zodiac()
 
 
 if __name__ == "__main__":
