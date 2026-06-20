@@ -31,10 +31,12 @@ export interface CreatePayload {
   name: string;
   gender: string;
   personality_code: string;
+  personality?: Record<string, number>; // 슬라이더 원본(movement/speech/expressiveness/attitude/overall, 0~10)
   speech_habits: Record<string, string>;
   favorite_color: string;
-  birthday?: string;
+  birthday?: string;        // "MM-DD"
   blood_type?: string;
+  voice?: { preset: string; pitch: number; speed: number }; // 0~10
   appearance?: unknown;
   location?: string;
 }

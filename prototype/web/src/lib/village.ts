@@ -108,7 +108,7 @@ function makeTextPlane(draw: (g: any, w: number, h: number) => void, tw: number,
 }
 // 텍스처 폭을 넘치는 긴 텍스트(예: 긴 한글 이름)는 폰트를 줄여 잘리지 않게 맞춘다.
 function fitFont(g: any, text: string, maxW: number, base: number, weight = 700): void {
-  const f = (s: number) => `${weight} ${s}px 'Apple SD Gothic Neo', system-ui, sans-serif`;
+  const f = (s: number) => `${weight} ${s}px 'Pretendard', 'Apple SD Gothic Neo', system-ui, sans-serif`;
   g.font = f(base);
   const w = g.measureText(text).width;
   if (w > maxW) g.font = f(Math.max(15, Math.floor(base * (maxW / w))));
@@ -146,7 +146,7 @@ function wrapLines(g: any, text: string, maxW: number): string[] {
 interface BubblePlane extends Mesh { bubbleH: number; }
 function makeBubble(text: string, opts: { thought?: boolean; grey?: boolean } = {}): BubblePlane {
   const probe = document.createElement("canvas").getContext("2d")!;
-  const font = "500 30px 'Apple SD Gothic Neo', system-ui, sans-serif";
+  const font = "500 30px 'Pretendard', 'Apple SD Gothic Neo', system-ui, sans-serif";
   probe.font = font;
   const lines = wrapLines(probe, text, 360);
   const lineH = 40, pad = 26;

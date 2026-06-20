@@ -89,6 +89,13 @@
 ### 배고픔
 *   시간 경과에 따라 발생. 음식을 주면 해소.
 *   배고프면 satisfaction↓, mood(happiness↓, energy↓, stress↑).
+*   **표출은 고민 말풍선의 하나** ("배고파요" / "이거 먹고 싶어요"). 별도 UI가 아니라 고민 버블 체계로 통합되며, [03-space-and-events.md](03-space-and-events.md)의 말풍선 게이트 규칙(고민=자기 방에 있을 때만 표출)을 그대로 따른다.
+
+#### (향후) 식당 자율 취식
+*   배고픔이 일정 수준 이상이고 근처/이동 가능한 식당이 있으면, 캐릭터가 **스스로 음식을 꺼내 먹어** 배고픔을 일부 해소할 수 있다 (플레이어가 직접 주지 않아도 됨).
+*   **제약:** 플레이어가 **그 식당에서 한 번이라도 구매한 이력이 있는 음식**으로 한정한다(= Catalog 입수 이력 — [10-shop-system.md](10-shop-system.md) Catalog 참조). 미구매 음식은 자율 취식 대상에서 제외.
+*   효과는 플레이어가 직접 챙겨주는 것보다 약하게(만족도/선호 반영 축소 등) 두어, 직접 돌봄의 가치를 유지한다. 세부 수치/조건은 추후 결정.
+*   Phase: 식당/Catalog 시스템 안정화 이후의 후속 기능.
 
 ### 아픔
 *   감기 / 배탈 2종류. 말풍선으로 알림.
@@ -194,12 +201,26 @@
 동물의 숲/친구모아 아일랜드풍 생성 플로우. **외모 커스터마이즈·미리보기는 전적으로 프론트엔드**이며, 백엔드는 (1) 영속, (2) 시뮬 참여, (3) 외모 round-trip만 책임진다.
 
 **프론트엔드 (구현 완료):**
-*   `CharacterCreate.svelte` — 4단계(기본 → 외모 → 성격 → 완성) + **라이브 3D 미리보기**(턴테이블). 마을과 동일한 공유 `buildAvatar`(`lib/figures.ts`) 사용.
+*   `CharacterCreate.svelte` — **전용 전체화면 뷰**(모달 아님). 5단계: 기본 → 외모 → 목소리 → 성격 → 완성(기획 생성 흐름 외형/프로필→음성→성격과 정합). 좌측 **라이브 3D 미리보기**(턴테이블, 마을과 동일한 공유 `buildAvatar`/`lib/figures.ts`). 테마: 민트·연둣빛.
+*   **기본 단계 필드:** 이름, 성별, **좋아하는 색**, 생일(MM-DD, 선택), 나이(선택). **좋아하는 색 = 기본 옷 색**(옷 색을 직접 바꾸기 전까지 따라감) — 백엔드 `Profile.favorite_color` 주석("좋아하는 색(기본 복장 색상)")과 정합.
 *   외모 모델 `AvatarLook`(`lib/appearance.ts`): `{ gender, skin, hairColor, hairStyle('short'|'bob'|'long'|'bun'), bodyColor, eyeColor }`. 사용자가 만든 외모는 프론트 `appearance` 스토어에 보관(백엔드 영속 전까지 소스 오브 트루스).
+*   **외모 단계는 하위 탭으로 분리:** `피부 / 머리 / 이목구비 / 옷`. 머리 스타일·눈코입 모양 등 파츠가 늘어날 것을 대비한 구조. `이목구비` 탭은 현재 눈 색만, 모양 선택은 추후 추가.
+*   **미리보기는 사용자 조작:** 자동 회전 제거 → 드래그 회전 + 휠 줌 + 방향키 회전(canvas 포커스 시).
+*   **말버릇은 생성에서 제외:** 추후 고민/레벨업 보상 등으로 더 세부(말 처음/말 끝/기분 좋을 때 등)하게 지정하는 방향(§8 말버릇 시스템과 연계). 생성 시엔 `speech_habits: {}` 전송.
+*   **목소리 단계:** 프리셋(여성/남성, 성별에 따라 기본 배정) + 음 높이/말 속도(1~8). 백엔드 `Voice`(preset/pitch/speed, 0~10)로 변환 전송. 실제 TTS 재생은 미연결. **(향후) 슬라이더/프리셋을 바꿀 때마다 샘플 음성을 즉시 재생**해 들어보며 조절.
+*   **성격은 1~8 버튼 스케일 검사**: 5개 트레잇(movement/speech/expressiveness/attitude/overall)을 1~8 버튼으로 선택. movement+speech→4계통, expressiveness+attitude→4형으로 16유형 코드 도출(`lib/personality.ts`, 백엔드 `personality.py` 로직 미러링). overall은 유형 무관(병맛 톤). **유형은 선택 중엔 숨기고 완성 단계에서 공개.**
 *   완성 시 `spawnCharacter()`로 **즉시 마을 등장**(외모 적용) + `POST /api/characters` 전송(베스트 에포트, 실패해도 로컬 등장 유지).
+*   현재 아바타는 프로토타입용 프로시저럴 프리미티브(캡슐+구). **실제 3D 모델 도입 시 외모 표현이 크게 달라질 수 있음**(아래 향후 확장 참조).
+
+**(향후) 외모 커스터마이즈 확장 — 실제 3D 모델 기준:**
+*   **머리 스타일 프리셋을 텍스트 라벨이 아니라 실제 모양으로 노출:** 헤어 썸네일(미니 3D 프리뷰 또는 렌더 이미지)로 보여줘 고르게 한다. (현재는 임시 텍스트 라벨.)
+*   **눈·코·입 각각 모양(파츠) 선택** — 마찬가지로 모양 썸네일로 노출.
+*   **파츠별 변형:** 크기(전체/가로/세로), 위치 이동(너비/높이), 각도(회전) 등 세밀 조정.
+*   → `AvatarLook`을 파츠별 구조(모양 id + 변형 파라미터)로 확장 필요. 현 프로시저럴 빌더는 임시이며, 모델 파이프라인 확정 후 재설계.
 
 **백엔드 요구사항 (영속·시뮬·외모 반영을 위해 필요):**
-1.  `POST /api/characters` 수락 필드: `id, name, gender, personality_code`(또는 슬라이더), `speech_habits, birthday, blood_type, favorite_color`. → **FastAPI 이미 구현.** dev 백엔드(web_server.py)는 **미구현**이라, dev에서 영속하려면 추가 필요.
+1.  `POST /api/characters` 수락 필드: `id, name, gender, personality_code`(또는 `personality` 슬라이더), `speech_habits, birthday, blood_type, favorite_color, voice`. → **FastAPI 이미 구현.** dev 백엔드(web_server.py)는 **미구현**이라, dev에서 영속하려면 추가 필요.
 2.  **`appearance` 저장 추가:** `CharacterCreate` 스키마에 `appearance`(위 `AvatarLook` 5필드) 추가 → `Profile.appearance`에 저장. (현재 생성 스키마에 누락.)
 3.  **snapshot 회신에 `appearance` 포함:** 각 character DTO에 외모 5필드를 실어줘야 **새로고침 후에도** 마을이 커스텀 외모를 렌더(현재 미포함 → 프론트는 id 파생 룩으로 폴백).
 4.  **location 배치:** 생성 캐릭터가 시뮬에 참여하려면 위치 지정(생성이 `location` 수락 또는 `POST /api/locations/move/{id}/{loc}`).
+5.  **나이(age) 필드 부재:** 백엔드 `Profile`에는 나이 필드가 없고 생일(MM-DD)에서 띠만 계산. 프론트는 나이를 받지만 현재 **전송/저장 안 함**. 나이를 영속하려면 `Profile`에 필드 추가 필요(또는 생년 포함 생일로 런타임 계산).

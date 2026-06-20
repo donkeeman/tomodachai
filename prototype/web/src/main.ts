@@ -1,3 +1,4 @@
+import "pretendard/dist/web/static/pretendard-dynamic-subset.css"; // 본문 폰트(OFL-1.1, 동적 서브셋)
 import "./styles.css";
 import { mount } from "svelte";
 import App from "./App.svelte";

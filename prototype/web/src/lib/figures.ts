@@ -53,10 +53,11 @@ export function buildAvatar(scene: Scene, look: AvatarLook, opts: { shadow?: Sha
     const cap = CreateSphere("hair", { diameter: 0.71, segments: 12, slice: 0.55 }, scene);
     cap.material = mat(scene, hc); cap.position.set(0, 1.6, 0); cap.parent = root; casters.push(cap);
   } else if (look.hairStyle === "bob") {
-    const h = ball(scene, 0.75, hc, 0, 1.66, -0.02); h.scaling.set(1, 0.95, 1.02); h.parent = root; casters.push(h);
+    // 윗머리를 뒤로 밀어 앞이마/얼굴이 보이게(앞면을 덮지 않도록).
+    const h = ball(scene, 0.75, hc, 0, 1.68, -0.12); h.scaling.set(1, 0.95, 1.02); h.parent = root; casters.push(h);
     const side = ball(scene, 0.3, hc, 0, 1.38, -0.16); side.scaling.set(1.6, 1.1, 0.7); side.parent = root;
   } else if (look.hairStyle === "long") {
-    const top = ball(scene, 0.76, hc, 0, 1.68, -0.03); top.scaling.set(1, 0.9, 1); top.parent = root; casters.push(top);
+    const top = ball(scene, 0.76, hc, 0, 1.7, -0.14); top.scaling.set(1, 0.9, 1); top.parent = root; casters.push(top);
     const back = ball(scene, 0.5, hc, 0, 1.2, -0.22); back.scaling.set(1.15, 1.9, 0.7); back.parent = root; casters.push(back);
   } else { // bun
     const cap = CreateSphere("hair", { diameter: 0.72, segments: 12, slice: 0.6 }, scene);
