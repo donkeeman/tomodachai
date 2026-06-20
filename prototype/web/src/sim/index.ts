@@ -1,13 +1,14 @@
 // Phase 0 스텁 sim: 빈 마을 + 도는 시계만. 실제 시뮬은 후속 Phase에서.
-import type { Snapshot } from "../lib/types";
+import type { Snapshot, Rankings } from "../lib/types";
 import { GameClock } from "./clock";
 
 const SLEEP_START_MIN = 23 * 60 - 5; // 22:55
 const WAKE_MIN = 7 * 60; // 07:00
 
-const EMPTY_RANKINGS = { best_couple: [], popular_m: [], popular_f: [], fighters: [] };
+const EMPTY_RANKINGS: Rankings = { best_couple: [], popular_m: [], popular_f: [], fighters: [] };
 
 export function getSnapshot(_since: number, nowFn?: () => Date): Snapshot {
+  // 스텁: 호출마다 GameClock 생성(상태 없음). 폴링이 붙는 후속 Phase에서 재검토.
   const clock = new GameClock(false, nowFn);
   const now = clock.now();
   const hour = clock.getGameHour();
@@ -34,7 +35,7 @@ export function getSnapshot(_since: number, nowFn?: () => Date): Snapshot {
   };
 }
 
-const noop = async (): Promise<Record<string, unknown>> => ({});
+const noop = async (): Promise<Record<string, unknown>> => ({ message: "" });
 export const feed = noop;
 export const give = noop;
 export const save = noop;
