@@ -9,7 +9,10 @@
     "dev": "concurrently -k -n vite,api -c cyan,green \"vite\" \"python3 ../web_server.py --interval 5\"",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "golden:gen": "python ../../scripts/dump_golden.py"
   },
   "dependencies": {
     "@babylonjs/core": "^7.54.0",
@@ -22,6 +25,7 @@
     "svelte": "^5.15.0",
     "svelte-check": "^4.1.0",
     "typescript": "^5.7.0",
-    "vite": "^5.4.0"
+    "vite": "^5.4.0",
+    "vitest": "^2.1.0"
   }
 }
