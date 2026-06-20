@@ -16,6 +16,8 @@ import relApplyDeltasCases from "./rel_apply_deltas.json";
 import relDecayCases from "./rel_decay.json";
 import personalityGroupCases from "./personality_group.json";
 import calculateCompatibilityCases from "./calculate_compatibility.json";
+import locationCatalogCases from "./location_catalog.json";
+import locationWeightsCases from "./location_weights.json";
 
 export interface GoldenCase<I = unknown, E = unknown> {
   input: I;
@@ -41,6 +43,8 @@ const REGISTRY: Record<string, GoldenCase<unknown, unknown>[]> = {
   rel_decay: relDecayCases as GoldenCase[],
   personality_group: personalityGroupCases as GoldenCase[],
   calculate_compatibility: calculateCompatibilityCases as GoldenCase[],
+  location_catalog: locationCatalogCases as GoldenCase[],
+  location_weights: locationWeightsCases as GoldenCase[],
 };
 
 export function loadGolden<I = unknown, E = unknown>(name: string): GoldenCase<I, E>[] {

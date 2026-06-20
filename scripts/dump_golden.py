@@ -276,6 +276,15 @@ def dump_compatibility() -> None:
     _write("calculate_compatibility", comp_cases)
 
 
+def dump_location_catalog() -> None:
+    from tomodachai.location import DEFAULT_LOCATIONS, _DEFAULT_PUBLIC_WEIGHTS
+
+    locs = [loc.model_dump() for loc in DEFAULT_LOCATIONS]
+    # location_type은 str Enum이므로 model_dump()가 .value(str)로 직렬화함
+    _write("location_catalog", [{"input": "DEFAULT_LOCATIONS", "expected": locs}])
+    _write("location_weights", [{"input": "weights", "expected": dict(_DEFAULT_PUBLIC_WEIGHTS)}])
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -284,6 +293,7 @@ def main() -> None:
     dump_personality()
     dump_relationship_core()
     dump_compatibility()
+    dump_location_catalog()
 
 
 if __name__ == "__main__":
