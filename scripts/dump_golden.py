@@ -139,11 +139,47 @@ def dump_character_defaults() -> None:
     _write("character_defaults", cases)
 
 
+def dump_personality() -> None:
+    from tomodachai.character import Personality
+    from tomodachai.personality import PersonalitySliders, determine_personality
+
+    # determine_personality: 16코드 전부 커버하도록 4분면×4분면 격자
+    vals = [0.1, 0.4, 0.6, 0.9]  # 각 임계 구간(<0.25,<0.5,<0.75,<1.01)을 대표
+    det_cases = []
+    for ms in vals:          # movement=speech=ms → ms_avg=ms
+        for ea in vals:      # expr=attitude=ea → ea_avg=ea
+            s = PersonalitySliders(movement=ms, speech=ms, expressiveness=ea, attitude=ea)
+            det_cases.append({
+                "input": {"movement": ms, "speech": ms, "expressiveness": ea, "attitude": ea},
+                "expected": determine_personality(s),
+            })
+    _write("determine_personality", det_cases)
+
+    # personalityCode: Personality(0~10 int) → 코드
+    code_inputs = [
+        {"movement": 8, "speech": 8, "expressiveness": 7, "attitude": 5, "overall": 5},
+        {"movement": 2, "speech": 2, "expressiveness": 8, "attitude": 8, "overall": 5},
+        {"movement": 5, "speech": 5, "expressiveness": 5, "attitude": 5, "overall": 5},
+        {"movement": 0, "speech": 0, "expressiveness": 0, "attitude": 0, "overall": 0},
+        {"movement": 10, "speech": 10, "expressiveness": 10, "attitude": 10, "overall": 10},
+    ]
+    code_cases = []
+    for pi in code_inputs:
+        p = Personality(**pi)
+        sliders = PersonalitySliders(
+            movement=p.movement / 10.0, speech=p.speech / 10.0,
+            expressiveness=p.expressiveness / 10.0, attitude=p.attitude / 10.0,
+        )
+        code_cases.append({"input": pi, "expected": determine_personality(sliders)})
+    _write("personality_code", code_cases)
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
     dump_zodiac()
     dump_character_defaults()
+    dump_personality()
 
 
 if __name__ == "__main__":

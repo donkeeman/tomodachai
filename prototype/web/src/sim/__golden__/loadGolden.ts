@@ -5,6 +5,8 @@ import newdayCases from "./game_clock_newday.json";
 import catchupCases from "./game_clock_catchup.json";
 import zodiacCases from "./zodiac.json";
 import characterDefaultsCases from "./character_defaults.json";
+import determinePersonalityCases from "./determine_personality.json";
+import personalityCodeCases from "./personality_code.json";
 
 export interface GoldenCase<I = unknown, E = unknown> {
   input: I;
@@ -19,6 +21,8 @@ const REGISTRY: Record<string, GoldenCase<unknown, unknown>[]> = {
   game_clock_catchup: catchupCases as GoldenCase[],
   zodiac: zodiacCases as GoldenCase[],
   character_defaults: characterDefaultsCases as GoldenCase[],
+  determine_personality: determinePersonalityCases as GoldenCase[],
+  personality_code: personalityCodeCases as GoldenCase[],
 };
 
 export function loadGolden<I = unknown, E = unknown>(name: string): GoldenCase<I, E>[] {
