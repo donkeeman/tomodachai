@@ -1,0 +1,57 @@
+[
+  {
+    "input": {
+      "pA": "easygoing_softie",
+      "pB": "outgoing_charmer",
+      "bloodA": "O",
+      "bloodB": "A",
+      "zA": "양자리",
+      "zB": "천칭자리"
+    },
+    "expected": 0.82
+  },
+  {
+    "input": {
+      "pA": "confident_busybee",
+      "pB": "independent_thinker",
+      "bloodA": "AB",
+      "bloodB": "AB",
+      "zA": "황소자리",
+      "zB": "게자리"
+    },
+    "expected": 0.73
+  },
+  {
+    "input": {
+      "pA": "easygoing_softie",
+      "pB": "easygoing_optimist",
+      "bloodA": "A",
+      "bloodB": "B",
+      "zA": "양자리",
+      "zB": "양자리"
+    },
+    "expected": 0.565
+  },
+  {
+    "input": {
+      "pA": "outgoing_charmer",
+      "pB": "independent_thinker",
+      "bloodA": "B",
+      "bloodB": "B",
+      "zA": "사자자리",
+      "zB": "물병자리"
+    },
+    "expected": 0.59
+  },
+  {
+    "input": {
+      "pA": "weird_x",
+      "pB": "outgoing_charmer",
+      "bloodA": "X",
+      "bloodB": "A",
+      "zA": "??",
+      "zB": "양자리"
+    },
+    "expected": 0.525
+  }
+]

@@ -256,6 +256,30 @@ def dump_relationship_core() -> None:
     _write("rel_decay", decay_cases)
 
 
+def dump_compatibility() -> None:
+    from tomodachai.relationship import _personality_group, calculate_compatibility
+
+    codes = ["easygoing_softie", "outgoing_charmer", "confident_busybee",
+             "independent_thinker", "weird_unknown"]
+    group_cases = [{"input": c, "expected": _personality_group(c)} for c in codes]
+    _write("personality_group", group_cases)
+
+    # 대표 매트릭스 (성격쌍×혈액쌍×별자리쌍 일부 + null/미인식)
+    samples = [
+        ("easygoing_softie", "outgoing_charmer", "O", "A", "양자리", "천칭자리"),
+        ("confident_busybee", "independent_thinker", "AB", "AB", "황소자리", "게자리"),
+        ("easygoing_softie", "easygoing_optimist", "A", "B", "양자리", "양자리"),
+        ("outgoing_charmer", "independent_thinker", "B", "B", "사자자리", "물병자리"),
+        ("weird_x", "outgoing_charmer", "X", "A", "??", "양자리"),
+    ]
+    comp_cases = [
+        {"input": {"pA": a, "pB": b, "bloodA": ba, "bloodB": bb, "zA": za, "zB": zb},
+         "expected": calculate_compatibility(a, b, ba, bb, za, zb)}
+        for (a, b, ba, bb, za, zb) in samples
+    ]
+    _write("calculate_compatibility", comp_cases)
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -263,6 +287,7 @@ def main() -> None:
     dump_character_defaults()
     dump_personality()
     dump_relationship_core()
+    dump_compatibility()
 
 
 if __name__ == "__main__":
