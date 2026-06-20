@@ -1,22 +1,15 @@
 import type { Snapshot } from "./types";
+import * as sim from "../sim";
 
 export async function getSnapshot(since: number): Promise<Snapshot> {
-  const res = await fetch(`/api/snapshot?since=${since}`);
-  return res.json();
+  return sim.getSnapshot(since);
 }
 
-async function post(url: string, body: unknown): Promise<any> {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  return res.json();
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const wrap = (p: Promise<Record<string, unknown>>): Promise<any> => p;
 
-export const feed = (char_id: number, food_id: number) => post("/api/feed", { char_id, food_id });
-export const give = (char_id: number, tool: string) => post("/api/give", { char_id, tool });
-export const answerBubble = (index: number, char: string, allow: boolean) =>
-  post("/api/bubble", { index, char, answer: allow ? "allow" : "stop" });
-export const saveGame = () => post("/api/save", {});
-export const resetGame = () => post("/api/reset", {});
+export const feed = (char_id: number, food_id: number) => wrap(sim.feed());
+export const give = (char_id: number, tool: string) => wrap(sim.give());
+export const answerBubble = (index: number, char: string, allow: boolean) => wrap(sim.answerBubble());
+export const saveGame = () => wrap(sim.save());
+export const resetGame = () => wrap(sim.reset());
