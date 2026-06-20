@@ -1,0 +1,155 @@
+[
+  {
+    "input": {
+      "friendship": -100
+    },
+    "expected": {
+      "stage": "stranger",
+      "friendship_text": "앙숙"
+    }
+  },
+  {
+    "input": {
+      "friendship": -70
+    },
+    "expected": {
+      "stage": "stranger",
+      "friendship_text": "앙숙"
+    }
+  },
+  {
+    "input": {
+      "friendship": -69
+    },
+    "expected": {
+      "stage": "stranger",
+      "friendship_text": "사이가 나쁨"
+    }
+  },
+  {
+    "input": {
+      "friendship": -50
+    },
+    "expected": {
+      "stage": "stranger",
+      "friendship_text": "사이가 나쁨"
+    }
+  },
+  {
+    "input": {
+      "friendship": -49
+    },
+    "expected": {
+      "stage": "stranger",
+      "friendship_text": "서먹서먹"
+    }
+  },
+  {
+    "input": {
+      "friendship": -20
+    },
+    "expected": {
+      "stage": "stranger",
+      "friendship_text": "서먹서먹"
+    }
+  },
+  {
+    "input": {
+      "friendship": -19
+    },
+    "expected": {
+      "stage": "stranger",
+      "friendship_text": "그저 그런 사이"
+    }
+  },
+  {
+    "input": {
+      "friendship": 0
+    },
+    "expected": {
+      "stage": "stranger",
+      "friendship_text": "그저 그런 사이"
+    }
+  },
+  {
+    "input": {
+      "friendship": 10
+    },
+    "expected": {
+      "stage": "acquaintance",
+      "friendship_text": "그저 그런 사이"
+    }
+  },
+  {
+    "input": {
+      "friendship": 20
+    },
+    "expected": {
+      "stage": "acquaintance",
+      "friendship_text": "알고 지내는 사이"
+    }
+  },
+  {
+    "input": {
+      "friendship": 39
+    },
+    "expected": {
+      "stage": "acquaintance",
+      "friendship_text": "알고 지내는 사이"
+    }
+  },
+  {
+    "input": {
+      "friendship": 40
+    },
+    "expected": {
+      "stage": "friend",
+      "friendship_text": "친해지는 중"
+    }
+  },
+  {
+    "input": {
+      "friendship": 59
+    },
+    "expected": {
+      "stage": "friend",
+      "friendship_text": "친해지는 중"
+    }
+  },
+  {
+    "input": {
+      "friendship": 60
+    },
+    "expected": {
+      "stage": "friend",
+      "friendship_text": "꽤 친한 사이"
+    }
+  },
+  {
+    "input": {
+      "friendship": 79
+    },
+    "expected": {
+      "stage": "friend",
+      "friendship_text": "꽤 친한 사이"
+    }
+  },
+  {
+    "input": {
+      "friendship": 80
+    },
+    "expected": {
+      "stage": "best_friend",
+      "friendship_text": "둘도 없는 친구"
+    }
+  },
+  {
+    "input": {
+      "friendship": 100
+    },
+    "expected": {
+      "stage": "best_friend",
+      "friendship_text": "둘도 없는 친구"
+    }
+  }
+]

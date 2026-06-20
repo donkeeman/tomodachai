@@ -1,0 +1,54 @@
+[
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 50,
+      "deltas": {
+        "friendship": 60
+      }
+    },
+    "expected": {
+      "friendship": 100.0,
+      "romance": 50.0
+    }
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 50,
+      "deltas": {
+        "romance": -70
+      }
+    },
+    "expected": {
+      "friendship": 50.0,
+      "romance": 0.0
+    }
+  },
+  {
+    "input": {
+      "friendship": -90,
+      "romance": 10,
+      "deltas": {
+        "friendship": -30
+      }
+    },
+    "expected": {
+      "friendship": -100.0,
+      "romance": 10.0
+    }
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 50,
+      "deltas": {
+        "unknown": 5
+      }
+    },
+    "expected": {
+      "friendship": 50.0,
+      "romance": 50.0
+    }
+  }
+]

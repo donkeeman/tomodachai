@@ -1,0 +1,38 @@
+[
+  {
+    "input": {
+      "stage": "stranger"
+    },
+    "expected": "모르는 사이"
+  },
+  {
+    "input": {
+      "stage": "acquaintance"
+    },
+    "expected": "아는 사이"
+  },
+  {
+    "input": {
+      "stage": "friend"
+    },
+    "expected": "친구"
+  },
+  {
+    "input": {
+      "stage": "best_friend"
+    },
+    "expected": "베프"
+  },
+  {
+    "input": {
+      "stage": "lover"
+    },
+    "expected": "연인"
+  },
+  {
+    "input": {
+      "stage": "married"
+    },
+    "expected": "부부"
+  }
+]

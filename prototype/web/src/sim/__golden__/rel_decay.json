@@ -1,0 +1,52 @@
+[
+  {
+    "input": {
+      "friendship": 10,
+      "romance": 5
+    },
+    "expected": {
+      "friendship": 9.25,
+      "romance": 4.5
+    }
+  },
+  {
+    "input": {
+      "friendship": -10,
+      "romance": 0
+    },
+    "expected": {
+      "friendship": -9.25,
+      "romance": 0.0
+    }
+  },
+  {
+    "input": {
+      "friendship": 0.5,
+      "romance": 0.4
+    },
+    "expected": {
+      "friendship": 0.0,
+      "romance": 0.0
+    }
+  },
+  {
+    "input": {
+      "friendship": 0,
+      "romance": 0
+    },
+    "expected": {
+      "friendship": 0.0,
+      "romance": 0.0
+    }
+  },
+  {
+    "input": {
+      "friendship": -0.5,
+      "romance": 0
+    },
+    "expected": {
+      "friendship": 0.0,
+      "romance": 0.0
+    }
+  }
+]

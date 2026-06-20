@@ -174,12 +174,95 @@ def dump_personality() -> None:
     _write("personality_code", code_cases)
 
 
+def dump_relationship_core() -> None:
+    from tomodachai.relationship import (
+        Relationship, RelationshipStage, check_breakup_conditions,
+    )
+
+    def mk(f, r, stage):
+        rel = Relationship(friendship=f, romance=r, stage=stage)
+        return rel
+
+    # friendshipStage / status / friendship_text / romance_text — friendship/romance 격자
+    f_vals = [-100, -70, -69, -50, -49, -20, -19, 0, 10, 20, 39, 40, 59, 60, 79, 80, 100]
+    r_vals = [-5, 0, 1, 20, 21, 49, 50, 79, 80, 100]
+    label_cases = []
+    for f in f_vals:
+        rel = Relationship(friendship=f, romance=0)
+        label_cases.append({
+            "input": {"friendship": f},
+            "expected": {
+                "stage": rel._friendship_stage().value,
+                "friendship_text": rel.get_friendship_text(),
+            },
+        })
+    romance_cases = [
+        {"input": {"romance": r}, "expected": {"romance_text": Relationship(romance=r).get_romance_text()}}
+        for r in r_vals
+    ]
+    status_cases = [
+        {"input": {"stage": s.value}, "expected": Relationship(stage=s).get_status_text()}
+        for s in RelationshipStage
+    ]
+    _write("rel_friendship_labels", label_cases)
+    _write("rel_romance_text", romance_cases)
+    _write("rel_status_text", status_cases)
+
+    # computeStage — (f, r, stage, allowRomantic) 매트릭스
+    stages = [s.value for s in RelationshipStage]
+    cs_cases = []
+    for stage in stages:
+        for r in [0, 55, 60, 89, 90, 100]:
+            for allow in (False, True):
+                rel = Relationship(friendship=50, romance=r, stage=stage)
+                cs_cases.append({
+                    "input": {"friendship": 50, "romance": r, "stage": stage, "allow": allow},
+                    "expected": rel._compute_stage(allow_romantic_transition=allow).value,
+                })
+    _write("rel_compute_stage", cs_cases)
+
+    # checkBreakupConditions
+    bc_cases = []
+    for stage in stages:
+        for r in [10, 19, 20, 30]:
+            for cheat in (False, True):
+                for tri in (False, True):
+                    for fu in (False, True):
+                        res = check_breakup_conditions(
+                            Relationship(romance=r, stage=stage), cheat, tri, fu,
+                        )
+                        bc_cases.append({
+                            "input": {"stage": stage, "romance": r, "cheating": cheat,
+                                      "triangle": tri, "fightUnresolved": fu},
+                            "expected": res.value if res is not None else None,
+                        })
+    _write("rel_breakup", bc_cases)
+
+    # applyDeltas / applyNaturalDecay
+    delta_cases = []
+    for f, r, d in [(50, 50, {"friendship": 60}), (50, 50, {"romance": -70}),
+                    (-90, 10, {"friendship": -30}), (50, 50, {"unknown": 5})]:
+        rel = Relationship(friendship=f, romance=r)
+        rel.apply_deltas(d)
+        delta_cases.append({"input": {"friendship": f, "romance": r, "deltas": d},
+                            "expected": {"friendship": rel.friendship, "romance": rel.romance}})
+    decay_cases = []
+    for f, r in [(10, 5), (-10, 0), (0.5, 0.4), (0, 0), (-0.5, 0)]:
+        rel = Relationship(friendship=f, romance=r)
+        rel.apply_natural_decay()
+        decay_cases.append({"input": {"friendship": f, "romance": r},
+                            "expected": {"friendship": rel.friendship, "romance": rel.romance}})
+    _write("rel_apply_deltas", delta_cases)
+    _write("rel_decay", decay_cases)
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
     dump_zodiac()
     dump_character_defaults()
     dump_personality()
+    dump_relationship_core()
 
 
 if __name__ == "__main__":
