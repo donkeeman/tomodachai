@@ -11,7 +11,9 @@ import type { SocialEvent } from "./memory";
 // ---------------------------------------------------------------------------
 // 헬퍼
 // ---------------------------------------------------------------------------
-function makeEvent(partial: Partial<SocialEvent>): SocialEvent {
+function makeEvent(
+  partial: Partial<SocialEvent> & Pick<SocialEvent, "id" | "type" | "participants" | "day">,
+): SocialEvent {
   return defaultSocialEvent(partial);
 }
 
