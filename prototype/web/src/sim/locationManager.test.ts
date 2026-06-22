@@ -40,6 +40,13 @@ describe("LocationManager — addLocation", () => {
     expect(mgr.allLocations().length).toBe(16);
     expect(mgr.getLocation("lab")?.name).toBe("연구소");
   });
+
+  it("같은 id의 장소를 덮어쓴다 (개수 유지)", () => {
+    const mgr = new LocationManager();
+    mgr.addLocation(defaultLocation({ id: "park", name: "재정의공원" }));
+    expect(mgr.allLocations().length).toBe(15);
+    expect(mgr.getLocation("park")?.name).toBe("재정의공원");
+  });
 });
 
 describe("LocationManager — registerPrivateRoom", () => {
