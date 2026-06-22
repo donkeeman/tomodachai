@@ -387,6 +387,12 @@ def dump_shop() -> None:
     _write("shop_constants", cases)
 
 
+def dump_personality_types() -> None:
+    from tomodachai.personality import load_personalities
+    types = {code: pt.model_dump() for code, pt in load_personalities().items()}
+    _write("personality_types", [{"input": "load", "expected": types}])
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -398,6 +404,7 @@ def main() -> None:
     dump_location_catalog()
     dump_destination_weights()
     dump_shop()
+    dump_personality_types()
 
 
 if __name__ == "__main__":

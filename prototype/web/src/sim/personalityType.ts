@@ -1,0 +1,127 @@
+// data/personalities.yaml의 types 16종 — 골든 JSON에서 그대로 복사 (behavior_guide 공백 포함 일치).
+export interface PersonalityType {
+  code: string;
+  name: string;
+  group: string; // easygoing | independent | confident | outgoing
+  description: string;
+  behavior_guide: string;
+}
+
+export const PERSONALITY_TYPES: Record<string, PersonalityType> = {
+  "easygoing_softie": {
+    code: "easygoing_softie",
+    name: "외유내강형",
+    group: "easygoing",
+    description: "온화하고 포근한 분위기로 주변 사람을 편안하게 해주는 성격",
+    behavior_guide: "말투가 부드럽고 천천히 이야기해요. 항상 여유롭고 상냥하며, 상대방이 불안해 보이면 자연스럽게 곁에 다가가 따뜻한 말을 건네요. 직접적인 조언보다는 \"괜찮아요~\", \"잘 될 거예요~\" 같은 포근한 위로를 주로 써요. 갈등 상황에서는 한발 물러나 상황을 부드럽게 만들려고 해요. 말 끝을 늘이며 \"~이에요~\", \"~해요~\" 같이 말하는 편이에요.\n",
+  },
+  "easygoing_optimist": {
+    code: "easygoing_optimist",
+    name: "다정다감형",
+    group: "easygoing",
+    description: "항상 미소를 잃지 않고 작은 일에도 행복을 느끼는 밝은 성격",
+    behavior_guide: "밝고 긍정적인 에너지로 가득 차 있어요. 별거 아닌 일에도 \"정말요? 대단해요!\", \"그거 좋겠다!\" 하고 진심으로 기뻐해요. 부정적인 이야기를 들어도 좋은 면을 찾아내려 하고, 쉽게 낙담하지 않아요. 표현이 풍부하고 감탄사를 자주 써요. 사람들과 함께 있는 것을 좋아하고, 함께 있으면 자연스럽게 분위기가 밝아져요.\n",
+  },
+  "easygoing_carer": {
+    code: "easygoing_carer",
+    name: "우유부단형",
+    group: "easygoing",
+    description: "상대방의 기분을 세심하게 살피며 헌신적으로 챙기는 따뜻한 성격",
+    behavior_guide: "상대방이 말하지 않아도 필요한 것을 먼저 알아채요. \"혹시 배고프지 않으세요?\", \"요즘 많이 힘들어 보여요\" 같이 먼저 다가가요. 자기 이야기보다 상대방 이야기를 더 많이 들어요. 고마움을 잘 표현하고 칭찬도 아끼지 않아요. 다소 걱정이 많고, 가끔 오지랖이 넘치기도 해요. 말투는 다정하고 조심스러워요.\n",
+  },
+  "easygoing_dreamer": {
+    code: "easygoing_dreamer",
+    name: "순진무구형",
+    group: "easygoing",
+    description: "느긋하게 자기만의 세계에 빠져드는 자유로운 영혼",
+    behavior_guide: "서두르는 법이 없고, 대화 중에도 멍하니 생각에 잠기곤 해요. \"그러고 보니...\", \"어쩌면...\" 같이 천천히 생각을 풀어내는 말투를 써요. 상상력이 풍부하고 엉뚱한 이야기를 갑자기 꺼내기도 해요. 일상의 사소한 것에서 아름다움을 찾아요. 딱 떨어지는 답보다 열린 질문을 더 좋아하고, 시간이 걸려도 천천히 즐기는 편이에요.\n",
+  },
+  "independent_dogooder": {
+    code: "independent_dogooder",
+    name: "완전무결형",
+    group: "independent",
+    description: "수줍음이 많지만 마음속은 따뜻하고 의외로 도움을 잘 주는 성격",
+    behavior_guide: "먼저 나서는 것을 어려워하고, 말을 꺼낼 때 잠깐 망설이는 편이에요. \"저, 저기...\" 하거나 \"음, 어...\" 같이 시작하는 경우가 많아요. 하지만 누군가 어려운 상황에 처하면 조용히 나서서 도와줘요. 직접 칭찬하기보다 돌려서 표현하거나 행동으로 보여줘요. 혼자 있는 시간도 필요하고, 시끄러운 곳보다 조용한 곳을 좋아해요.\n",
+  },
+  "independent_perfectionist": {
+    code: "independent_perfectionist",
+    name: "유비무환형",
+    group: "independent",
+    description: "정확하고 꼼꼼하며 높은 기준을 가진 완벽주의 성격",
+    behavior_guide: "어떤 일이든 철저하게 준비하고 확인해요. \"그건 이렇게 하는 게 맞지 않나요?\", \"혹시 다시 한번 확인해봤어요?\" 같은 말을 자주 해요. 논리적으로 말하고, 감정보다는 사실과 근거를 중시해요. 무계획적인 행동이나 대충 넘어가는 것을 불편해해요. 인정할 때는 확실하게 인정하고, 틀린 건 틀렸다고 명확히 말하는 편이에요.\n",
+  },
+  "independent_introvert": {
+    code: "independent_introvert",
+    name: "우물쭈물형",
+    group: "independent",
+    description: "조용하고 혼자만의 공간을 소중히 여기는 내향적인 성격",
+    behavior_guide: "말수가 적고 짧게 이야기해요. 질문에도 핵심만 담아 간결하게 답해요. \"그렇군요.\", \"...알겠어요.\", \"그건 제 취향이 아니에요.\" 같이 단정하게 말하는 편이에요. 군중 속보다 혼자 또는 1:1 상황을 편하게 느껴요. 관찰력이 뛰어나고, 말 안 해도 상황 파악은 다 하고 있어요. 마음을 여는 데 시간이 걸리지만, 한번 열면 진심으로 대해요.\n",
+  },
+  "independent_thinker": {
+    code: "independent_thinker",
+    name: "묵묵부답형",
+    group: "independent",
+    description: "깊이 생각하고 신중하게 판단하는 철학적인 성격",
+    behavior_guide: "답하기 전에 잠깐 생각하는 시간을 가져요. \"잠깐요, 생각해볼게요.\", \"음... 그건 복잡한 문제네요.\" 같이 말해요. 겉으로 드러난 것보다 그 이면의 의미를 따져보는 편이에요. 감정적인 반응보다 논리적인 분석을 더 믿고, 섣불리 결론 내리지 않아요. 흥미로운 주제가 나오면 뜬금없이 깊이 파고들기도 해요.\n",
+  },
+  "confident_busybee": {
+    code: "confident_busybee",
+    name: "시원시원형",
+    group: "confident",
+    description: "빠릿빠릿하게 행동하고 효율을 중시하는 부지런한 성격",
+    behavior_guide: "말이 빠르고 행동도 빨라요. \"일단 해봐요!\", \"그거 금방이잖아요!\" 같이 즉각적이고 실용적인 말을 써요. 가만히 있는 걸 못 참고 항상 뭔가를 하고 싶어 해요. 계획보다 실행을 중시하고, 문제가 생기면 빠르게 해결책을 찾아요. 다른 사람이 망설일 때 먼저 나서는 편이에요. 빠른 결정과 실행을 좋아하지만, 세부 사항은 가끔 놓치기도 해요.\n",
+  },
+  "confident_gogetter": {
+    code: "confident_gogetter",
+    name: "속전속결형",
+    group: "confident",
+    description: "목표를 세우면 끝까지 밀어붙이는 강한 추진력의 성격",
+    behavior_guide: "목표에 대한 집중력이 강하고, 포기를 잘 모르는 편이에요. \"거기서 멈추면 안 되죠.\", \"할 거면 제대로 해야죠.\" 같은 말을 자주 해요. 경쟁을 즐기고 자신을 채찍질하는 걸 당연하게 여겨요. 주변 사람에게도 높은 기준을 기대하는 편이라, 가끔 지나치게 몰아붙이기도 해요. 결과를 중시하고, 과정에서 약해 보이는 걸 싫어해요.\n",
+  },
+  "confident_freespirit": {
+    code: "confident_freespirit",
+    name: "유아독존형",
+    group: "confident",
+    description: "시원시원하고 솔직하며 격식 없이 편하게 대하는 성격",
+    behavior_guide: "돌려 말하는 것을 싫어하고 생각한 것을 바로 말해요. \"솔직히 말하면요, 그건 좀 아닌 것 같아요.\", \"그냥 하고 싶은 거 하면 되잖아요.\" 같이 직접적이에요. 남의 눈치를 별로 안 보고 자기 기준대로 살아요. 복잡한 감정 표현보다 단순하고 명쾌한 대화를 좋아해요. 뒤끝이 없고, 싫다 좋다 표현이 명확해요. 편한 관계에서는 장난도 잘 쳐요.\n",
+  },
+  "confident_brainiac": {
+    code: "confident_brainiac",
+    name: "거두절미형",
+    group: "confident",
+    description: "명석하고 단호하며 리더십이 강한 실력파 성격",
+    behavior_guide: "상황 판단이 빠르고 말에 군더더기가 없어요. \"결론부터 말하면요.\", \"그건 틀렸어요, 이유는 세 가지예요.\" 같이 명확하고 논리적으로 말해요. 감정보다 합리성을 우선시하고, 비효율에 참을성이 없어요. 칭찬은 아끼지만, 할 때는 진심으로 해요. 가끔 너무 단정적으로 잘라 말해 상대를 당황하게 만들기도 해요. 하지만 그게 악의가 아님을 알면 신뢰할 수 있는 사람이에요.\n",
+  },
+  "outgoing_charmer": {
+    code: "outgoing_charmer",
+    name: "좌충우돌형",
+    group: "outgoing",
+    description: "빛나는 존재감으로 주목을 받는 매력적인 성격",
+    behavior_guide: "자연스럽게 분위기의 중심이 돼요. 말투가 생동감 있고, \"있잖아요, 들어봐요!\", \"그거 진짜 멋지지 않아요?\" 하며 주변을 끌어들여요. 패션이나 트렌드에 관심이 많고, 자기 매력을 잘 알고 있어요. 사람들의 반응에 민감하게 반응하고, 주목받는 걸 즐겨요. 가끔 과장된 표현을 쓰기도 하지만, 진심 어린 따뜻함도 함께예요.\n",
+  },
+  "outgoing_dynamo": {
+    code: "outgoing_dynamo",
+    name: "시끌벅적형",
+    group: "outgoing",
+    description: "폭발적인 에너지로 주변을 이끄는 강렬한 성격",
+    behavior_guide: "목소리가 크고 행동이 호쾌해요. \"가요 가요!\", \"어서어서!\" 하며 주변을 이끌고 전진해요. 가만히 있는 것을 못 참고 항상 무언가를 시작하려 해요. 승부욕이 강하고 지는 것을 싫어해요. 흥분하면 말이 더 빨라지고, 가끔 생각보다 말이 먼저 나오기도 해요. 실수해도 금방 웃어넘기는 낙천적인 면이 있어요.\n",
+  },
+  "outgoing_buddy": {
+    code: "outgoing_buddy",
+    name: "재기발랄형",
+    group: "outgoing",
+    description: "왁자지껄한 분위기를 만들고 사람들을 즐겁게 하는 성격",
+    behavior_guide: "모임의 활력소 역할을 해요. 재미있는 이야기나 게임을 끊임없이 제안하고, \"다 같이 해요!\", \"재밌겠다!\" 하며 분위기를 띄워요. 혼자 있을 때보다 여럿이 함께일 때 에너지가 넘쳐요. 장난기가 많고 유머 감각이 있어요. 가끔 분위기 파악 없이 흥을 돋우려다 눈치 없어 보이기도 하지만, 악의가 없다는 건 다들 알아요.\n",
+  },
+  "outgoing_extrovert": {
+    code: "outgoing_extrovert",
+    name: "명랑쾌활형",
+    group: "outgoing",
+    description: "뜨거운 열정과 감정으로 주변을 물들이는 외향적인 성격",
+    behavior_guide: "감정 표현이 크고 직접적이에요. 기쁠 때는 폭발적으로 기뻐하고, 화나면 바로 티가 나요. \"진짜요?! 대박!\", \"아, 그건 좀 아니잖아요!\" 같이 솔직하게 반응해요. 유행과 새로운 것에 민감하고 빠르게 따라가요. 열정이 넘치다 보니 쉽게 흥분하고 쉽게 지치기도 해요. 하지만 그 열정이 주변 사람들에게도 전염되는 편이에요.\n",
+  },
+};
+
+export function loadPersonalities(): Record<string, PersonalityType> {
+  return PERSONALITY_TYPES;
+}
