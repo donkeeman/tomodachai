@@ -349,6 +349,44 @@ def dump_destination_weights() -> None:
     _write("destination_weights", cases)
 
 
+def dump_shop() -> None:
+    from tomodachai.shop import (
+        CATEGORIES, HOLIDAYS, _DEFAULT_POOL, _DAILY_COUNT,
+        _MORNING_MARKET_DISCOUNT_RATE, _MORNING_MARKET_BASE_PRICE, ShopManager,
+    )
+    pool_bounds = {c: [min(r), max(r), len(r)] for c, r in _DEFAULT_POOL.items()}
+
+    sm = ShopManager()
+    sm.add_to_catalog("food", 5)
+    sm.add_to_catalog("food", 1)
+    sm.add_to_catalog("clothing", 150)
+    serialized = sm.serialize()
+
+    sample_state = {
+        "daily": {"food": [1, 2, 3], "clothing": [101, 102], "interior": [201]},
+        "morning_market": {"item": 7, "discount_price": 1500},
+        "seasonal": [301, 302],
+        "catalog": {"food": [1, 5], "clothing": [150], "interior": []},
+    }
+    sm2 = ShopManager()
+    sm2.deserialize(sample_state)
+    roundtrip = sm2.serialize()
+
+    cases = [
+        {"input": "categories", "expected": list(CATEGORIES)},
+        {"input": "holidays", "expected": dict(HOLIDAYS)},
+        {"input": "daily_count", "expected": dict(_DAILY_COUNT)},
+        {"input": "pool_bounds", "expected": pool_bounds},
+        {"input": "discount_price", "expected": int(_MORNING_MARKET_BASE_PRICE * _MORNING_MARKET_DISCOUNT_RATE)},
+        {"input": "discount_rate", "expected": _MORNING_MARKET_DISCOUNT_RATE},
+        {"input": "base_price", "expected": _MORNING_MARKET_BASE_PRICE},
+        {"input": "catalog_food_sorted", "expected": sm.get_catalog("food")},
+        {"input": "serialize_after_adds", "expected": serialized},
+        {"input": "deserialize_roundtrip", "expected": roundtrip},
+    ]
+    _write("shop_constants", cases)
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -359,6 +397,7 @@ def main() -> None:
     dump_compatibility()
     dump_location_catalog()
     dump_destination_weights()
+    dump_shop()
 
 
 if __name__ == "__main__":

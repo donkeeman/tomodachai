@@ -1,0 +1,122 @@
+[
+  {
+    "input": "categories",
+    "expected": [
+      "food",
+      "clothing",
+      "interior"
+    ]
+  },
+  {
+    "input": "holidays",
+    "expected": {
+      "04-14": 99
+    }
+  },
+  {
+    "input": "daily_count",
+    "expected": {
+      "food": 3,
+      "clothing": 2,
+      "interior": 1
+    }
+  },
+  {
+    "input": "pool_bounds",
+    "expected": {
+      "food": [
+        1,
+        100,
+        100
+      ],
+      "clothing": [
+        101,
+        200,
+        100
+      ],
+      "interior": [
+        201,
+        300,
+        100
+      ]
+    }
+  },
+  {
+    "input": "discount_price",
+    "expected": 1500
+  },
+  {
+    "input": "discount_rate",
+    "expected": 0.6
+  },
+  {
+    "input": "base_price",
+    "expected": 2500
+  },
+  {
+    "input": "catalog_food_sorted",
+    "expected": [
+      1,
+      5
+    ]
+  },
+  {
+    "input": "serialize_after_adds",
+    "expected": {
+      "daily": {
+        "food": [],
+        "clothing": [],
+        "interior": []
+      },
+      "morning_market": null,
+      "seasonal": [],
+      "catalog": {
+        "food": [
+          1,
+          5
+        ],
+        "clothing": [
+          150
+        ],
+        "interior": []
+      }
+    }
+  },
+  {
+    "input": "deserialize_roundtrip",
+    "expected": {
+      "daily": {
+        "food": [
+          1,
+          2,
+          3
+        ],
+        "clothing": [
+          101,
+          102
+        ],
+        "interior": [
+          201
+        ]
+      },
+      "morning_market": {
+        "item": 7,
+        "discount_price": 1500
+      },
+      "seasonal": [
+        301,
+        302
+      ],
+      "catalog": {
+        "food": [
+          1,
+          5
+        ],
+        "clothing": [
+          150
+        ],
+        "interior": []
+      }
+    }
+  }
+]
