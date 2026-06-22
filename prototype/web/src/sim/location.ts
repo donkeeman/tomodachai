@@ -187,3 +187,135 @@ export const DEFAULT_PUBLIC_WEIGHTS: Record<string, number> = {
   living_room: 2.0,
   balcony: 0.8,
 };
+
+// ────────────────────────────────────────────────────────────────────────────
+// LocationManager — 레지스트리 + 쿼리 + 이동/스냅샷
+// Python src/tomodachai/location.py LocationManager 1:1 포팅.
+// (choose_destination은 Task 3에서 구현)
+// ────────────────────────────────────────────────────────────────────────────
+
+/** snapshot() 한 항목의 형태 */
+export interface LocationSnapshot {
+  id: string;
+  name: string;
+  location_type: LocationType;
+  capacity: number;
+  event_types: string[];
+  description: string;
+  characters: number[];
+}
+
+export class LocationManager {
+  // Map은 삽입 순서를 보존 → Python dict 반복 순서와 일치.
+  private readonly _locations: Map<string, Location> = new Map();
+  private readonly _positions: Map<number, string> = new Map(); // charId → locationId
+
+  constructor(extraLocations?: Location[]) {
+    for (const loc of DEFAULT_LOCATIONS) {
+      this._locations.set(loc.id, loc);
+    }
+    if (extraLocations) {
+      for (const loc of extraLocations) {
+        this._locations.set(loc.id, loc);
+      }
+    }
+  }
+
+  addLocation(loc: Location): void {
+    this._locations.set(loc.id, loc);
+  }
+
+  registerPrivateRoom(charId: number, charName: string): Location {
+    const roomId = `room_${charId}`;
+    const room: Location = {
+      id: roomId,
+      name: `${charName}의 방`,
+      capacity: 2,
+      location_type: "private_room",
+      event_types: ["sleep", "personal_event", "room_visit", "gift", "consultation"],
+      description: `${charName}의 개인 방`,
+    };
+    this._locations.set(roomId, room);
+    return room;
+  }
+
+  getLocation(id: string): Location | null {
+    return this._locations.get(id) ?? null;
+  }
+
+  getLocationByName(name: string): Location | null {
+    for (const loc of this._locations.values()) {
+      if (loc.name === name) {
+        return loc;
+      }
+    }
+    return null;
+  }
+
+  allLocations(): Location[] {
+    return [...this._locations.values()];
+  }
+
+  publicLocations(): Location[] {
+    return [...this._locations.values()].filter((loc) => loc.location_type === "public");
+  }
+
+  sharedLocations(): Location[] {
+    return [...this._locations.values()].filter((loc) => loc.location_type === "shared_room");
+  }
+
+  getCharactersAt(id: string): number[] {
+    const result: number[] = [];
+    for (const [cid, lid] of this._positions.entries()) {
+      if (lid === id) {
+        result.push(cid);
+      }
+    }
+    return result;
+  }
+
+  getCharacterLocation(charId: number): string | null {
+    return this._positions.get(charId) ?? null;
+  }
+
+  isAtCapacity(id: string): boolean {
+    const loc = this._locations.get(id);
+    if (loc === undefined) {
+      return true;
+    }
+    return this.getCharactersAt(id).length >= loc.capacity;
+  }
+
+  moveCharacter(charId: number, destination: string): boolean {
+    let dest = destination;
+    if (!this._locations.has(dest)) {
+      const locByName = this.getLocationByName(dest);
+      if (locByName === null) {
+        return false;
+      }
+      dest = locByName.id;
+    }
+    this._positions.set(charId, dest);
+    return true;
+  }
+
+  removeCharacter(charId: number): void {
+    this._positions.delete(charId);
+  }
+
+  snapshot(): LocationSnapshot[] {
+    const result: LocationSnapshot[] = [];
+    for (const loc of this._locations.values()) {
+      result.push({
+        id: loc.id,
+        name: loc.name,
+        location_type: loc.location_type,
+        capacity: loc.capacity,
+        event_types: loc.event_types,
+        description: loc.description,
+        characters: this.getCharactersAt(loc.id),
+      });
+    }
+    return result;
+  }
+}
