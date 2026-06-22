@@ -20,6 +20,7 @@ import locationCatalogCases from "./location_catalog.json";
 import locationWeightsCases from "./location_weights.json";
 import destinationWeightsCases from "./destination_weights.json";
 import shopConstantsCases from "./shop_constants.json";
+import characterAccessorsCases from "./character_accessors.json";
 import personalityTypesCases from "./personality_types.json";
 
 export interface GoldenCase<I = unknown, E = unknown> {
@@ -50,6 +51,7 @@ const REGISTRY: Record<string, GoldenCase<unknown, unknown>[]> = {
   location_weights: locationWeightsCases as GoldenCase[],
   destination_weights: destinationWeightsCases as GoldenCase[],
   shop_constants: shopConstantsCases as GoldenCase[],
+  character_accessors: characterAccessorsCases as GoldenCase[],
   personality_types: personalityTypesCases as GoldenCase[],
 };
 

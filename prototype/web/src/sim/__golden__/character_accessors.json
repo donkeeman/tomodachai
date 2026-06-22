@@ -1,0 +1,36 @@
+[
+  {
+    "input": "filled_partial",
+    "expected": {
+      "name": "민수",
+      "personality_code": "outgoing_buddy",
+      "speech_habits": {
+        "normal": "~이에요",
+        "happy": "신나요",
+        "worried": "걱정돼요"
+      },
+      "backstory": ""
+    }
+  },
+  {
+    "input": "empty_habits",
+    "expected": {
+      "name": "지은",
+      "personality_code": "easygoing_dreamer",
+      "speech_habits": {},
+      "backstory": ""
+    }
+  },
+  {
+    "input": "two_habits",
+    "expected": {
+      "name": "현우",
+      "personality_code": "confident_busybee",
+      "speech_habits": {
+        "normal": "안녕하세요",
+        "happy": "기뻐요"
+      },
+      "backstory": ""
+    }
+  }
+]

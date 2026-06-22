@@ -387,6 +387,43 @@ def dump_shop() -> None:
     _write("shop_constants", cases)
 
 
+def dump_character_accessors() -> None:
+    from tomodachai.character import Character, Profile, Personality, Customizable, SpeechHabits
+
+    def case(label, char):
+        return {"input": label, "expected": {
+            "name": char.name,
+            "personality_code": char.personality_code,
+            "speech_habits": char.speech_habits,
+            "backstory": char.backstory,
+        }}
+
+    cases = []
+    # 1: 일부 speech_habits 채움(빈값 포함 → as_dict 필터 검증), 명확한 성격
+    c1 = Character(
+        id=1,
+        profile=Profile(name="민수", personality=Personality(movement=8, speech=8, expressiveness=7, attitude=5, overall=5)),
+        customizable=Customizable(speech_habits=SpeechHabits(normal="~이에요", happy="신나요", angry="", sad="", worried="걱정돼요")),
+    )
+    cases.append(case("filled_partial", c1))
+    # 2: speech_habits 전부 빈값 → {} 기대, 다른 성격 사분면
+    c2 = Character(
+        id=2,
+        profile=Profile(name="지은", personality=Personality(movement=2, speech=2, expressiveness=8, attitude=8, overall=5)),
+        customizable=Customizable(speech_habits=SpeechHabits()),
+    )
+    cases.append(case("empty_habits", c2))
+    # 3: 또 다른 사분면
+    c3 = Character(
+        id=3,
+        profile=Profile(name="현우", personality=Personality(movement=5, speech=5, expressiveness=2, attitude=2, overall=5)),
+        customizable=Customizable(speech_habits=SpeechHabits(happy="기뻐요", normal="안녕하세요")),
+    )
+    cases.append(case("two_habits", c3))
+
+    _write("character_accessors", cases)
+
+
 def dump_personality_types() -> None:
     from tomodachai.personality import load_personalities
     types = {code: pt.model_dump() for code, pt in load_personalities().items()}
@@ -404,6 +441,7 @@ def main() -> None:
     dump_location_catalog()
     dump_destination_weights()
     dump_shop()
+    dump_character_accessors()
     dump_personality_types()
 
 
