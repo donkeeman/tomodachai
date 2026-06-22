@@ -73,6 +73,14 @@ describe("shop constants golden", () => {
     expect(sm.getCatalog("food")).toEqual(golden("catalog_food_sorted"));
   });
 
+  it("getCatalog는 사전식이 아닌 숫자 오름차순 (lexicographic 무력화)", () => {
+    // 10/100이 있으면 lexicographic은 [1,10,100,5], 숫자정렬은 [1,5,10,100].
+    // (a,b)=>a-b 비교자가 제거되면 이 케이스만 깨진다 — 회귀 보호.
+    const sm = new ShopManager();
+    for (const id of [100, 5, 10, 1]) sm.addToCatalog("food", id);
+    expect(sm.getCatalog("food")).toEqual([1, 5, 10, 100]);
+  });
+
   it("serialize after adds matches", () => {
     const sm = new ShopManager();
     sm.addToCatalog("food", 5);
@@ -164,6 +172,7 @@ describe("buyMorningMarket", () => {
     });
     const stub = { spendMoney: vi.fn(() => false) };
     expect(sm.buyMorningMarket(stub)).toBe(false);
+    expect(sm.getCatalog("food")).not.toContain(7);
   });
 });
 
