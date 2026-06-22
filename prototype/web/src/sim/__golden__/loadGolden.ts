@@ -18,6 +18,7 @@ import personalityGroupCases from "./personality_group.json";
 import calculateCompatibilityCases from "./calculate_compatibility.json";
 import locationCatalogCases from "./location_catalog.json";
 import locationWeightsCases from "./location_weights.json";
+import destinationWeightsCases from "./destination_weights.json";
 
 export interface GoldenCase<I = unknown, E = unknown> {
   input: I;
@@ -45,6 +46,7 @@ const REGISTRY: Record<string, GoldenCase<unknown, unknown>[]> = {
   calculate_compatibility: calculateCompatibilityCases as GoldenCase[],
   location_catalog: locationCatalogCases as GoldenCase[],
   location_weights: locationWeightsCases as GoldenCase[],
+  destination_weights: destinationWeightsCases as GoldenCase[],
 };
 
 export function loadGolden<I = unknown, E = unknown>(name: string): GoldenCase<I, E>[] {

@@ -319,3 +319,127 @@ export class LocationManager {
     return result;
   }
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// choose_destination — 확률적 목적지 결정
+// Python src/tomodachai/location.py LocationManager.choose_destination 포팅.
+// rng는 주입식(framework-free 유지): random()과 choices(단일 픽).
+// ────────────────────────────────────────────────────────────────────────────
+
+/** Python random.Random 중 choose_destination이 쓰는 인터페이스만 추출. */
+export interface Rng {
+  random(): number;
+  /** Python rng.choices(population, weights=w, k=1)[0] 와 동일한 단일 픽. */
+  choices<T>(items: T[], weights: number[]): T;
+}
+
+/** choose_destination이 필요로 하는 char 필드만 추린 덕타입(full Character 미의존). */
+export interface DestinationActor {
+  id: number;
+  hunger: number;
+  satisfaction: number;
+  /** Python char.state.mood.stress 에 대응. */
+  stress: number;
+}
+
+// Python 상수
+const _NIGHT_HOME_PROB = 0.7;
+const _NIGHT_SLOTS = new Set(["밤"]);
+const _HUNGER_HIGH = 70.0;
+const _SATISFACTION_LOW = 20.0;
+const _STRESS_HIGH = 7;
+const _FRIENDSHIP_FOLLOW = 60.0;
+
+/**
+ * 조건 기반 가중치 테이블을 산출한다(순수). 밤 분기는 제외 — chooseDestination이 담당.
+ *
+ * 규칙 적용 순서는 Python과 동일(hunger → satisfaction → stress → friends → capacity)하여
+ * 부동소수 곱 결과가 비트 단위로 일치한다.
+ */
+export function buildDestinationWeights(
+  char: DestinationActor,
+  allPairs: [number, number, { friendship: number }][],
+  manager: LocationManager,
+): Record<string, number> {
+  // 기본 가중치 복사 후, 존재하는 장소만 남김 (삽입 순서 보존)
+  const weights: Record<string, number> = {};
+  for (const k of Object.keys(DEFAULT_PUBLIC_WEIGHTS)) {
+    if (manager.getLocation(k) !== null) {
+      weights[k] = DEFAULT_PUBLIC_WEIGHTS[k];
+    }
+  }
+
+  // 2. 배고픔 — 식료품점 10배
+  if (char.hunger > _HUNGER_HIGH) {
+    weights["grocery"] = (weights["grocery"] ?? 1.0) * 10.0;
+  }
+
+  // 3. 만족도 낮음 — 여가 장소↑
+  if (char.satisfaction < _SATISFACTION_LOW) {
+    for (const locId of ["park", "cafe", "beach", "amusement_park"]) {
+      if (locId in weights) {
+        weights[locId] *= 2.5;
+      }
+    }
+  }
+
+  // 4. 스트레스 — 해변/발코니↑
+  if (char.stress > _STRESS_HIGH) {
+    if ("beach" in weights) {
+      weights["beach"] *= 3.0;
+    }
+    if ("balcony" in weights) {
+      weights["balcony"] *= 2.0;
+    }
+  }
+
+  // 5. 친구 따라가기
+  for (const [aId, bId, rel] of allPairs) {
+    if (char.id !== aId && char.id !== bId) {
+      continue;
+    }
+    const friendId = aId === char.id ? bId : aId;
+    if (rel.friendship >= _FRIENDSHIP_FOLLOW) {
+      const friendLoc = manager.getCharacterLocation(friendId);
+      if (friendLoc && friendLoc in weights) {
+        weights[friendLoc] = (weights[friendLoc] ?? 1.0) * 3.0;
+      }
+    }
+  }
+
+  // 6. 정원 초과 장소 가중치 감소
+  for (const locId of Object.keys(weights)) {
+    if (manager.isAtCapacity(locId)) {
+      weights[locId] *= 0.3;
+    }
+  }
+
+  return weights;
+}
+
+/**
+ * 확률적 이동 목적지를 결정한다.
+ *  - 밤 분기 우선: "밤" && 개인 방 등록됨 && rng.random() < 0.7 → 개인 방
+ *  - 그 외: buildDestinationWeights 후 가중 랜덤 선택.
+ */
+export function chooseDestination(
+  char: DestinationActor,
+  allPairs: [number, number, { friendship: number }][],
+  timeOfDay: string,
+  manager: LocationManager,
+  rng: Rng,
+): string {
+  const privateRoomId = `room_${char.id}`;
+  if (
+    _NIGHT_SLOTS.has(timeOfDay) &&
+    manager.getLocation(privateRoomId) !== null &&
+    rng.random() < _NIGHT_HOME_PROB
+  ) {
+    return privateRoomId;
+  }
+
+  const weights = buildDestinationWeights(char, allPairs, manager);
+  const ids = Object.keys(weights);
+  const w = ids.map((i) => weights[i]);
+  return rng.choices(ids, w);
+}

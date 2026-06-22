@@ -285,6 +285,70 @@ def dump_location_catalog() -> None:
     _write("location_weights", [{"input": "weights", "expected": dict(_DEFAULT_PUBLIC_WEIGHTS)}])
 
 
+def dump_destination_weights() -> None:
+    import random
+    from tomodachai.character import Character, Profile
+    from tomodachai.location import LocationManager
+    from tomodachai.relationship import RelationshipTracker
+
+    class _Recorder(random.Random):
+        def __init__(self, rand_value: float = 0.99) -> None:
+            super().__init__()
+            self.captured: dict | None = None
+            self._rv = rand_value
+        def random(self) -> float:
+            return self._rv
+        def choices(self, population, weights=None, *, cum_weights=None, k=1):
+            self.captured = dict(zip(population, weights))
+            return [population[0]]
+
+    def make_char(cid: int, hunger: float = 0.0, satisfaction: float = 50.0, stress: int = 2) -> Character:
+        c = Character(id=cid, profile=Profile(name=f"c{cid}"))
+        c.state.hunger = hunger
+        c.state.satisfaction = satisfaction
+        c.state.mood.stress = stress
+        return c
+
+    cases: list[dict] = []
+
+    mgr = LocationManager(); rec = _Recorder()
+    mgr.choose_destination(make_char(1), None, time_of_day="낮", rng=rec)
+    cases.append({"input": "baseline", "expected": rec.captured})
+
+    mgr = LocationManager(); rec = _Recorder()
+    mgr.choose_destination(make_char(1, hunger=80.0), None, "낮", rng=rec)
+    cases.append({"input": "hungry", "expected": rec.captured})
+
+    mgr = LocationManager(); rec = _Recorder()
+    mgr.choose_destination(make_char(1, satisfaction=10.0), None, "낮", rng=rec)
+    cases.append({"input": "unsatisfied", "expected": rec.captured})
+
+    mgr = LocationManager(); rec = _Recorder()
+    mgr.choose_destination(make_char(1, stress=9), None, "낮", rng=rec)
+    cases.append({"input": "stressed", "expected": rec.captured})
+
+    mgr = LocationManager(); rec = _Recorder()
+    mgr.move_character(2, "park")
+    tr = RelationshipTracker(); tr.update(1, 2, {"friendship": 65.0})
+    mgr.choose_destination(make_char(1), tr, "낮", rng=rec)
+    cases.append({"input": "follow_friend", "expected": rec.captured})
+
+    mgr = LocationManager(); rec = _Recorder()
+    mgr.move_character(10, "news_station"); mgr.move_character(11, "news_station")  # cap=2 full
+    mgr.choose_destination(make_char(1), None, "낮", rng=rec)
+    cases.append({"input": "capacity", "expected": rec.captured})
+
+    mgr = LocationManager(); rec = _Recorder()
+    mgr.move_character(2, "beach")
+    for cid in (20, 21, 22, 23):  # grocery cap=4 full
+        mgr.move_character(cid, "grocery")
+    tr = RelationshipTracker(); tr.update(1, 2, {"friendship": 70.0})
+    mgr.choose_destination(make_char(1, hunger=80.0, satisfaction=10.0, stress=9), tr, "낮", rng=rec)
+    cases.append({"input": "combined", "expected": rec.captured})
+
+    _write("destination_weights", cases)
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -294,6 +358,7 @@ def main() -> None:
     dump_relationship_core()
     dump_compatibility()
     dump_location_catalog()
+    dump_destination_weights()
 
 
 if __name__ == "__main__":
