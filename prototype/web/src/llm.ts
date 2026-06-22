@@ -21,6 +21,11 @@ export type ChatOpts = {
   model?: string;
 };
 
+/** LLM seam 인터페이스 (Phase 5 재사용). Python LLMClient.chat_json 미러. */
+export interface LlmClient {
+  chatJson(messages: Msg[], opts?: ChatOpts & { retries?: number }): Promise<Record<string, unknown>>;
+}
+
 const DEFAULTS = {
   apiBase: "http://localhost:11434",
   model: "llama3.1",

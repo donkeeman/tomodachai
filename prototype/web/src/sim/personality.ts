@@ -1,6 +1,14 @@
 // Python src/tomodachai/personality.py 미러 (결정론 성격코드 판정).
 import type { Personality } from "./character";
 
+/** 4슬라이더(0~1). Python PersonalitySliders 미러. */
+export interface PersonalitySliders {
+  movement: number;
+  speech: number;
+  expressiveness: number;
+  attitude: number;
+}
+
 const GROUP_THRESHOLDS: readonly [number, string][] = [
   [0.25, "easygoing"],
   [0.5, "independent"],
@@ -35,12 +43,7 @@ const GROUP_TYPE_CODES: Record<string, string> = {
 };
 
 /** 4슬라이더(0~1) → 16 성격코드. Python determine_personality 1:1. */
-export function determinePersonality(s: {
-  movement: number;
-  speech: number;
-  expressiveness: number;
-  attitude: number;
-}): string {
+export function determinePersonality(s: PersonalitySliders): string {
   const msAvg = (s.movement + s.speech) / 2.0;
   const eaAvg = (s.expressiveness + s.attitude) / 2.0;
   const group = GROUP_THRESHOLDS.find(([t]) => msAvg < t)![1];

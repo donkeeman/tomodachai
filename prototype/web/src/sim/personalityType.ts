@@ -1,4 +1,7 @@
 // data/personalities.yaml의 types 16종 — 골든 JSON에서 그대로 복사 (behavior_guide 공백 포함 일치).
+import type { Msg, LlmClient } from "../llm";
+import type { PersonalitySliders } from "./personality";
+
 export interface PersonalityType {
   code: string;
   name: string;
@@ -124,4 +127,48 @@ export const PERSONALITY_TYPES: Record<string, PersonalityType> = {
 
 export function loadPersonalities(): Record<string, PersonalityType> {
   return PERSONALITY_TYPES;
+}
+
+// Python _MATCHER_SYSTEM 1:1.
+export const MATCHER_SYSTEM =
+  "당신은 성격 분석 전문가입니다. 주어진 성격 설명을 분석하여 " +
+  "가장 적합한 슬라이더 값을 추정하세요. 반드시 JSON으로만 응답하세요.";
+
+/** 자유 텍스트 설명 → PersonalitySliders 추론 (LLM seam). Python match_personality 1:1. */
+export async function matchPersonality(
+  llm: LlmClient,
+  description: string,
+): Promise<PersonalitySliders> {
+  const prompt = `아래 성격 설명을 읽고, 각 슬라이더 값(0.0~1.0)을 추정하세요.
+
+## 슬라이더 기준
+
+- movement  (움직임): 0.0 = 느리고 차분함 / 1.0 = 빠르고 활동적임
+- speech    (말투): 0.0 = 부드럽고 유순함 / 1.0 = 직접적이고 단호함
+- expressiveness (표현력): 0.0 = 감정을 잘 드러내지 않음 / 1.0 = 감정 표현이 풍부함
+- attitude  (태도): 0.0 = 진지하고 엄격함 / 1.0 = 여유롭고 느긋함
+
+## 입력된 성격 설명
+${description}
+
+반드시 아래 JSON 형식으로만 응답하세요:
+{
+  "movement": 0.0~1.0 사이 숫자,
+  "speech": 0.0~1.0 사이 숫자,
+  "expressiveness": 0.0~1.0 사이 숫자,
+  "attitude": 0.0~1.0 사이 숫자,
+  "reason": "판단 근거 한 줄"
+}`;
+
+  const messages: Msg[] = [
+    { role: "system", content: MATCHER_SYSTEM },
+    { role: "user", content: prompt },
+  ];
+  const result = await llm.chatJson(messages);
+  return {
+    movement: Number(result.movement),
+    speech: Number(result.speech),
+    expressiveness: Number(result.expressiveness),
+    attitude: Number(result.attitude),
+  };
 }
