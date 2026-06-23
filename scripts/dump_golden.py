@@ -520,6 +520,87 @@ def dump_conversation_prompt() -> None:
     _write("conversation_prompt", cases)
 
 
+def dump_donation() -> None:
+    from tomodachai.fountain import FountainManager
+
+    class _GameState:
+        def __init__(self) -> None:
+            self.calls: list[int] = []
+
+        def add_money(self, n: int) -> None:
+            self.calls.append(n)
+
+        @property
+        def total(self) -> int:
+            return sum(self.calls)
+
+    def result_dict(res):
+        if res is None:
+            return None
+        return {
+            "day": res.day,
+            "characterCount": res.character_count,
+            "amount": res.amount,
+        }
+
+    cases: list[dict] = []
+
+    # (a) fresh manager, day=1, count=3 → amount 300, money 300.
+    #     has_donated 전이: 호출 전 False, 호출 후 True.
+    mgr = FountainManager()
+    gs = _GameState()
+    before = mgr.has_donated(1)
+    res_a = mgr.run_donation(1, 3, gs)
+    after = mgr.has_donated(1)
+    cases.append({
+        "input": {"day": 1, "characterCount": 3},
+        "expected": {
+            "result": result_dict(res_a),
+            "money_added": gs.total,
+            "hasDonatedBefore": before,
+            "hasDonatedAfter": after,
+        },
+    })
+
+    # (b) SAME manager, day=1 again → None, no second add_money call.
+    res_b = mgr.run_donation(1, 3, gs)
+    cases.append({
+        "input": {"day": 1, "characterCount": 3, "reuse": "a"},
+        "expected": {
+            "result": result_dict(res_b),
+            "money_added": gs.total,
+        },
+    })
+
+    # (c) fresh manager, count=0 → amount 0, add_money NOT called.
+    mgr_c = FountainManager()
+    gs_c = _GameState()
+    res_c = mgr_c.run_donation(1, 0, gs_c)
+    cases.append({
+        "input": {"day": 1, "characterCount": 0},
+        "expected": {
+            "result": result_dict(res_c),
+            "money_added": gs_c.total,
+            "add_money_calls": len(gs_c.calls),
+        },
+    })
+
+    # (d) fresh manager, count=-5 → max(0,-5)*100 = 0, add_money NOT called.
+    mgr_d = FountainManager()
+    gs_d = _GameState()
+    res_d = mgr_d.run_donation(1, -5, gs_d)
+    cases.append({
+        "input": {"day": 1, "characterCount": -5},
+        "expected": {
+            "result": result_dict(res_d),
+            "money_added": gs_d.total,
+            "add_money_calls": len(gs_d.calls),
+        },
+    })
+
+    _write("donation", cases)
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -534,6 +615,7 @@ def main() -> None:
     dump_character_accessors()
     dump_personality_types()
     dump_conversation_prompt()
+    dump_donation()
 
 
 if __name__ == "__main__":

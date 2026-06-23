@@ -23,6 +23,7 @@ import shopConstantsCases from "./shop_constants.json";
 import characterAccessorsCases from "./character_accessors.json";
 import personalityTypesCases from "./personality_types.json";
 import conversationPromptCases from "./conversation_prompt.json";
+import donationCases from "./donation.json";
 
 export interface GoldenCase<I = unknown, E = unknown> {
   input: I;
@@ -55,6 +56,7 @@ const REGISTRY: Record<string, GoldenCase<unknown, unknown>[]> = {
   character_accessors: characterAccessorsCases as GoldenCase[],
   personality_types: personalityTypesCases as GoldenCase[],
   conversation_prompt: conversationPromptCases as GoldenCase[],
+  donation: donationCases as GoldenCase[],
 };
 
 export function loadGolden<I = unknown, E = unknown>(name: string): GoldenCase<I, E>[] {
