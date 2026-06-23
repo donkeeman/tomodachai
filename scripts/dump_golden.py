@@ -601,6 +601,124 @@ def dump_donation() -> None:
     _write("donation", cases)
 
 
+def dump_event_summary() -> None:
+    from tomodachai.character import Character, Profile
+    from tomodachai.memory import SocialEvent
+    from tomodachai.news import _build_event_summary
+
+    def make_char(cid: int, name: str) -> Character:
+        return Character(id=cid, profile=Profile(name=name))
+
+    chars = [make_char(1, "민수"), make_char(2, "지은")]
+
+    cases: list[dict] = []
+
+    # ── _build_event_summary 케이스 (실제 오라클 호출) ──────────────────────
+    # (a) participants 2명 + location/reason/result 전부.
+    ev_full = SocialEvent(
+        id=1, type="marriage", participants=[1, 2], day=3,
+        location="공원", reason="사랑", result="결혼 성공",
+    )
+    cases.append({
+        "input": {
+            "kind": "summary",
+            "event": ev_full.model_dump(),
+            "characters": [{"id": 1, "name": "민수"}, {"id": 2, "name": "지은"}],
+        },
+        "expected": {"summary": _build_event_summary(ev_full, chars)},
+    })
+
+    # (b) participants 1명, type만 (location/reason/result 없음).
+    ev_solo = SocialEvent(id=2, type="conversation", participants=[1], day=4)
+    cases.append({
+        "input": {
+            "kind": "summary",
+            "event": ev_solo.model_dump(),
+            "characters": [{"id": 1, "name": "민수"}, {"id": 2, "name": "지은"}],
+        },
+        "expected": {"summary": _build_event_summary(ev_solo, chars)},
+    })
+
+    # (c) participant id가 characters에 없음 → str(id) 폴백.
+    ev_unknown = SocialEvent(id=3, type="fight", participants=[1, 99], day=5,
+                             reason="오해")
+    cases.append({
+        "input": {
+            "kind": "summary",
+            "event": ev_unknown.model_dump(),
+            "characters": [{"id": 1, "name": "민수"}, {"id": 2, "name": "지은"}],
+        },
+        "expected": {"summary": _build_event_summary(ev_unknown, chars)},
+    })
+
+    # (d) participants 빈 리스트 → "주민".
+    ev_empty = SocialEvent(id=4, type="donation", participants=[], day=6,
+                           result="100원 기부")
+    cases.append({
+        "input": {
+            "kind": "summary",
+            "event": ev_empty.model_dump(),
+            "characters": [{"id": 1, "name": "민수"}, {"id": 2, "name": "지은"}],
+        },
+        "expected": {"summary": _build_event_summary(ev_empty, chars)},
+    })
+
+    # ── 우선순위 선택 케이스 ────────────────────────────────────────────────
+    # _PRIORITY는 generate_real_news 내부 지역변수라 임포트 불가.
+    # news.py(39-50)의 점수 맵을 그대로 미러하여 max(events, key=score) 복제.
+    # (Python max는 동점 시 첫 항목을 유지 — 안정적.)
+    _PRIORITY = {
+        "marriage": 10, "breakup": 9, "confession": 8, "fight": 7,
+        "reconciliation": 6, "birthday": 5, "travel": 4, "nickname": 3,
+        "donation": 2, "conversation": 1,
+    }
+
+    def score(e: SocialEvent) -> int:
+        return _PRIORITY.get(e.type, 0)
+
+    # (e) 혼합 타입 — marriage가 최고점.
+    sel_mixed = [
+        SocialEvent(id=10, type="conversation", participants=[1, 2], day=7),
+        SocialEvent(id=11, type="marriage", participants=[1, 2], day=7),
+        SocialEvent(id=12, type="fight", participants=[1, 2], day=7),
+    ]
+    hi_mixed = max(sel_mixed, key=score)
+    cases.append({
+        "input": {
+            "kind": "selection",
+            "events": [e.model_dump() for e in sel_mixed],
+            "characters": [{"id": 1, "name": "민수"}, {"id": 2, "name": "지은"}],
+        },
+        "expected": {
+            "highlight_index": sel_mixed.index(hi_mixed),
+            "highlight_type": hi_mixed.type,
+            "summary": _build_event_summary(hi_mixed, chars),
+        },
+    })
+
+    # (f) 동점(fight 둘) — 첫 항목 유지.
+    sel_tie = [
+        SocialEvent(id=20, type="fight", participants=[1], day=8, reason="첫번째"),
+        SocialEvent(id=21, type="travel", participants=[2], day=8),
+        SocialEvent(id=22, type="fight", participants=[2], day=8, reason="두번째"),
+    ]
+    hi_tie = max(sel_tie, key=score)
+    cases.append({
+        "input": {
+            "kind": "selection",
+            "events": [e.model_dump() for e in sel_tie],
+            "characters": [{"id": 1, "name": "민수"}, {"id": 2, "name": "지은"}],
+        },
+        "expected": {
+            "highlight_index": sel_tie.index(hi_tie),
+            "highlight_type": hi_tie.type,
+            "summary": _build_event_summary(hi_tie, chars),
+        },
+    })
+
+    _write("event_summary", cases)
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -616,6 +734,7 @@ def main() -> None:
     dump_personality_types()
     dump_conversation_prompt()
     dump_donation()
+    dump_event_summary()
 
 
 if __name__ == "__main__":
