@@ -88,6 +88,7 @@ describe("FountainManager.generateRapBattle (LLM seam, 구조 검증)", () => {
         "그냥 문자열",
         42,
         null,
+        ["배열은 객체 아님 (isinstance dict 배제)"],
       ],
       winner: "아리",
     });
@@ -181,6 +182,7 @@ describe("FountainManager.generateWordChain (LLM seam, 구조 검증)", () => {
         { word: "name 없음" },
         "문자열",
         7,
+        ["배열 원소"],
       ],
       winner: "아리",
     });
