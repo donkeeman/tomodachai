@@ -430,6 +430,96 @@ def dump_personality_types() -> None:
     _write("personality_types", [{"input": "load", "expected": types}])
 
 
+def dump_conversation_prompt() -> None:
+    from tomodachai.character import (
+        Character, Profile, Personality, Customizable, SpeechHabits,
+    )
+    from tomodachai.conversation import build_conversation_prompt
+    from tomodachai.memory import SocialEvent
+    from tomodachai.personality import load_personalities
+    from tomodachai.relationship import Relationship, RelationshipStage
+
+    personalities = load_personalities()
+
+    def make_char(cid, name, personality, habits):
+        return Character(
+            id=cid,
+            profile=Profile(name=name, personality=Personality(**personality)),
+            customizable=Customizable(speech_habits=SpeechHabits(**habits)),
+        )
+
+    # ── Case 1: 기억 있음 (None 필드 일부 포함), 양쪽 말버릇 채움 ──────────
+    p1 = {"movement": 8, "speech": 8, "expressiveness": 7, "attitude": 5, "overall": 5}
+    p2 = {"movement": 2, "speech": 2, "expressiveness": 8, "attitude": 8, "overall": 5}
+    char_a1 = make_char(1, "민수", p1, {"normal": "~이에요", "happy": "신나요", "worried": "걱정돼요"})
+    char_b1 = make_char(2, "지은", p2, {"normal": "~랍니다"})
+    code_a1 = char_a1.personality_code
+    code_b1 = char_b1.personality_code
+    rel_ab1 = Relationship(friendship=65.0, romance=10.0, stage=RelationshipStage.FRIEND)
+    rel_ba1 = Relationship(friendship=30.0, romance=0.0, stage=RelationshipStage.ACQUAINTANCE)
+    mems1 = [
+        SocialEvent(id=1, type="conversation", participants=[1, 2], day=3,
+                    location="공원", reason=None, result="더 친해짐"),
+        SocialEvent(id=2, type="fight", participants=[1, 2], day=5,
+                    location=None, reason="오해", result=None),
+        SocialEvent(id=3, type="unknown_type", participants=[1, 2], day=7),
+    ]
+    prompt1 = build_conversation_prompt(
+        char_a=char_a1, char_b=char_b1,
+        personality_a=personalities[code_a1], personality_b=personalities[code_b1],
+        rel_ab=rel_ab1, rel_ba=rel_ba1, memories=mems1,
+        location="카페", time_of_day="아침",
+    )
+
+    # ── Case 2: 기억 없음, char_b 말버릇 비움(→ "없음") ──────────────────
+    p3 = {"movement": 5, "speech": 5, "expressiveness": 2, "attitude": 2, "overall": 5}
+    p4 = {"movement": 9, "speech": 9, "expressiveness": 9, "attitude": 9, "overall": 5}
+    char_a2 = make_char(3, "현우", p3, {"normal": "안녕하세요", "happy": "기뻐요"})
+    char_b2 = make_char(4, "수진", p4, {})
+    code_a2 = char_a2.personality_code
+    code_b2 = char_b2.personality_code
+    rel_ab2 = Relationship(friendship=-60.0, romance=0.0, stage=RelationshipStage.STRANGER)
+    rel_ba2 = Relationship(friendship=85.0, romance=70.0, stage=RelationshipStage.LOVER)
+    prompt2 = build_conversation_prompt(
+        char_a=char_a2, char_b=char_b2,
+        personality_a=personalities[code_a2], personality_b=personalities[code_b2],
+        rel_ab=rel_ab2, rel_ba=rel_ba2, memories=[],
+        location="해변", time_of_day="오후",
+    )
+
+    cases = [
+        {
+            "input": {
+                "char_a": {"id": 1, "name": "민수", "personality": p1,
+                           "speech_habits": {"normal": "~이에요", "happy": "신나요", "worried": "걱정돼요"}},
+                "char_b": {"id": 2, "name": "지은", "personality": p2,
+                           "speech_habits": {"normal": "~랍니다"}},
+                "code_a": code_a1, "code_b": code_b1,
+                "rel_ab": {"friendship": 65.0, "romance": 10.0, "stage": "friend"},
+                "rel_ba": {"friendship": 30.0, "romance": 0.0, "stage": "acquaintance"},
+                "memories": [m.model_dump() for m in mems1],
+                "location": "카페", "time_of_day": "아침",
+            },
+            "expected": prompt1,
+        },
+        {
+            "input": {
+                "char_a": {"id": 3, "name": "현우", "personality": p3,
+                           "speech_habits": {"normal": "안녕하세요", "happy": "기뻐요"}},
+                "char_b": {"id": 4, "name": "수진", "personality": p4,
+                           "speech_habits": {}},
+                "code_a": code_a2, "code_b": code_b2,
+                "rel_ab": {"friendship": -60.0, "romance": 0.0, "stage": "stranger"},
+                "rel_ba": {"friendship": 85.0, "romance": 70.0, "stage": "lover"},
+                "memories": [],
+                "location": "해변", "time_of_day": "오후",
+            },
+            "expected": prompt2,
+        },
+    ]
+    _write("conversation_prompt", cases)
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -443,6 +533,7 @@ def main() -> None:
     dump_shop()
     dump_character_accessors()
     dump_personality_types()
+    dump_conversation_prompt()
 
 
 if __name__ == "__main__":
