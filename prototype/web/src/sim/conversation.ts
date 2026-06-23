@@ -9,10 +9,12 @@ import type { Character } from "./character";
 import type { SocialEvent } from "./memory";
 import type { PersonalityType } from "./personalityType";
 import type { Relationship } from "./relationship";
+import type { LlmClient, Msg } from "../llm";
 import {
   characterName,
   characterSpeechHabits,
   characterBackstory,
+  characterPersonalityCode,
 } from "./characterAccessors";
 import { getStatusText, getFriendshipText } from "./relationship";
 
@@ -158,4 +160,57 @@ ${memoryText}
 }
 
 delta 범위: friendship(-10~+10), romance(-5~+5), tension(-10~+10)`;
+}
+
+// ---------------------------------------------------------------------------
+// ConversationEngine (LLM seam)
+// ---------------------------------------------------------------------------
+
+/** Python ConversationEngine 1:1 (LLM seam — 구조만 결정론, 응답은 비결정적). */
+export class ConversationEngine {
+  constructor(
+    private readonly llm: LlmClient,
+    private readonly personalities: Record<string, PersonalityType>,
+  ) {}
+
+  async generate(
+    charA: Character,
+    charB: Character,
+    relAb: Relationship,
+    relBa: Relationship,
+    memories: SocialEvent[],
+    location: string,
+    timeOfDay = "오후",
+  ): Promise<ConversationResult> {
+    const personalityA = this.personalities[characterPersonalityCode(charA)];
+    const personalityB = this.personalities[characterPersonalityCode(charB)];
+
+    const prompt = buildConversationPrompt(
+      charA,
+      charB,
+      personalityA,
+      personalityB,
+      relAb,
+      relBa,
+      memories,
+      location,
+      timeOfDay,
+    );
+
+    const messages: Msg[] = [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: prompt },
+    ];
+
+    const raw = await this.llm.chatJson(messages);
+
+    return {
+      dialogue: (raw.dialogue as DialogueLine[]).map((line) => ({
+        speaker: line.speaker,
+        text: line.text,
+      })),
+      deltas: raw.deltas as Record<string, Record<string, number>>,
+      summary: raw.summary as string,
+    };
+  }
 }
