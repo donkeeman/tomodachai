@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { defaultCharacter, type Character } from "./character";
 import { makeDefaultConfig, type LocationConfig } from "./config";
 import type { SimRng } from "./rng";
-import { assignLocations, Simulation } from "./simulation";
+import { assignLocations, Simulation, type SimEvent, type CatchupEvent } from "./simulation";
 import { loadPersonalities } from "./personalityType";
 import type { Msg, LlmClient, ChatOpts } from "../llm";
 
@@ -363,5 +363,151 @@ describe("Simulation._checkTriggeredEventsForPair (rng 소비 순서)", () => {
     const events = sim._checkTriggeredEventsForPair(1, 2);
     expect(events.length).toBe(1);
     expect(events[0].type).toBe("confession_success");
+  });
+});
+
+describe("Simulation.step (simulation.py 1:1, RNG/LLM seam)", () => {
+  it("캐릭터 2명 미만이면 []", async () => {
+    const sim = makeSim([defaultCharacter(1, "아리")], new ScriptedRng());
+    expect(await sim.step("낮")).toEqual([]);
+  });
+
+  it("기본: conversation 이벤트 1개 + 트리거 없음 + step_count++ + needs 갱신", async () => {
+    const a = defaultCharacter(1, "아리");
+    const b = defaultCharacter(2, "보리");
+    const sim = makeSim([a, b], new ScriptedRng());
+
+    const events = await sim.step("낮");
+
+    expect(events.length).toBe(1);
+    expect(events[0].type).toBe("conversation");
+    // 기본 장소 = config.locations[0] = 공원 (stub choice→arr[0])
+    expect((events[0] as Extract<SimEvent, { type: "conversation" }>).location).toBe("공원");
+    expect((events[0] as Extract<SimEvent, { type: "conversation" }>).participants).toEqual([
+      "아리",
+      "보리",
+    ]);
+    expect(sim.stepCount).toBe(1);
+    // _updateNeeds: hunger 0→5, satisfaction 50→49
+    expect(a.state.hunger).toBe(5);
+    expect(a.state.satisfaction).toBe(49);
+  });
+
+  it("timeOfDay가 대화 프롬프트로 전파됨 (시간대: 낮)", async () => {
+    const a = defaultCharacter(1, "아리");
+    const b = defaultCharacter(2, "보리");
+    const llm = new StubLlm({ dialogue: [], deltas: {}, summary: "" });
+    const sim = new Simulation(makeDefaultConfig(), [a, b], llm, loadPersonalities(), new ScriptedRng());
+    await sim.step("낮");
+    expect(llm.received![1].content).toContain("시간대: 낮");
+  });
+
+  it("config.locations 비어있으면 '공동주택'", async () => {
+    const cfg = makeDefaultConfig();
+    cfg.locations = [];
+    const a = defaultCharacter(1, "아리");
+    const b = defaultCharacter(2, "보리");
+    const sim = new Simulation(
+      cfg,
+      [a, b],
+      new StubLlm({ dialogue: [], deltas: {}, summary: "" }),
+      loadPersonalities(),
+      new ScriptedRng(),
+    );
+    const events = await sim.step("낮");
+    expect((events[0] as Extract<SimEvent, { type: "conversation" }>).location).toBe("공동주택");
+  });
+
+  it("트리거 발생: fight도 events에 포함 (conversation 다음)", async () => {
+    const a = defaultCharacter(1, "아리");
+    const b = defaultCharacter(2, "보리");
+    const sim = makeSim([a, b], new ScriptedRng([0.1])); // fight random<0.3
+    const rel = sim.relationships.get(1, 2);
+    rel.friendship = -40;
+    rel.stage = "friend";
+
+    const events = await sim.step("낮");
+    expect(events.length).toBe(2);
+    expect(events[0].type).toBe("conversation");
+    expect(events[1].type).toBe("fight");
+  });
+});
+
+// catchup용 rng: uniform을 큐에서 반환, choice는 첫 원소.
+class CatchupRng implements SimRng {
+  private ui = 0;
+  constructor(private readonly uniforms: number[]) {}
+  random(): number {
+    return 0;
+  }
+  shuffle(): void {}
+  choice<T>(arr: readonly T[]): T {
+    return arr[0];
+  }
+  sample<T>(arr: readonly T[], k: number): T[] {
+    return arr.slice(0, k);
+  }
+  uniform(): number {
+    const v = this.uniforms[this.ui] ?? 0;
+    this.ui += 1;
+    return v;
+  }
+}
+
+describe("Simulation.generateCatchupEvents (simulation.py 1:1, RNG seam)", () => {
+  it("offline 0시간(count 0) → []", () => {
+    const sim = makeSim([defaultCharacter(1, "아리"), defaultCharacter(2, "보리")], new CatchupRng([]));
+    expect(sim.generateCatchupEvents(0)).toEqual([]);
+  });
+
+  it("캐릭터 2명 미만 → []", () => {
+    const sim = makeSim([defaultCharacter(1, "아리")], new CatchupRng([]));
+    expect(sim.generateCatchupEvents(24)).toEqual([]);
+  });
+
+  it("count=1(offline 2.4h): 비대칭 델타(0.8/0.6) + round1 + 요약 + 메모리", () => {
+    const a = defaultCharacter(1, "아리");
+    const b = defaultCharacter(2, "보리");
+    const sim = makeSim([a, b], new CatchupRng([5.0, 2.0])); // fDelta=5, rDelta=2
+
+    const events = sim.generateCatchupEvents(2.4);
+
+    expect(events.length).toBe(1);
+    const ev = events[0] as CatchupEvent;
+    expect(ev.type).toBe("catchup");
+    expect(ev.participants).toEqual(["아리", "보리"]);
+    expect(ev.summary).toBe("아리와(과) 보리이(가) 어울렸다.");
+    expect(ev.deltas).toEqual({
+      아리: { friendship: 5, romance: 2 },
+      보리: { friendship: 4, romance: 1.2 }, // 5*0.8=4, 2*0.6=1.2
+    });
+    // 실제 트래커 반영 (비대칭)
+    expect(sim.relationships.get(1, 2).friendship).toBe(5);
+    expect(sim.relationships.get(1, 2).romance).toBe(2);
+    expect(sim.relationships.get(2, 1).friendship).toBe(4);
+    expect(sim.relationships.get(2, 1).romance).toBeCloseTo(1.2, 10);
+    expect(sim.stepCount).toBe(1);
+    expect(sim.memory.getEventsBetween(1, 2)[0].type).toBe("catchup");
+  });
+
+  it("count=2(offline 9.6h): 누적 + step_count=2 + 메모리 2건", () => {
+    const a = defaultCharacter(1, "아리");
+    const b = defaultCharacter(2, "보리");
+    // iter1 f=5,r=2 / iter2 f=3,r=1
+    const sim = makeSim([a, b], new CatchupRng([5.0, 2.0, 3.0, 1.0]));
+
+    const events = sim.generateCatchupEvents(9.6);
+
+    expect(events.length).toBe(2);
+    expect(sim.stepCount).toBe(2);
+    expect(sim.memory.getEventsBetween(1, 2).length).toBe(2);
+    // 누적: a→b friendship 5+3=8, romance 2+1=3
+    expect(sim.relationships.get(1, 2).friendship).toBe(8);
+    expect(sim.relationships.get(1, 2).romance).toBe(3);
+    // 두 번째 이벤트 델타
+    expect((events[1] as CatchupEvent).deltas).toEqual({
+      아리: { friendship: 3, romance: 1 },
+      보리: { friendship: 2.4, romance: 0.6 }, // 3*0.8=2.4, 1*0.6=0.6
+    });
   });
 });

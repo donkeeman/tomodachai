@@ -20,6 +20,7 @@ import {
 } from "./relationshipTracker";
 import type { Fight } from "./relationshipTracker";
 import { MemoryStore, defaultSocialEvent } from "./memory";
+import { GameClock } from "./clock";
 
 // 오프라인 catch-up: 큰 이벤트는 생성 금지
 export const BIG_EVENT_TYPES: ReadonlySet<string> = new Set([
@@ -135,6 +136,26 @@ function fmt0(x: number): string {
 /** Python set(participants) == {a, b} 미러 (순서 무관 쌍 비교). */
 function sameUnorderedPair(p: readonly [number, number], a: number, b: number): boolean {
   return (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a);
+}
+
+/**
+ * Python round(x, 1) 근사 — 소수 1자리. catchup 델타는 주입 RNG 파생값이라
+ * 크로스-언어 비트일치 비보장(RNG seam 정책). 깨끗한(≤1자리) 입력에선 항등이며,
+ * 임의 실수의 .x5 경계 half-to-even은 FP 표현 한계로 Python과 어긋날 수 있다(허용).
+ */
+function round1(x: number): number {
+  return Math.round(x * 10) / 10;
+}
+
+/** Python itertools.combinations(arr, 2) 미러 — 입력 순서 보존 2-조합. */
+function combinations2<T>(arr: readonly T[]): [T, T][] {
+  const out: [T, T][] = [];
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = i + 1; j < arr.length; j++) {
+      out.push([arr[i], arr[j]]);
+    }
+  }
+  return out;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -370,5 +391,134 @@ export class Simulation {
     location: string,
   ): Promise<ConversationResult> {
     return this._runConversation(charA, charB, location, "오후");
+  }
+
+  // ------------------------------------------------------------------
+  // 실시간 step (라이브 플레이용 단일 이벤트)
+  // ------------------------------------------------------------------
+
+  /**
+   * 실시간용: 랜덤 캐릭터 2명으로 단일 대화 이벤트 + 트리거 체크.
+   * Python step() 미러. time_of_day 미지정 시 Python get_clock().get_time_period()
+   * (글로벌 싱글톤, time_flip=false)에 해당하는 새 GameClock 기준 시간대를 쓴다.
+   */
+  async step(timeOfDay?: string): Promise<SimEvent[]> {
+    if (this.characters.length < 2) return [];
+
+    const tod = timeOfDay ?? new GameClock().getTimePeriod();
+
+    // 랜덤 캐릭터 2명 선택
+    const pair = this.rng.sample(this.characters, 2);
+    const charA = pair[0];
+    const charB = pair[1];
+
+    // 랜덤 장소 선택
+    let location: string;
+    if (this.config.locations.length > 0) {
+      location = this.rng.choice(this.config.locations).name;
+    } else {
+      location = "공동주택";
+    }
+
+    const events: SimEvent[] = [];
+
+    // 대화 이벤트
+    const result = await this._runConversation(charA, charB, location, tod);
+    events.push({
+      type: "conversation",
+      location,
+      participants: [charA.profile.name, charB.profile.name],
+      result,
+    });
+
+    // 트리거 이벤트 (이 쌍에 한해)
+    const triggered = this._checkTriggeredEventsForPair(Number(charA.id), Number(charB.id));
+    events.push(...triggered);
+
+    // 단계 전환
+    this._checkStageTransitions();
+
+    // 삼각관계 질투
+    const triangles = detectTriangles(this.relationships);
+    if (triangles.length > 0) {
+      applyJealousy(this.relationships, triangles);
+    }
+
+    // 욕구 업데이트
+    this._updateNeeds();
+
+    this._stepCount += 1;
+    return events;
+  }
+
+  // ------------------------------------------------------------------
+  // 오프라인 catch-up (경량, LLM 없음)
+  // ------------------------------------------------------------------
+
+  /**
+   * 오프라인 기간 동안 일어났을 법한 이벤트를 숫자 테이블로만 산출.
+   * LLM 호출 없음. 큰 이벤트(고백/결혼 등) 금지. Python generate_catchup_events 미러.
+   */
+  generateCatchupEvents(offlineHours: number): CatchupEvent[] {
+    const clock = new GameClock();
+    const count = clock.catchupEventCount(offlineHours);
+
+    if (this.characters.length < 2 || count === 0) return [];
+
+    const events: CatchupEvent[] = [];
+    const pairs = combinations2(this.characters);
+
+    for (let n = 0; n < count; n++) {
+      if (pairs.length === 0) break;
+      const [charA, charB] = this.rng.choice(pairs);
+
+      const fDelta = this.rng.uniform(
+        CATCHUP_FRIENDSHIP_DELTA_RANGE[0],
+        CATCHUP_FRIENDSHIP_DELTA_RANGE[1],
+      );
+      const rDelta = this.rng.uniform(
+        CATCHUP_ROMANCE_DELTA_RANGE[0],
+        CATCHUP_ROMANCE_DELTA_RANGE[1],
+      );
+
+      const aId = Number(charA.id);
+      const bId = Number(charB.id);
+      this.relationships.update(aId, bId, { friendship: fDelta, romance: rDelta });
+      this.relationships.update(bId, aId, {
+        friendship: fDelta * 0.8, // 비대칭 허용
+        romance: rDelta * 0.6,
+      });
+
+      this._checkStageTransitions();
+
+      this.memory.addEvent(
+        defaultSocialEvent({
+          id: 0,
+          type: "catchup",
+          participants: [aId, bId],
+          day: this._stepCount,
+        }),
+      );
+
+      this._stepCount += 1;
+
+      events.push({
+        type: "catchup",
+        participants: [charA.profile.name, charB.profile.name],
+        summary: `${charA.profile.name}와(과) ${charB.profile.name}이(가) 어울렸다.`,
+        deltas: {
+          [charA.profile.name]: {
+            friendship: round1(fDelta),
+            romance: round1(rDelta),
+          },
+          [charB.profile.name]: {
+            friendship: round1(fDelta * 0.8),
+            romance: round1(rDelta * 0.6),
+          },
+        },
+      });
+    }
+
+    return events;
   }
 }
