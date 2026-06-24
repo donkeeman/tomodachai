@@ -517,6 +517,43 @@ describe("Simulation.generateCatchupEvents (simulation.py 1:1, RNG seam)", () =>
     expect(sim.memory.getEventsBetween(1, 2)[0].type).toBe("catchup");
   });
 
+  it("combinations2 순서: 3명→[1,2],[1,3],[2,3] 순으로 choice (itertools 충실)", () => {
+    const a = defaultCharacter(1, "아리");
+    const b = defaultCharacter(2, "보리");
+    const c = defaultCharacter(3, "초리");
+    // choice를 호출 순서대로 pairs[0],[1],[2] 반환하는 rng
+    class IdxChoiceRng implements SimRng {
+      private ci = 0;
+      private ui = 0;
+      constructor(private readonly uniforms: number[]) {}
+      random(): number {
+        return 0;
+      }
+      shuffle(): void {}
+      choice<T>(arr: readonly T[]): T {
+        return arr[this.ci++ % arr.length];
+      }
+      sample<T>(arr: readonly T[], k: number): T[] {
+        return arr.slice(0, k);
+      }
+      uniform(): number {
+        const v = this.uniforms[this.ui] ?? 0;
+        this.ui += 1;
+        return v;
+      }
+    }
+    const sim = makeSim([a, b, c], new IdxChoiceRng([1, 1, 1, 1, 1, 1]));
+
+    const events = sim.generateCatchupEvents(14.4); // count=3
+    expect(events.length).toBe(3);
+    const pairs = (events as CatchupEvent[]).map((e) => e.participants);
+    expect(pairs).toEqual([
+      ["아리", "보리"], // [1,2]
+      ["아리", "초리"], // [1,3]
+      ["보리", "초리"], // [2,3]
+    ]);
+  });
+
   it("count=2(offline 9.6h): 누적 + step_count=2 + 메모리 2건", () => {
     const a = defaultCharacter(1, "아리");
     const b = defaultCharacter(2, "보리");
