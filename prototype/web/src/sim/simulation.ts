@@ -125,7 +125,11 @@ export function applyStageTransition(rel: Relationship, allowRomantic: boolean):
   return false;
 }
 
-/** Python f"{x:.0f}" 미러 — 소수점 0자리, 반올림 half-to-even(banker's). */
+/**
+ * Python f"{x:.0f}" 미러 — 소수점 0자리, 반올림 half-to-even(banker's).
+ * 참고: Python은 (-1,0) 구간을 "-0"로 출력하지만 여기선 "0". fight cause에만 쓰이고
+ * fight 게이트가 friendship<=-30을 요구하므로 그 발산 구간은 도달 불가(무해).
+ */
 function fmt0(x: number): string {
   const floor = Math.floor(x);
   const frac = x - floor;
@@ -185,6 +189,8 @@ export class Simulation {
     this.relationships = new RelationshipTracker();
     this.memory = new MemoryStore();
     this.rng = rng;
+    // Python과 동일하게 int id만 지원(Python은 int(char.id) 사용). 비숫자 문자열 id는
+    // Number()→NaN으로 충돌하므로 지원 범위 밖(게임은 int id 사용). [[gameState privateRoomId 참조]]
     this._charMap = new Map(characters.map((c) => [Number(c.id), c]));
   }
 
