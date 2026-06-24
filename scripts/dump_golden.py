@@ -729,6 +729,34 @@ def dump_config() -> None:
     _write("config_defaults", [{"input": "AppConfig", "expected": AppConfig().model_dump()}])
 
 
+def dump_game_state() -> None:
+    """GameState 기본값(config 무관 부분) — 클라이언트 GameState 기본 상태와 1:1.
+
+    island_name/day_count/money/time_flip/ending_credit_seen/catalog/카테고리는
+    config.yaml과 무관(생성자 기본값). config(locations/llm)는 config_defaults 골든이 담당.
+    """
+    from tomodachai.game_state import GameState
+
+    gs = GameState()
+    _write(
+        "game_state_defaults",
+        [
+            {
+                "input": "GameState()",
+                "expected": {
+                    "island_name": gs.island_name,
+                    "day_count": gs.day_count,
+                    "money": gs.money,
+                    "time_flip": gs.time_flip,
+                    "ending_credit_seen": gs.ending_credit_seen,
+                    "catalog": gs.catalog,
+                    "catalog_categories_sorted": sorted(GameState._CATALOG_CATEGORIES),
+                },
+            }
+        ],
+    )
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -746,6 +774,7 @@ def main() -> None:
     dump_donation()
     dump_event_summary()
     dump_config()
+    dump_game_state()
 
 
 if __name__ == "__main__":

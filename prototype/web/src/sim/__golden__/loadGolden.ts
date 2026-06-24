@@ -26,6 +26,7 @@ import conversationPromptCases from "./conversation_prompt.json";
 import donationCases from "./donation.json";
 import eventSummaryCases from "./event_summary.json";
 import configDefaultsCases from "./config_defaults.json";
+import gameStateDefaultsCases from "./game_state_defaults.json";
 
 export interface GoldenCase<I = unknown, E = unknown> {
   input: I;
@@ -61,6 +62,7 @@ const REGISTRY: Record<string, GoldenCase<unknown, unknown>[]> = {
   donation: donationCases as GoldenCase[],
   event_summary: eventSummaryCases as GoldenCase[],
   config_defaults: configDefaultsCases as GoldenCase[],
+  game_state_defaults: gameStateDefaultsCases as GoldenCase[],
 };
 
 export function loadGolden<I = unknown, E = unknown>(name: string): GoldenCase<I, E>[] {

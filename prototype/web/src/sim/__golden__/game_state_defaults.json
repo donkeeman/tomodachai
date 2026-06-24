@@ -1,0 +1,24 @@
+[
+  {
+    "input": "GameState()",
+    "expected": {
+      "island_name": "우리 마을",
+      "day_count": 0,
+      "money": 0,
+      "time_flip": false,
+      "ending_credit_seen": false,
+      "catalog": {
+        "food": [],
+        "clothing": [],
+        "interior": [],
+        "treasure": []
+      },
+      "catalog_categories_sorted": [
+        "clothing",
+        "food",
+        "interior",
+        "treasure"
+      ]
+    }
+  }
+]
