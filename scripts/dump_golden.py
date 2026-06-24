@@ -719,6 +719,16 @@ def dump_event_summary() -> None:
     _write("event_summary", cases)
 
 
+def dump_config() -> None:
+    """AppConfig 기본값 — 클라이언트 makeDefaultConfig()와 1:1.
+
+    클라엔 YAML/env 없음 → load_config의 병합부는 범위 밖. 기본값만 검증.
+    """
+    from tomodachai.config import AppConfig
+
+    _write("config_defaults", [{"input": "AppConfig", "expected": AppConfig().model_dump()}])
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -735,6 +745,7 @@ def main() -> None:
     dump_conversation_prompt()
     dump_donation()
     dump_event_summary()
+    dump_config()
 
 
 if __name__ == "__main__":
