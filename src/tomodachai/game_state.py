@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from tomodachai.bubble import Bubble
 from tomodachai.character import Character
 from tomodachai.config import AppConfig, load_config
 from tomodachai.fountain import FountainManager
@@ -167,6 +168,11 @@ class GameState:
     def memory(self) -> MemoryStore:
         return self.simulation.memory
 
+    @property
+    def bubbles(self) -> list[Bubble]:
+        """플레이어 응답 대기 말풍선 큐 (시뮬 소유)."""
+        return self.simulation.bubbles
+
     # ------------------------------------------------------------------
     # Real-time interface
     # ------------------------------------------------------------------
@@ -190,6 +196,34 @@ class GameState:
     def events_since(self, since: int) -> list[dict]:
         """seq > since 인 로그 항목만 (시간순)."""
         return [e for e in self._event_log if e["seq"] > since]
+
+    def clear_hungry_bubble(self, char_id) -> None:
+        """해당 캐릭터의 배고픔 말풍선 제거 (feed 시 호출)."""
+        self.bubbles[:] = [
+            b for b in self.bubbles if not (b.kind == "hungry" and b.char_id == char_id)
+        ]
+
+    def answer_bubble(self, index: int, char_name: str, allow: bool) -> dict:
+        """프론트 말풍선 응답 처리.
+
+        반환: {"error": ...} | {"message": ...} | {"scene": ..., "messages": [...]}.
+        (resolve_confession은 단일 이벤트 dict 반환 가정. messages는 프론트 계약상 예약 필드.)
+        """
+        bubbles = self.bubbles
+        if not (0 <= index < len(bubbles)):
+            return {"error": "이미 처리된 말풍선입니다"}
+        bubble = bubbles[index]
+        owner = self.get_character(bubble.char_id)
+        if owner is None or owner.name != char_name:
+            return {"error": "말풍선이 갱신되었습니다. 다시 시도해 주세요"}
+        if bubble.kind == "hungry":
+            return {"error": "배고픔 말풍선은 밥을 주면 사라져요"}
+        bubbles.pop(index)
+        if bubble.kind != "confess_request":
+            return {"message": "말풍선을 확인했습니다"}
+        result = self.simulation.resolve_confession(bubble, approved=allow)
+        self.record_events([result])
+        return {"scene": result["summary"], "messages": []}
 
     def reset_world(self) -> None:
         """새 마을 시작: 캐릭터/시뮬/이벤트로그/seq 초기화 (config는 유지)."""

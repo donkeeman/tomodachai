@@ -3,6 +3,7 @@ from __future__ import annotations
 import random
 from itertools import combinations
 
+from tomodachai.bubble import Bubble
 from tomodachai.character import Character
 from tomodachai.config import AppConfig, LocationConfig
 from tomodachai.conversation import ConversationEngine, ConversationResult
@@ -16,7 +17,6 @@ from tomodachai.relationship import (
     apply_jealousy,
     detect_triangles,
 )
-
 
 # 오프라인 catch-up: 큰 이벤트는 생성 금지
 _BIG_EVENT_TYPES = {"confession_success", "confession_fail", "marriage", "breakup"}
@@ -32,6 +32,7 @@ _CONFESSION_ROMANCE_THRESHOLD = 60.0
 _CONFESSION_CHANCE = 0.2
 _HUNGER_PER_TICK = 5.0
 _SATISFACTION_DECAY = 1.0
+_HUNGER_BUBBLE_THRESHOLD = 80.0  # 이 이상이면 "배고파요" 말풍선 (prototype 규칙)
 
 
 def assign_locations(
@@ -73,6 +74,10 @@ class Simulation:
         self._step_count = 0
         self._char_map = {c.id: c for c in characters}
         self._rng = random.Random()
+        # 플레이어 응답 대기 말풍선 큐 + 고백 거절 누적(세션 한정)
+        self.bubbles: list[Bubble] = []
+        # 키: (고백자 id, 대상 id) → 거절/단념 누적 횟수
+        self._confession_count: dict[tuple[int, int], int] = {}
 
     def _run_conversation(
         self,
@@ -114,7 +119,10 @@ class Simulation:
         return result
 
     def _check_triggered_events(self) -> list[dict]:
-        """Check relationship metrics and trigger fights/confessions."""
+        """[LEGACY] all-pairs 일괄 처리. live 경로는 _check_triggered_events_for_pair 사용.
+
+        Check relationship metrics and trigger fights/confessions.
+        """
         events: list[dict] = []
 
         for a_id, b_id, rel in self.relationships.all_pairs():
@@ -183,6 +191,115 @@ class Simulation:
             "summary": f"{a_name}와(과) {b_name}의 긴장이 폭발하여 싸움이 벌어졌다!",
         }
 
+    def _maybe_confession_bubble(self, a_id, b_id) -> dict | None:
+        """조건 충족 시 confess_request 말풍선을 큐에 추가하고 알림 이벤트를 반환.
+
+        prototype 규칙: A→B romance>=50 AND friendship>=20, 이미 연인 아님,
+        거절 누적<3, 대기 중 confess_request 없음, 50% 확률.
+        """
+        if any(b.kind == "confess_request" for b in self.bubbles):
+            return None  # 동시 1개만
+        if self.relationships.get_slots(a_id).lover == b_id:
+            return None  # 이미 연인
+        if self._confession_count.get((a_id, b_id), 0) >= 3:
+            return None  # 3회 거절 후 단념 (카운트는 resolve_confession이 증가시킴)
+        rel = self.relationships.get(a_id, b_id)
+        if not (rel.romance >= 50.0 and rel.friendship >= 20.0):
+            return None
+        if self._rng.random() > 0.5:
+            return None
+
+        a_name, b_name = self._name(a_id), self._name(b_id)
+        rejection_count = self._confession_count.get((a_id, b_id), 0)
+        suffix = " (재도전이에요...)" if rejection_count else ""
+        self.bubbles.append(
+            Bubble(
+                kind="confess_request",
+                char_id=a_id,
+                target_id=b_id,
+                text=f'{a_name}: "{b_name}에게 고백하고 싶어요...{suffix} 해도 될까요?"',
+            )
+        )
+        return {
+            "type": "bubble",
+            "participants": [a_name, b_name],
+            "summary": f"💗 {a_name}이(가) 할 말이 있대요. (말풍선 확인)",
+        }
+
+    def resolve_confession(self, bubble, approved: bool) -> dict:
+        """플레이어가 confess_request에 응답한 뒤 처리. 결과 이벤트 dict 반환."""
+        a_id, b_id = bubble.char_id, bubble.target_id
+        a = self._char_map.get(a_id)
+        b = self._char_map.get(b_id)
+        a_name, b_name = self._name(a_id), self._name(b_id)
+
+        if not approved:
+            # 만류 → 즉시 단념
+            self._confession_count[(a_id, b_id)] = 3
+            self.relationships.update(a_id, b_id, {"romance": -self._rng.uniform(40, 50)})
+            if a:
+                a.state.mood.adjust(happiness=-1, stress=1)
+            return {
+                "type": "confession_giveup",
+                "participants": [a_name, b_name],
+                "summary": f"{a_name}이(가) {b_name}에 대한 마음을 접었다. (플레이어 만류)",
+            }
+
+        success = self._rng.random() < 0.5
+        if success:
+            self.relationships.set_lover(a_id, b_id)
+            rel_ab = self.relationships.get(a_id, b_id)
+            rel_ba = self.relationships.get(b_id, a_id)
+            rel_ab.spark = True
+            rel_ba.spark = True
+            # 보정치는 prototype 게임 밸런스 그대로 (고백자 a 쪽 가중치가 더 큼)
+            self.relationships.update(a_id, b_id, {"romance": 18, "friendship": 10})
+            self.relationships.update(b_id, a_id, {"romance": 10, "friendship": 10})
+            rel_ab.check_stage_transition(allow_romantic_transition=True)
+            rel_ba.check_stage_transition(allow_romantic_transition=True)
+            if a:
+                a.satisfaction += 15
+                a.state.mood.adjust(happiness=3, stress=-2)
+            if b:
+                b.satisfaction += 10
+                b.state.mood.adjust(happiness=2)
+            self._confession_count[(a_id, b_id)] = 0
+            self._record_confession_memory(a_id, b_id, "accepted")
+            return {
+                "type": "confession_success",
+                "participants": [a_name, b_name],
+                "summary": f"{a_name}이(가) {b_name}에게 고백하여 연인이 되었다!",
+            }
+
+        # 거절 — 페널티는 고백자 a에게만 (거절한 b는 무처리, prototype 규칙)
+        self.relationships.update(a_id, b_id, {"friendship": -5, "romance": -10})
+        self.relationships.update(b_id, a_id, {"friendship": -3})
+        count = self._confession_count.get((a_id, b_id), 0) + 1
+        self._confession_count[(a_id, b_id)] = count
+        if a:
+            a.satisfaction = max(0.0, a.satisfaction - 12)
+            a.state.mood.adjust(happiness=-3, energy=-1, stress=2)
+        if count >= 3:
+            self.relationships.update(a_id, b_id, {"romance": -self._rng.uniform(40, 50)})
+        self._record_confession_memory(a_id, b_id, "rejected")
+        return {
+            "type": "confession_fail",
+            "participants": [a_name, b_name],
+            "summary": f"{a_name}이(가) {b_name}에게 고백했지만 거절당했다.",
+        }
+
+    def _record_confession_memory(self, a_id, b_id, result: str) -> None:
+        """고백 결과를 memory에 기록 (뉴스/대화 맥락용 — legacy _trigger_confession과 동일)."""
+        self.memory.add_event(
+            SocialEvent(
+                id=0,
+                type="confession",
+                participants=[int(a_id), int(b_id)],
+                day=self._step_count,
+                result=result,
+            )
+        )
+
     def _trigger_confession(self, a_id: int, b_id: int) -> dict | None:
         rel_ab = self.relationships.get(a_id, b_id)
         rel_ba = self.relationships.get(b_id, a_id)
@@ -224,10 +341,20 @@ class Simulation:
             rel.check_stage_transition(allow_romantic_transition=False)
 
     def _update_needs(self) -> None:
-        """Decay satisfaction and increase hunger each tick."""
+        """Decay satisfaction and increase hunger each tick.
+
+        Queues a 'hungry' bubble (once per character) when hunger reaches the threshold.
+        """
         for char in self.characters:
             char.hunger = min(100.0, char.hunger + _HUNGER_PER_TICK)
             char.satisfaction = max(0.0, char.satisfaction - _SATISFACTION_DECAY)
+            cid = char.id
+            if char.hunger >= _HUNGER_BUBBLE_THRESHOLD and not any(
+                b.kind == "hungry" and b.char_id == cid for b in self.bubbles
+            ):
+                self.bubbles.append(
+                    Bubble(kind="hungry", char_id=cid, text=f'{char.name}: "배고파요..."')
+                )
 
     def _name(self, char_id) -> str:
         return self._char_map[char_id].name if char_id in self._char_map else str(char_id)
@@ -306,14 +433,9 @@ class Simulation:
             if fight:
                 events.append(fight)
 
-        if (
-            rel.romance >= _CONFESSION_ROMANCE_THRESHOLD
-            and rel.stage in (RelationshipStage.FRIEND, RelationshipStage.BEST_FRIEND)
-            and self._rng.random() < _CONFESSION_CHANCE
-        ):
-            confession = self._trigger_confession(a_id, b_id)
-            if confession:
-                events.append(confession)
+        bubble_note = self._maybe_confession_bubble(a_id, b_id)
+        if bubble_note:
+            events.append(bubble_note)
 
         return events
 

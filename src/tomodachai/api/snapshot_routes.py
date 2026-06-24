@@ -57,6 +57,7 @@ def feed_character(body: FeedRequest):
         msg = feed(char, body.food_id)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    gs.clear_hungry_bubble(body.char_id)
     # 결과를 이벤트 로그에 기록 → 다음 폴링에서 피드 스트림에 재생 (scene = msg)
     gs.record_events([{"type": "feed", "participants": [char.name], "summary": msg}])
     return {"message": msg}
@@ -82,3 +83,17 @@ def give_tool(body: GiveRequest):
     event_type = "photo" if body.tool == "camera" else "cooking"
     gs.record_events([{"type": event_type, "participants": [char.name], "summary": msg}])
     return {"message": msg}
+
+
+class BubbleRequest(BaseModel):
+    index: int
+    char: str
+    answer: str  # "allow" | "stop"
+
+
+@compat_router.post("/bubble")
+def answer_bubble(body: BubbleRequest):
+    # 프론트 계약: 에러도 200 + {"error": ...}로 반환한다 (/feed·/give와 달리 HTTPException 미사용).
+    # 프론트가 out.error로 분기하므로 절대 HTTP 에러 코드로 바꾸지 말 것.
+    gs = _gs()
+    return gs.answer_bubble(body.index, body.char, allow=body.answer == "allow")

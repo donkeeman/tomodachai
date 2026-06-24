@@ -246,14 +246,11 @@ def test_simulation_confession_trigger(
     sim.relationships.update(1, 2, {"friendship": 50, "romance": 75})
     sim.relationships.get(1, 2).stage = RelationshipStage.FRIEND
 
-    confession_occurred = False
-    for i in range(30):
-        events = sim.step()
-        for event in events:
-            if event["type"].startswith("confession"):
-                confession_occurred = True
-                break
-        if confession_occurred:
+    bubble_appeared = False
+    for _ in range(30):
+        sim.step()
+        if any(b.kind == "confess_request" for b in sim.bubbles):
+            bubble_appeared = True
             break
 
-    assert confession_occurred, "High romance friends should eventually confess"
+    assert bubble_appeared, "High romance friends should eventually raise a confess_request bubble"
