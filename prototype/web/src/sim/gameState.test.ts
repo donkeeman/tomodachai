@@ -84,6 +84,14 @@ describe("GameState 경제 헬퍼 (game_state.py 1:1)", () => {
     expect(gs.money).toBe(70); // 불변
     expect(() => gs.spendMoney(-1)).toThrow("amount must be non-negative");
   });
+
+  it("0은 경계값(비음수)이라 허용 — addMoney(0)/spendMoney(0)", () => {
+    const gs = new GameState(deps(), { money: 50 });
+    gs.addMoney(0);
+    expect(gs.money).toBe(50);
+    expect(gs.spendMoney(0)).toBe(true);
+    expect(gs.money).toBe(50);
+  });
 });
 
 describe("GameState 카탈로그 (game.json §1, game_state.py 1:1)", () => {
@@ -204,6 +212,20 @@ describe("GameState.connect (game_state.py 1:1, 주입 nowFn)", () => {
     expect(r.is_new_day).toBe(true);
     expect(gs.day_count).toBe(1);
     expect(r.catchup_events.length).toBe(2); // catchupEventCount(10)=2
+    expect(gs.last_online.getTime()).toBe(now.getTime()); // last_online 갱신
+  });
+
+  it("is_new_day=true라도 5분 미만이면 day_count 불변 (catchup 블록 스킵)", () => {
+    let now = new Date("2026-06-24T04:59:00Z"); // 리셋(05시) 직전
+    const gs = new GameState(deps({ nowFn: () => now }));
+    gs.addCharacter(defaultCharacter(1, "아리"));
+    gs.addCharacter(defaultCharacter(2, "보리"));
+    now = new Date("2026-06-24T05:01:00Z"); // 리셋 넘김, 그러나 +2분
+
+    const r = gs.connect();
+    expect(r.is_new_day).toBe(true);
+    expect(r.catchup_events).toEqual([]); // <5분 → catchup 스킵
+    expect(gs.day_count).toBe(0); // day_count++는 catchup 블록 안이라 미증가
   });
 
   it("5분 미만이면 catchup 없음, day_count 불변", () => {
