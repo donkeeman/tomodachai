@@ -364,6 +364,33 @@ describe("Simulation._checkTriggeredEventsForPair (rng 소비 순서)", () => {
     expect(events.length).toBe(1);
     expect(events[0].type).toBe("confession_success");
   });
+
+  it("stage=stranger: friendship<=임계라 random은 소비되나 stage 탈락 → fight 없음", () => {
+    const rng = new ScriptedRng([0.1]);
+    const sim = makeSim([defaultCharacter(1, "아리"), defaultCharacter(2, "보리")], rng);
+    const rel = sim.relationships.get(1, 2);
+    rel.friendship = -40; // <= -30 → random 소비
+    rel.stage = "stranger"; // stage 체크에서 탈락
+    rel.romance = 0; // confession 첫 항 단락
+    const events = sim._checkTriggeredEventsForPair(1, 2);
+    expect(events).toEqual([]);
+    expect(rng.consumed).toBe(1); // fight random은 소비됨(순서 충실)
+  });
+});
+
+describe("Simulation._checkTriggeredEvents (전체 쌍)", () => {
+  it("allPairs 순회하며 fight 트리거", () => {
+    const sim = makeSim(
+      [defaultCharacter(1, "아리"), defaultCharacter(2, "보리")],
+      new ScriptedRng([0.1]),
+    );
+    const rel = sim.relationships.get(1, 2); // 쌍 생성
+    rel.friendship = -40;
+    rel.stage = "friend";
+    const events = sim._checkTriggeredEvents();
+    expect(events.length).toBe(1);
+    expect(events[0].type).toBe("fight");
+  });
 });
 
 describe("Simulation.step (simulation.py 1:1, RNG/LLM seam)", () => {
