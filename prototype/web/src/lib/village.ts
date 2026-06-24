@@ -27,7 +27,8 @@ import "@babylonjs/loaders/glTF/2.0";
 
 import type { Snapshot, Character, EventItem } from "./types";
 import { toast, selectedId, viewMode, roomName, followName, modelLoaded, boardOpen, cardMode } from "./store";
-import { buildAvatar } from "./figures";
+import { buildAvatar, type AvatarHandle } from "./figures";
+import { MotionController, styleForId } from "./motion";
 import { lookFor, setLook, type AvatarLook } from "./appearance";
 
 let engine: Engine, scene: Scene, camera: UniversalCamera, shadow: ShadowGenerator;
@@ -405,7 +406,7 @@ function buildRoom(e: Entry, data: Character) {
   cone(1.0, 1.0, "#5fa463", X + 6, 1.1, Z + 3, 8, false);
   box(1.2, 0.9, 0.08, "#ffe9a8", X - 2.2, 1.95, Z - 5.9, false); // 액자
   const lbl = makeLocLabel(data.name + "의 방"); lbl.position.set(X, 4.4, Z);
-  const occ = makeFigure(data, false);                          // 점유자(그림자 X)
+  const occ = makeFigure(data, false).root;                     // 점유자(그림자 X, 정적)
   occ.position.set(X + 1, 0, Z + 0.4); occ.rotation.y = -0.5;
   e.roomOccupant = occ; e.roomBuilt = true;
 }
@@ -443,10 +444,11 @@ export async function loadModels() {
   if (anyModelLoaded) console.log("[Blender] glTF 빌런 모델 로드됨");
 }
 
-function buildProcedural(root: TransformNode, data: Character, cast = true) {
+function buildProcedural(root: TransformNode, data: Character, cast = true): AvatarHandle {
   // 공유 아바타 빌더에 위임 — 외모(커스텀 또는 id 파생)를 미리보기와 동일하게 렌더.
-  const avatar = buildAvatar(scene, lookFor(data), { shadow: cast ? shadow : undefined });
-  avatar.parent = root;
+  const handle = buildAvatar(scene, lookFor(data), { shadow: cast ? shadow : undefined });
+  handle.root.parent = root;
+  return handle;
 }
 function buildModel(root: TransformNode, data: Character, cast = true) {
   const container = modelContainers[data.gender] || modelContainers.any;
@@ -465,19 +467,24 @@ interface Entry {
   door: Mesh | null; doorBubble: Mesh | null; roomSlot: number;
   roomBuilt: boolean; roomOrigin: Vector3; roomOccupant: TransformNode | null;
   roomBubble: Mesh | null; roomBubbleUntil: number; worryText: string | null;
+  motion: MotionController | null;
 }
 const entries = new Map<number, Entry>();
 let roomSlotCounter = 0;
 const LABEL_Y = 2.35;
 
-function makeFigure(data: Character, cast = true): TransformNode {
+function makeFigure(data: Character, cast = true): { root: TransformNode; motion: MotionController | null } {
   const root = new TransformNode("char" + data.id, scene);
+  let motion: MotionController | null = null;
   if (anyModelLoaded && (modelContainers[data.gender] || modelContainers.any)) buildModel(root, data, cast);
-  else buildProcedural(root, data, cast);
+  else {
+    const handle = buildProcedural(root, data, cast);
+    motion = new MotionController(handle, styleForId(data.id));
+  }
   for (const m of root.getChildMeshes()) { m.metadata = { charId: data.id }; m.isPickable = true; }
   const label = makeNameLabel(data.name, data.gender === "F" ? "#ffd9e8" : "#d6ecff");
   label.position.set(0, LABEL_Y, 0); label.parent = root;
-  return root;
+  return { root, motion };
 }
 
 // 생성 UI 에서 만든 캐릭터를 즉시 마을에 등장시킨다(외모 적용 + 피규어 등록). 백엔드 POST 는 별도.
@@ -501,14 +508,14 @@ function moveEntryTo(e: Entry, loc: string) {
 function upsertChar(data: Character) {
   let e = entries.get(data.id);
   if (!e) {
-    const root = makeFigure(data);
+    const { root, motion } = makeFigure(data);
     const p = anchorPoint(data.location);
     root.position.copyFrom(p);
     const slot = roomSlotCounter++;
     e = { root, data, target: p.clone(), wanderAt: performance.now() + 3000 + Math.random() * 5000,
       bubble: null, bubbleUntil: 0, heading: 0, appliedLoc: data.location, pendingLoc: null, px: p.x, pz: p.z,
       door: null, doorBubble: null, roomSlot: slot, roomBuilt: false,
-      roomOrigin: new Vector3(roomOriginX(slot), 0, 0), roomOccupant: null,
+      roomOrigin: new Vector3(roomOriginX(slot), 0, 0), roomOccupant: null, motion,
       roomBubble: null, roomBubbleUntil: 0, worryText: null };
     entries.set(data.id, e);
     addResidentDoor(e, data, slot);
@@ -872,15 +879,14 @@ export function initVillage(canvas: HTMLCanvasElement) {
       const dist = tmp.length();
       const selected = curSelectedId === e.data.id;
       if (!selected && e.pendingLoc) moveEntryTo(e, e.pendingLoc);
-      if (dist > 0.08) {
+      const moving = dist > 0.08;
+      if (moving) {
         const speed = dist > 8 ? 4.2 : 1.7;
         tmp.normalize().scaleInPlace(Math.min(dist, speed * dt));
         e.root.position.addInPlace(tmp);
         e.heading = Math.atan2(tmp.x, tmp.z);
         e.root.rotation.y += angleDelta(e.heading, e.root.rotation.y) * 0.2;
-        e.root.position.y = Math.abs(Math.sin(t * 9 + e.data.id)) * 0.07;
       } else {
-        e.root.position.y *= 0.8;
         if (selected) {
           const toCam = Math.atan2(camera.position.x - e.root.position.x, camera.position.z - e.root.position.z);
           e.root.rotation.y += angleDelta(toCam, e.root.rotation.y) * 0.12;
@@ -889,6 +895,13 @@ export function initVillage(canvas: HTMLCanvasElement) {
           e.target = anchorPoint(e.data.location);
           e.wanderAt = now + 4000 + Math.random() * 7000;
         }
+      }
+      // 모션: 걷는 중엔 walk, 멈추면 idle(대기 모션). 모델 캐릭터(motion 없음)는 기존 보브 폴백.
+      if (e.motion) {
+        e.motion.set(moving ? "walk" : "idle", now);
+        e.motion.update(now);
+      } else {
+        e.root.position.y = moving ? Math.abs(Math.sin(t * 9 + e.data.id)) * 0.07 : e.root.position.y * 0.8;
       }
       if (e.bubble && now > e.bubbleUntil) { e.bubble.dispose(); e.bubble = null; }
       if (e.roomBubble && now > e.roomBubbleUntil) { e.roomBubble.dispose(); e.roomBubble = null; }

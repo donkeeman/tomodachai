@@ -8,16 +8,16 @@ import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { CreateCylinder } from "@babylonjs/core/Meshes/Builders/cylinderBuilder";
-import type { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 
-import { buildAvatar } from "./figures";
+import { buildAvatar, type AvatarHandle } from "./figures";
+import { MotionController } from "./motion";
 import type { AvatarLook } from "./appearance";
 
 let engine: Engine | null = null;
 let scene: Scene | null = null;
-let avatar: TransformNode | null = null;
+let avatar: AvatarHandle | null = null;
+let motion: MotionController | null = null;
 let onResize: (() => void) | null = null;
-let motionUntil = 0; // 모션(콩콩 점프+좌우 흔들) 종료 시각(ms). 0이면 정지.
 
 export function initPreview(canvas: HTMLCanvasElement, look: AvatarLook): void {
   disposePreview();
@@ -55,39 +55,32 @@ export function initPreview(canvas: HTMLCanvasElement, look: AvatarLook): void {
   podium.position.y = -0.1;
 
   avatar = buildAvatar(scene, look);
+  motion = new MotionController(avatar, { idle: "calm" }); // 평소엔 숨쉬듯 미세 보브
 
   engine.runRenderLoop(() => {
-    // 평소엔 정지(카메라만 사용자 조작). 모션 중에는 콩콩 점프 + 살짝 흔들.
-    if (avatar) {
-      const now = performance.now();
-      if (now < motionUntil) {
-        const t = now / 1000;
-        avatar.position.y = Math.abs(Math.sin(t * 7)) * 0.28;
-        avatar.rotation.y = Math.sin(t * 9) * 0.18;
-      } else if (avatar.position.y !== 0 || avatar.rotation.y !== 0) {
-        avatar.position.y = 0; avatar.rotation.y = 0;
-      }
-    }
+    motion?.update();
     scene!.render();
   });
   onResize = () => engine?.resize();
   window.addEventListener("resize", onResize);
 }
 
-// 리빌 등에서 주민이 신나게 콩콩 뛰는 모션을 잠깐 재생.
-export function playMotion(ms = 2600): void {
-  motionUntil = performance.now() + ms;
+// 리빌 등에서 주민이 신나게 콩콩 뛰는 모션을 잠깐 재생(이후 자동으로 idle 복귀).
+export function playMotion(): void {
+  motion?.set("celebrate");
 }
 
 export function updatePreview(look: AvatarLook): void {
   if (!scene) return;
-  if (avatar) avatar.dispose(); // 메시만 정리 — 머티리얼은 캐시 공유라 유지
+  if (avatar) avatar.root.dispose(); // 메시만 정리 — 머티리얼은 캐시 공유라 유지
   avatar = buildAvatar(scene, look);
+  motion = new MotionController(avatar, { idle: "calm" });
 }
 
 export function disposePreview(): void {
   if (onResize) { window.removeEventListener("resize", onResize); onResize = null; }
-  if (avatar) { avatar.dispose(); avatar = null; }
+  if (avatar) { avatar.root.dispose(); avatar = null; }
+  motion = null;
   if (scene) { scene.dispose(); scene = null; }
   if (engine) { engine.dispose(); engine = null; }
 }
