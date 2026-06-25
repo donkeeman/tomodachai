@@ -117,14 +117,47 @@ export class MotionController {
   }
 }
 
-// 캐릭터 id 로 대기/걷기 스타일을 결정(다양성 확보). 추후 성격 유형으로 대체 가능(기획 §7).
+// 캐릭터별 위상차(seed) — 같은 스타일이라도 동시에 똑같이 움직이지 않도록.
+function seedForId(id: number): number {
+  return (Math.abs(id) % 16) * (TAU / 16);
+}
+
+// 캐릭터 id 로 대기/걷기 스타일을 결정(성격 정보가 없는 시드/기존 캐릭터용 폴백).
 const IDLE_STYLES: IdleStyle[] = ["calm", "bouncy", "looky", "doze"];
 const WALK_STYLES: WalkStyle[] = ["brisk", "waddle", "slow"];
 export function styleForId(id: number): MotionOpts {
   const i = Math.abs(id);
   return {
-    seed: (i % 16) * (TAU / 16),
+    seed: seedForId(id),
     idle: IDLE_STYLES[i % IDLE_STYLES.length],
     walk: WALK_STYLES[i % WALK_STYLES.length],
   };
+}
+
+// 성격 16유형(personality.ts 코드) → 움직임 스타일.
+// 계통(안정/신중/주도/사교)이 걸음 속도를, 세부 유형이 대기 동작 결을 좌우.
+const PERSONALITY_MOTION: Record<string, { idle: IdleStyle; walk: WalkStyle }> = {
+  easygoing_softie: { idle: "calm", walk: "slow" },
+  easygoing_optimist: { idle: "bouncy", walk: "slow" },
+  easygoing_carer: { idle: "looky", walk: "slow" },
+  easygoing_dreamer: { idle: "doze", walk: "slow" },
+  independent_dogooder: { idle: "calm", walk: "brisk" },
+  independent_perfectionist: { idle: "calm", walk: "brisk" },
+  independent_introvert: { idle: "doze", walk: "slow" },
+  independent_thinker: { idle: "looky", walk: "slow" },
+  confident_busybee: { idle: "bouncy", walk: "brisk" },
+  confident_gogetter: { idle: "calm", walk: "brisk" },
+  confident_freespirit: { idle: "looky", walk: "brisk" },
+  confident_brainiac: { idle: "calm", walk: "brisk" },
+  outgoing_charmer: { idle: "bouncy", walk: "waddle" },
+  outgoing_dynamo: { idle: "bouncy", walk: "brisk" },
+  outgoing_buddy: { idle: "looky", walk: "waddle" },
+  outgoing_extrovert: { idle: "bouncy", walk: "brisk" },
+};
+
+// 성격 코드로 모션 스타일을 결정. 미등록 코드는 id 기반 폴백.
+export function styleForPersonality(code: string, id = 0): MotionOpts {
+  const m = PERSONALITY_MOTION[code];
+  if (!m) return styleForId(id);
+  return { seed: seedForId(id), idle: m.idle, walk: m.walk };
 }

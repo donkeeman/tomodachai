@@ -142,3 +142,38 @@ export function personalityLabel(code: string): string {
   const group = code.split("_")[0];
   return `${GROUP_NAMES[group] ?? ""} · ${PERSONALITY_NAMES[code] ?? code}`;
 }
+
+// 사용자가 만든 캐릭터의 성격 코드 저장소(id → code). 백엔드 회신 전까지 프론트 보관.
+// localStorage 미러링 — 새로고침해도 모션이 성격을 따라가도록.
+const PERSONA_KEY = "tomodachai.persona.v1";
+
+function loadPersonas(): Map<number, string> {
+  try {
+    const raw = localStorage.getItem(PERSONA_KEY);
+    if (!raw) return new Map();
+    const obj = JSON.parse(raw) as Record<string, string>;
+    return new Map(Object.entries(obj).map(([k, v]) => [Number(k), v]));
+  } catch {
+    return new Map();
+  }
+}
+
+function persistPersonas(): void {
+  try {
+    const obj: Record<number, string> = {};
+    for (const [id, code] of personaStore) obj[id] = code;
+    localStorage.setItem(PERSONA_KEY, JSON.stringify(obj));
+  } catch {
+    // 저장 실패는 무시 — 메모리 저장소는 그대로 동작
+  }
+}
+
+const personaStore = loadPersonas();
+
+export function setPersona(id: number, code: string): void {
+  personaStore.set(id, code);
+  persistPersonas();
+}
+export function personaFor(id: number): string | undefined {
+  return personaStore.get(id);
+}

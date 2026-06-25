@@ -28,7 +28,8 @@ import "@babylonjs/loaders/glTF/2.0";
 import type { Snapshot, Character, EventItem } from "./types";
 import { toast, selectedId, viewMode, roomName, followName, modelLoaded, boardOpen, cardMode } from "./store";
 import { buildAvatar, type AvatarHandle } from "./figures";
-import { MotionController, styleForId } from "./motion";
+import { MotionController, styleForId, styleForPersonality } from "./motion";
+import { personaFor, setPersona } from "./personality";
 import { lookFor, setLook, type AvatarLook } from "./appearance";
 
 let engine: Engine, scene: Scene, camera: UniversalCamera, shadow: ShadowGenerator;
@@ -479,7 +480,9 @@ function makeFigure(data: Character, cast = true): { root: TransformNode; motion
   if (anyModelLoaded && (modelContainers[data.gender] || modelContainers.any)) buildModel(root, data, cast);
   else {
     const handle = buildProcedural(root, data, cast);
-    motion = new MotionController(handle, styleForId(data.id));
+    // 성격을 알면 그에 맞는 모션, 없으면 id 기반 폴백.
+    const code = personaFor(data.id);
+    motion = new MotionController(handle, code ? styleForPersonality(code, data.id) : styleForId(data.id));
   }
   for (const m of root.getChildMeshes()) { m.metadata = { charId: data.id }; m.isPickable = true; }
   const label = makeNameLabel(data.name, data.gender === "F" ? "#ffd9e8" : "#d6ecff");
@@ -488,8 +491,9 @@ function makeFigure(data: Character, cast = true): { root: TransformNode; motion
 }
 
 // 생성 UI 에서 만든 캐릭터를 즉시 마을에 등장시킨다(외모 적용 + 피규어 등록). 백엔드 POST 는 별도.
-export function spawnCharacter(data: Character, look?: AvatarLook) {
+export function spawnCharacter(data: Character, look?: AvatarLook, personaCode?: string) {
   if (look) setLook(data.id, look);
+  if (personaCode) setPersona(data.id, personaCode); // 모션이 성격을 따라가도록
   upsertChar(data);
   const e = entries.get(data.id);
   if (e && view === "village") { cardMode.set("info"); selectedId.set(data.id); focusOn(e); }
