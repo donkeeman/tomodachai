@@ -1,0 +1,146 @@
+[
+  {
+    "input": {
+      "movement": 0.1,
+      "speech": 0.1,
+      "expressiveness": 0.1,
+      "attitude": 0.1
+    },
+    "expected": "easygoing_softie"
+  },
+  {
+    "input": {
+      "movement": 0.1,
+      "speech": 0.1,
+      "expressiveness": 0.4,
+      "attitude": 0.4
+    },
+    "expected": "easygoing_optimist"
+  },
+  {
+    "input": {
+      "movement": 0.1,
+      "speech": 0.1,
+      "expressiveness": 0.6,
+      "attitude": 0.6
+    },
+    "expected": "easygoing_carer"
+  },
+  {
+    "input": {
+      "movement": 0.1,
+      "speech": 0.1,
+      "expressiveness": 0.9,
+      "attitude": 0.9
+    },
+    "expected": "easygoing_dreamer"
+  },
+  {
+    "input": {
+      "movement": 0.4,
+      "speech": 0.4,
+      "expressiveness": 0.1,
+      "attitude": 0.1
+    },
+    "expected": "independent_dogooder"
+  },
+  {
+    "input": {
+      "movement": 0.4,
+      "speech": 0.4,
+      "expressiveness": 0.4,
+      "attitude": 0.4
+    },
+    "expected": "independent_perfectionist"
+  },
+  {
+    "input": {
+      "movement": 0.4,
+      "speech": 0.4,
+      "expressiveness": 0.6,
+      "attitude": 0.6
+    },
+    "expected": "independent_introvert"
+  },
+  {
+    "input": {
+      "movement": 0.4,
+      "speech": 0.4,
+      "expressiveness": 0.9,
+      "attitude": 0.9
+    },
+    "expected": "independent_thinker"
+  },
+  {
+    "input": {
+      "movement": 0.6,
+      "speech": 0.6,
+      "expressiveness": 0.1,
+      "attitude": 0.1
+    },
+    "expected": "confident_busybee"
+  },
+  {
+    "input": {
+      "movement": 0.6,
+      "speech": 0.6,
+      "expressiveness": 0.4,
+      "attitude": 0.4
+    },
+    "expected": "confident_gogetter"
+  },
+  {
+    "input": {
+      "movement": 0.6,
+      "speech": 0.6,
+      "expressiveness": 0.6,
+      "attitude": 0.6
+    },
+    "expected": "confident_freespirit"
+  },
+  {
+    "input": {
+      "movement": 0.6,
+      "speech": 0.6,
+      "expressiveness": 0.9,
+      "attitude": 0.9
+    },
+    "expected": "confident_brainiac"
+  },
+  {
+    "input": {
+      "movement": 0.9,
+      "speech": 0.9,
+      "expressiveness": 0.1,
+      "attitude": 0.1
+    },
+    "expected": "outgoing_charmer"
+  },
+  {
+    "input": {
+      "movement": 0.9,
+      "speech": 0.9,
+      "expressiveness": 0.4,
+      "attitude": 0.4
+    },
+    "expected": "outgoing_dynamo"
+  },
+  {
+    "input": {
+      "movement": 0.9,
+      "speech": 0.9,
+      "expressiveness": 0.6,
+      "attitude": 0.6
+    },
+    "expected": "outgoing_buddy"
+  },
+  {
+    "input": {
+      "movement": 0.9,
+      "speech": 0.9,
+      "expressiveness": 0.9,
+      "attitude": 0.9
+    },
+    "expected": "outgoing_extrovert"
+  }
+]

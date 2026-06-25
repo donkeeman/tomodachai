@@ -1,0 +1,1922 @@
+[
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 10,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 10,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 10,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 10,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 10,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 10,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 10,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 10,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 19,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 19,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 19,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 19,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 19,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 19,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 19,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 19,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 20,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 20,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 20,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 20,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 20,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 20,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 20,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 20,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 30,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 30,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 30,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 30,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 30,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 30,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 30,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "stranger",
+      "romance": 30,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 10,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 10,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 10,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 10,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 10,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 10,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 10,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 10,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 19,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 19,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 19,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 19,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 19,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 19,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 19,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 19,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 20,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 20,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 20,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 20,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 20,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 20,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 20,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 20,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 30,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 30,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 30,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 30,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 30,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 30,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 30,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "acquaintance",
+      "romance": 30,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 10,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 10,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 10,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 10,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 10,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 10,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 10,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 10,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 19,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 19,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 19,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 19,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 19,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 19,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 19,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 19,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 20,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 20,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 20,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 20,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 20,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 20,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 20,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 20,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 30,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 30,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 30,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 30,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 30,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 30,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 30,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "friend",
+      "romance": 30,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 10,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 10,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 10,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 10,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 10,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 10,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 10,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 10,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 19,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 19,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 19,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 19,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 19,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 19,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 19,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 19,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 20,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 20,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 20,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 20,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 20,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 20,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 20,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 20,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 30,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 30,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 30,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 30,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 30,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 30,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 30,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "best_friend",
+      "romance": 30,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 10,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": "boredom"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 10,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": "fight"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 10,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 10,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 10,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 10,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 10,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 10,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 19,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": "boredom"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 19,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": "fight"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 19,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 19,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 19,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 19,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 19,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 19,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 20,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 20,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 20,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 20,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 20,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 20,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 20,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 20,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 30,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 30,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 30,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 30,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 30,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 30,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 30,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "lover",
+      "romance": 30,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 10,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": "boredom"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 10,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": "fight"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 10,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 10,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 10,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 10,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 10,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 10,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 19,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": "boredom"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 19,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": "fight"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 19,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 19,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 19,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 19,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 19,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 19,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 20,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 20,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 20,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 20,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 20,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 20,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 20,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 20,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 30,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 30,
+      "cheating": false,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": null
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 30,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 30,
+      "cheating": false,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "triangle"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 30,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 30,
+      "cheating": true,
+      "triangle": false,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 30,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": false
+    },
+    "expected": "cheating"
+  },
+  {
+    "input": {
+      "stage": "married",
+      "romance": 30,
+      "cheating": true,
+      "triangle": true,
+      "fightUnresolved": true
+    },
+    "expected": "cheating"
+  }
+]

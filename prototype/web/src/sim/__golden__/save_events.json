@@ -1,0 +1,39 @@
+[
+  {
+    "input": "sample",
+    "expected": [
+      {
+        "id": 1,
+        "type": "marriage",
+        "participants": [
+          1,
+          2
+        ],
+        "day": 3,
+        "time": "아침",
+        "location": "공원",
+        "reason": "사랑",
+        "result": "결혼 성공"
+      },
+      {
+        "id": 2,
+        "type": "fight",
+        "participants": [
+          1,
+          2
+        ],
+        "day": 5,
+        "location": "카페",
+        "result": "화해"
+      },
+      {
+        "id": 3,
+        "type": "conversation",
+        "participants": [
+          1
+        ],
+        "day": 7
+      }
+    ]
+  }
+]

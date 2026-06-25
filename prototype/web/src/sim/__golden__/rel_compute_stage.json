@@ -1,0 +1,650 @@
+[
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 0,
+      "stage": "stranger",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 0,
+      "stage": "stranger",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 55,
+      "stage": "stranger",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 55,
+      "stage": "stranger",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 60,
+      "stage": "stranger",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 60,
+      "stage": "stranger",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 89,
+      "stage": "stranger",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 89,
+      "stage": "stranger",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 90,
+      "stage": "stranger",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 90,
+      "stage": "stranger",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 100,
+      "stage": "stranger",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 100,
+      "stage": "stranger",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 0,
+      "stage": "acquaintance",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 0,
+      "stage": "acquaintance",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 55,
+      "stage": "acquaintance",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 55,
+      "stage": "acquaintance",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 60,
+      "stage": "acquaintance",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 60,
+      "stage": "acquaintance",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 89,
+      "stage": "acquaintance",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 89,
+      "stage": "acquaintance",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 90,
+      "stage": "acquaintance",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 90,
+      "stage": "acquaintance",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 100,
+      "stage": "acquaintance",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 100,
+      "stage": "acquaintance",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 0,
+      "stage": "friend",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 0,
+      "stage": "friend",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 55,
+      "stage": "friend",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 55,
+      "stage": "friend",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 60,
+      "stage": "friend",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 60,
+      "stage": "friend",
+      "allow": true
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 89,
+      "stage": "friend",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 89,
+      "stage": "friend",
+      "allow": true
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 90,
+      "stage": "friend",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 90,
+      "stage": "friend",
+      "allow": true
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 100,
+      "stage": "friend",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 100,
+      "stage": "friend",
+      "allow": true
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 0,
+      "stage": "best_friend",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 0,
+      "stage": "best_friend",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 55,
+      "stage": "best_friend",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 55,
+      "stage": "best_friend",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 60,
+      "stage": "best_friend",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 60,
+      "stage": "best_friend",
+      "allow": true
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 89,
+      "stage": "best_friend",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 89,
+      "stage": "best_friend",
+      "allow": true
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 90,
+      "stage": "best_friend",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 90,
+      "stage": "best_friend",
+      "allow": true
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 100,
+      "stage": "best_friend",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 100,
+      "stage": "best_friend",
+      "allow": true
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 0,
+      "stage": "lover",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 0,
+      "stage": "lover",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 55,
+      "stage": "lover",
+      "allow": false
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 55,
+      "stage": "lover",
+      "allow": true
+    },
+    "expected": "friend"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 60,
+      "stage": "lover",
+      "allow": false
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 60,
+      "stage": "lover",
+      "allow": true
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 89,
+      "stage": "lover",
+      "allow": false
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 89,
+      "stage": "lover",
+      "allow": true
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 90,
+      "stage": "lover",
+      "allow": false
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 90,
+      "stage": "lover",
+      "allow": true
+    },
+    "expected": "married"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 100,
+      "stage": "lover",
+      "allow": false
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 100,
+      "stage": "lover",
+      "allow": true
+    },
+    "expected": "married"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 0,
+      "stage": "married",
+      "allow": false
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 0,
+      "stage": "married",
+      "allow": true
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 55,
+      "stage": "married",
+      "allow": false
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 55,
+      "stage": "married",
+      "allow": true
+    },
+    "expected": "lover"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 60,
+      "stage": "married",
+      "allow": false
+    },
+    "expected": "married"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 60,
+      "stage": "married",
+      "allow": true
+    },
+    "expected": "married"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 89,
+      "stage": "married",
+      "allow": false
+    },
+    "expected": "married"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 89,
+      "stage": "married",
+      "allow": true
+    },
+    "expected": "married"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 90,
+      "stage": "married",
+      "allow": false
+    },
+    "expected": "married"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 90,
+      "stage": "married",
+      "allow": true
+    },
+    "expected": "married"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 100,
+      "stage": "married",
+      "allow": false
+    },
+    "expected": "married"
+  },
+  {
+    "input": {
+      "friendship": 50,
+      "romance": 100,
+      "stage": "married",
+      "allow": true
+    },
+    "expected": "married"
+  }
+]

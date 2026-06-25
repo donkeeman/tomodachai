@@ -1,0 +1,52 @@
+[
+  {
+    "input": {
+      "movement": 8,
+      "speech": 8,
+      "expressiveness": 7,
+      "attitude": 5,
+      "overall": 5
+    },
+    "expected": "outgoing_buddy"
+  },
+  {
+    "input": {
+      "movement": 2,
+      "speech": 2,
+      "expressiveness": 8,
+      "attitude": 8,
+      "overall": 5
+    },
+    "expected": "easygoing_dreamer"
+  },
+  {
+    "input": {
+      "movement": 5,
+      "speech": 5,
+      "expressiveness": 5,
+      "attitude": 5,
+      "overall": 5
+    },
+    "expected": "confident_freespirit"
+  },
+  {
+    "input": {
+      "movement": 0,
+      "speech": 0,
+      "expressiveness": 0,
+      "attitude": 0,
+      "overall": 0
+    },
+    "expected": "easygoing_softie"
+  },
+  {
+    "input": {
+      "movement": 10,
+      "speech": 10,
+      "expressiveness": 10,
+      "attitude": 10,
+      "overall": 10
+    },
+    "expected": "outgoing_extrovert"
+  }
+]

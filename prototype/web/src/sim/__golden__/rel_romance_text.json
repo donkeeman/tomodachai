@@ -1,0 +1,82 @@
+[
+  {
+    "input": {
+      "romance": -5
+    },
+    "expected": {
+      "romance_text": null
+    }
+  },
+  {
+    "input": {
+      "romance": 0
+    },
+    "expected": {
+      "romance_text": null
+    }
+  },
+  {
+    "input": {
+      "romance": 1
+    },
+    "expected": {
+      "romance_text": "약간 신경 쓰이는"
+    }
+  },
+  {
+    "input": {
+      "romance": 20
+    },
+    "expected": {
+      "romance_text": "약간 신경 쓰이는"
+    }
+  },
+  {
+    "input": {
+      "romance": 21
+    },
+    "expected": {
+      "romance_text": "좋아하는 것 같은"
+    }
+  },
+  {
+    "input": {
+      "romance": 49
+    },
+    "expected": {
+      "romance_text": "좋아하는 것 같은"
+    }
+  },
+  {
+    "input": {
+      "romance": 50
+    },
+    "expected": {
+      "romance_text": "많이 좋아하는"
+    }
+  },
+  {
+    "input": {
+      "romance": 79
+    },
+    "expected": {
+      "romance_text": "많이 좋아하는"
+    }
+  },
+  {
+    "input": {
+      "romance": 80
+    },
+    "expected": {
+      "romance_text": "완전 반한"
+    }
+  },
+  {
+    "input": {
+      "romance": 100
+    },
+    "expected": {
+      "romance_text": "완전 반한"
+    }
+  }
+]

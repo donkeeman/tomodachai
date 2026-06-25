@@ -1,0 +1,139 @@
+[
+  {
+    "input": {
+      "char_a": {
+        "id": 1,
+        "name": "민수",
+        "personality": {
+          "movement": 8,
+          "speech": 8,
+          "expressiveness": 7,
+          "attitude": 5,
+          "overall": 5
+        },
+        "speech_habits": {
+          "normal": "~이에요",
+          "happy": "신나요",
+          "worried": "걱정돼요"
+        }
+      },
+      "char_b": {
+        "id": 2,
+        "name": "지은",
+        "personality": {
+          "movement": 2,
+          "speech": 2,
+          "expressiveness": 8,
+          "attitude": 8,
+          "overall": 5
+        },
+        "speech_habits": {
+          "normal": "~랍니다"
+        }
+      },
+      "code_a": "outgoing_buddy",
+      "code_b": "easygoing_dreamer",
+      "rel_ab": {
+        "friendship": 65.0,
+        "romance": 10.0,
+        "stage": "friend"
+      },
+      "rel_ba": {
+        "friendship": 30.0,
+        "romance": 0.0,
+        "stage": "acquaintance"
+      },
+      "memories": [
+        {
+          "id": 1,
+          "type": "conversation",
+          "participants": [
+            1,
+            2
+          ],
+          "day": 3,
+          "time": null,
+          "location": "공원",
+          "reason": null,
+          "result": "더 친해짐"
+        },
+        {
+          "id": 2,
+          "type": "fight",
+          "participants": [
+            1,
+            2
+          ],
+          "day": 5,
+          "time": null,
+          "location": null,
+          "reason": "오해",
+          "result": null
+        },
+        {
+          "id": 3,
+          "type": "unknown_type",
+          "participants": [
+            1,
+            2
+          ],
+          "day": 7,
+          "time": null,
+          "location": null,
+          "reason": null,
+          "result": null
+        }
+      ],
+      "location": "카페",
+      "time_of_day": "아침"
+    },
+    "expected": "## 캐릭터 1: 민수\n성격 유형: 재기발랄형 (outgoing)\n성격: 모임의 활력소 역할을 해요. 재미있는 이야기나 게임을 끊임없이 제안하고, \"다 같이 해요!\", \"재밌겠다!\" 하며 분위기를 띄워요. 혼자 있을 때보다 여럿이 함께일 때 에너지가 넘쳐요. 장난기가 많고 유머 감각이 있어요. 가끔 분위기 파악 없이 흥을 돋우려다 눈치 없어 보이기도 하지만, 악의가 없다는 건 다들 알아요.\n말버릇: 일반: \"~이에요\" / 기쁠 때: \"신나요\" / 걱정할 때: \"걱정돼요\"\n배경: \n\n## 캐릭터 2: 지은\n성격 유형: 순진무구형 (easygoing)\n성격: 서두르는 법이 없고, 대화 중에도 멍하니 생각에 잠기곤 해요. \"그러고 보니...\", \"어쩌면...\" 같이 천천히 생각을 풀어내는 말투를 써요. 상상력이 풍부하고 엉뚱한 이야기를 갑자기 꺼내기도 해요. 일상의 사소한 것에서 아름다움을 찾아요. 딱 떨어지는 답보다 열린 질문을 더 좋아하고, 시간이 걸려도 천천히 즐기는 편이에요.\n말버릇: 일반: \"~랍니다\"\n배경: \n\n## 두 사람의 관계\n민수 → 지은: 친구 (꽤 친한 사이)\n지은 → 민수: 아는 사이 (알고 지내는 사이)\n\n## 최근 기억\n- (Day 3) 대화 @ 공원 → 더 친해짐\n- (Day 5) 싸움 (사유: 오해)\n- (Day 7) unknown_type\n\n## 상황\n장소: 카페\n시간대: 아침\n\n## 지시사항\n모든 캐릭터는 20~30대 성인입니다. 이름에 관계없이 절대 노인이나 미성년자로 묘사하지 마세요.\n말투 규칙 (매우 중요):\n- 모든 캐릭터는 항상 존댓말(해요체)을 사용합니다. 친밀도와 관계없이 절대 반말하지 마세요.\n- 닌텐도 게임 한국어 번역체 특유의 살짝 어색하고 정중한 말투를 사용하세요.\n- 예시: \"저는 오늘 기분이 정말 좋아요!\", \"혹시 같이 가실래요?\", \"그건 정말 멋진 생각이에요!\", \"저도 그렇게 생각해요!\"\n- 감정 표현이 살짝 과하고 직접적이며, 문장이 깔끔하게 끝나는 느낌입니다.\n- 줄임말(ㅋㅋ, ㅎㅎ)이나 인터넷 용어는 사용하지 마세요.\n두 캐릭터 간의 대화를 3~8번 주고받는 형태로 생성하세요.\n각 캐릭터는 성격대로 행동하고 말버릇을 자연스럽게 섞으세요.\n\n반드시 아래 JSON 형식으로만 응답하세요:\n{\n  \"dialogue\": [\n    {\"speaker\": \"민수\", \"text\": \"대사\"},\n    {\"speaker\": \"지은\", \"text\": \"대사\"}\n  ],\n  \"deltas\": {\n    \"민수\": {\"friendship\": 0, \"romance\": 0, \"tension\": 0},\n    \"지은\": {\"friendship\": 0, \"romance\": 0, \"tension\": 0}\n  },\n  \"summary\": \"이 대화에서 일어난 일 한 줄 요약\"\n}\n\ndelta 범위: friendship(-10~+10), romance(-5~+5), tension(-10~+10)"
+  },
+  {
+    "input": {
+      "char_a": {
+        "id": 3,
+        "name": "현우",
+        "personality": {
+          "movement": 5,
+          "speech": 5,
+          "expressiveness": 2,
+          "attitude": 2,
+          "overall": 5
+        },
+        "speech_habits": {
+          "normal": "안녕하세요",
+          "happy": "기뻐요"
+        }
+      },
+      "char_b": {
+        "id": 4,
+        "name": "수진",
+        "personality": {
+          "movement": 9,
+          "speech": 9,
+          "expressiveness": 9,
+          "attitude": 9,
+          "overall": 5
+        },
+        "speech_habits": {}
+      },
+      "code_a": "confident_busybee",
+      "code_b": "outgoing_extrovert",
+      "rel_ab": {
+        "friendship": -60.0,
+        "romance": 0.0,
+        "stage": "stranger"
+      },
+      "rel_ba": {
+        "friendship": 85.0,
+        "romance": 70.0,
+        "stage": "lover"
+      },
+      "memories": [],
+      "location": "해변",
+      "time_of_day": "오후"
+    },
+    "expected": "## 캐릭터 1: 현우\n성격 유형: 시원시원형 (confident)\n성격: 말이 빠르고 행동도 빨라요. \"일단 해봐요!\", \"그거 금방이잖아요!\" 같이 즉각적이고 실용적인 말을 써요. 가만히 있는 걸 못 참고 항상 뭔가를 하고 싶어 해요. 계획보다 실행을 중시하고, 문제가 생기면 빠르게 해결책을 찾아요. 다른 사람이 망설일 때 먼저 나서는 편이에요. 빠른 결정과 실행을 좋아하지만, 세부 사항은 가끔 놓치기도 해요.\n말버릇: 일반: \"안녕하세요\" / 기쁠 때: \"기뻐요\"\n배경: \n\n## 캐릭터 2: 수진\n성격 유형: 명랑쾌활형 (outgoing)\n성격: 감정 표현이 크고 직접적이에요. 기쁠 때는 폭발적으로 기뻐하고, 화나면 바로 티가 나요. \"진짜요?! 대박!\", \"아, 그건 좀 아니잖아요!\" 같이 솔직하게 반응해요. 유행과 새로운 것에 민감하고 빠르게 따라가요. 열정이 넘치다 보니 쉽게 흥분하고 쉽게 지치기도 해요. 하지만 그 열정이 주변 사람들에게도 전염되는 편이에요.\n말버릇: 없음\n배경: \n\n## 두 사람의 관계\n현우 → 수진: 모르는 사이 (사이가 나쁨)\n수진 → 현우: 연인 (둘도 없는 친구)\n\n## 최근 기억\n없음\n\n## 상황\n장소: 해변\n시간대: 오후\n\n## 지시사항\n모든 캐릭터는 20~30대 성인입니다. 이름에 관계없이 절대 노인이나 미성년자로 묘사하지 마세요.\n말투 규칙 (매우 중요):\n- 모든 캐릭터는 항상 존댓말(해요체)을 사용합니다. 친밀도와 관계없이 절대 반말하지 마세요.\n- 닌텐도 게임 한국어 번역체 특유의 살짝 어색하고 정중한 말투를 사용하세요.\n- 예시: \"저는 오늘 기분이 정말 좋아요!\", \"혹시 같이 가실래요?\", \"그건 정말 멋진 생각이에요!\", \"저도 그렇게 생각해요!\"\n- 감정 표현이 살짝 과하고 직접적이며, 문장이 깔끔하게 끝나는 느낌입니다.\n- 줄임말(ㅋㅋ, ㅎㅎ)이나 인터넷 용어는 사용하지 마세요.\n두 캐릭터 간의 대화를 3~8번 주고받는 형태로 생성하세요.\n각 캐릭터는 성격대로 행동하고 말버릇을 자연스럽게 섞으세요.\n\n반드시 아래 JSON 형식으로만 응답하세요:\n{\n  \"dialogue\": [\n    {\"speaker\": \"현우\", \"text\": \"대사\"},\n    {\"speaker\": \"수진\", \"text\": \"대사\"}\n  ],\n  \"deltas\": {\n    \"현우\": {\"friendship\": 0, \"romance\": 0, \"tension\": 0},\n    \"수진\": {\"friendship\": 0, \"romance\": 0, \"tension\": 0}\n  },\n  \"summary\": \"이 대화에서 일어난 일 한 줄 요약\"\n}\n\ndelta 범위: friendship(-10~+10), romance(-5~+5), tension(-10~+10)"
+  }
+]

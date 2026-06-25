@@ -1,0 +1,319 @@
+import { describe, it, expect } from "vitest";
+import { defaultCharacter, type Character } from "./character";
+import {
+  serializeCharacter,
+  deserializeCharacter,
+  serializeRelationships,
+  deserializeRelationships,
+  serializeEvents,
+  deserializeEvents,
+} from "./save";
+import { RelationshipTracker } from "./relationshipTracker";
+import { MemoryStore, defaultSocialEvent } from "./memory";
+import { loadGolden } from "./__golden__/loadGolden";
+
+// ────────────────────────────────────────────────────────────────────────────
+// 샘플 캐릭터 — Python dump_golden._sample_character()와 1:1 (모든 섹션 비기본값).
+// ────────────────────────────────────────────────────────────────────────────
+function sampleChar(): Character {
+  const c = defaultCharacter(7, "민지");
+  c.profile.birthday = "07-15";
+  c.profile.blood_type = "A";
+  c.profile.favorite_color = "#FF8800";
+  c.profile.gender = "여";
+  c.profile.appearance = {
+    face_shape: 3,
+    skin_color: "#F5D6B8",
+    eye: { base: 2, lash: 1, color: "#3A2A1A", adjust: { spacing: 1, height: -2, size: 3, angle: -1 } },
+    eyebrow: { id: 4, adjust: { spacing: 0, height: 1, size: -1, angle: 2 } },
+    nose: { id: 2, adjust: { spacing: 0, height: 2, size: -1, angle: 0 } },
+    mouth: { id: 5, adjust: { spacing: 0, height: -1, size: 1, angle: 0 } },
+    hair: { front: 3, back: 2, color: "#5B3A1A" },
+    glasses: 2,
+    body: { height: 6, build: 4 },
+  };
+  c.profile.personality = { movement: 8, speech: 8, expressiveness: 7, attitude: 5, overall: 6 };
+  c.profile.voice = {
+    preset: "bright", pitch: 7, speed: 4, quality: "clear",
+    tone: "warm", accent: null, intonation: "rising",
+  };
+  c.preferences = {
+    food_ranks: [3, 1, 2],
+    food_eaten: [true, false, true],
+    clothing: { likes: "원피스", dislikes: "정장" },
+    interior: { likes: "식물", dislikes: "금속" },
+    personality_group: { group: "활발", is_positive: true },
+  };
+  c.state = {
+    satisfaction: 72,
+    level: 3,
+    hunger: 20,
+    mood: { happiness: 7, energy: 6, stress: 3 },
+    sick: "감기",
+    current_location: "cafe",
+    current_outfit: 11,
+    current_interior: 22,
+    photo_frame: 5,
+  };
+  c.customizable = {
+    speech_habits: { normal: "~지", happy: "개좋아", angry: "아오", sad: "흑", worried: "음..." },
+    mini_traits: {
+      walking: { owned: [1, 2], active: 1 },
+      eating: { owned: [3], active: null },
+      idle: { owned: [], active: null },
+    },
+    nicknames: { "2": "민지짱" },
+    songs: [true, false, true, false, false, false, false, false],
+  };
+  c.records = {
+    treasure_collection: [1, 5, 9],
+    confession_count: { "2": 1 },
+    photos: [10, 20],
+  };
+  return c;
+}
+
+describe("serializeCharacter (골든, _serialize_character 1:1)", () => {
+  it("샘플 캐릭터 직렬화가 골든과 일치", () => {
+    const golden = loadGolden<string, Record<string, unknown>>("save_character")[0];
+    expect(serializeCharacter(sampleChar())).toEqual(golden.expected);
+  });
+
+  it("nose/mouth adjust는 {height,size}만 (spacing/angle 생략)", () => {
+    const out = serializeCharacter(sampleChar()) as any;
+    expect(Object.keys(out.profile.appearance.nose.adjust).sort()).toEqual(["height", "size"]);
+    expect(Object.keys(out.profile.appearance.mouth.adjust).sort()).toEqual(["height", "size"]);
+  });
+
+  it("eye/eyebrow adjust는 4필드 모두", () => {
+    const out = serializeCharacter(sampleChar()) as any;
+    expect(Object.keys(out.profile.appearance.eye.adjust).sort()).toEqual(
+      ["angle", "height", "size", "spacing"],
+    );
+    expect(Object.keys(out.profile.appearance.eyebrow.adjust).sort()).toEqual(
+      ["angle", "height", "size", "spacing"],
+    );
+  });
+
+  it("personality_code는 슬라이더에서 런타임 계산되어 포함됨", () => {
+    const out = serializeCharacter(sampleChar()) as any;
+    expect(out.personality_code).toBe("outgoing_buddy");
+  });
+
+  it("default 캐릭터: nullable 필드(null)와 빈 컬렉션을 그대로 직렬화", () => {
+    const out = serializeCharacter(defaultCharacter(1, "기본")) as any;
+    // nullable 필드는 null 통과 (Python None)
+    expect(out.profile.appearance.glasses).toBeNull();
+    expect(out.profile.voice.accent).toBeNull();
+    expect(out.state.sick).toBeNull();
+    expect(out.state.current_outfit).toBeNull();
+    expect(out.state.current_interior).toBeNull();
+    expect(out.state.photo_frame).toBeNull();
+    expect(out.customizable.mini_traits.idle.active).toBeNull();
+    // 빈 컬렉션 그대로
+    expect(out.preferences.food_ranks).toEqual([]);
+    expect(out.records.treasure_collection).toEqual([]);
+    expect(out.records.confession_count).toEqual({});
+    expect(out.customizable.nicknames).toEqual({});
+  });
+
+  it("직렬화 최상위 키 셋 = id/personality_code/profile/preferences/state/customizable/records", () => {
+    const out = serializeCharacter(sampleChar());
+    expect(Object.keys(out).sort()).toEqual(
+      ["customizable", "id", "personality_code", "preferences", "profile", "records", "state"],
+    );
+    // 레거시 flat 필드는 직렬화하지 않음
+    expect(out).not.toHaveProperty("food_preferences");
+    expect(out).not.toHaveProperty("mini_personality");
+  });
+});
+
+describe("deserializeCharacter (Character(**data) 의미)", () => {
+  it("golden → Character → 재직렬화가 golden과 동일 (라운드트립 안정)", () => {
+    const golden = loadGolden<string, Record<string, unknown>>("save_character")[0];
+    const char = deserializeCharacter(golden.expected!);
+    expect(serializeCharacter(char)).toEqual(golden.expected);
+  });
+
+  it("deserialize(serialize(c))는 원본과 동치", () => {
+    const c = sampleChar();
+    const back = deserializeCharacter(serializeCharacter(c));
+    expect(serializeCharacter(back)).toEqual(serializeCharacter(c));
+  });
+
+  it("레거시 flat 필드는 기본값으로 채움 (personality_code는 저장 안 함)", () => {
+    const golden = loadGolden<string, Record<string, unknown>>("save_character")[0];
+    const char = deserializeCharacter(golden.expected!);
+    expect(char.food_preferences).toEqual({});
+    expect(char.clothing_preferences).toEqual({});
+    expect(char.mini_personality).toEqual([]);
+    // personality_code는 Character 인터페이스에 없음 (런타임 계산)
+    expect(char).not.toHaveProperty("personality_code");
+  });
+
+  it("누락 섹션은 default로 채움 (id/profile만 줘도 복원)", () => {
+    const char = deserializeCharacter({ id: 9, profile: { name: "최소" } });
+    expect(char.id).toBe(9);
+    expect(char.profile.name).toBe("최소");
+    expect(char.state.satisfaction).toBe(50); // defaultCharacterState
+    expect(char.customizable.songs.length).toBe(8);
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// 샘플 트래커 — Python dump_golden.dump_save_relationships()와 1:1 (public API 구성).
+// ────────────────────────────────────────────────────────────────────────────
+function sampleTracker(): RelationshipTracker {
+  const tr = new RelationshipTracker();
+  // pairs (방향 있음): get()이 반환하는 저장 참조를 in-place 세팅
+  const r12 = tr.get(1, 2);
+  r12.friendship = 65;
+  r12.romance = 40;
+  r12.stage = "lover";
+  const r21 = tr.get(2, 1);
+  r21.friendship = 60;
+  r21.romance = 35;
+  r21.stage = "friend";
+  const r34 = tr.get(3, 4);
+  r34.friendship = -55;
+  r34.romance = 0;
+  r34.stage = "stranger";
+  // slots
+  const s1 = tr.getSlots(1);
+  s1.lover = 2;
+  const s3 = tr.getSlots(3);
+  s3.enemy = 4;
+  // ex-lover tags
+  tr.addExLoverTag(1, 5, "fight", 3);
+  tr.addExLoverTag(1, 6, "boredom", 7);
+  // fights — 두 번째 resolved=true (전체 읽기 검증)
+  tr.addFight({ participants: [1, 2], cause: "오해", resolved: false, witnessed_by_player: true });
+  tr.addFight({ participants: [3, 4], cause: "질투", resolved: true, witnessed_by_player: false });
+  return tr;
+}
+
+describe("serializeRelationships (골든, _serialize_relationships 1:1)", () => {
+  it("샘플 트래커 직렬화가 골든과 일치", () => {
+    const golden = loadGolden<string, Record<string, unknown>>("save_relationships")[0];
+    expect(serializeRelationships(sampleTracker())).toEqual(golden.expected);
+  });
+
+  it("fights는 resolved=true 포함 전체를 직렬화 (getFights 미해결-only와 구분)", () => {
+    const out = serializeRelationships(sampleTracker()) as any;
+    expect(out.fights.length).toBe(2);
+    expect(out.fights.map((f: any) => f.resolved)).toEqual([false, true]);
+    // getFights는 미해결만 → 직렬화에 쓰면 안 됨을 대조
+    expect(sampleTracker().getFights().length).toBe(1);
+  });
+
+  it("pair 키는 콜론 'a:b' 형식 (내부 콤마 키와 무관)", () => {
+    const out = serializeRelationships(sampleTracker()) as any;
+    expect(Object.keys(out.pairs).sort()).toEqual(["1:2", "2:1", "3:4"]);
+  });
+
+  it("빈 트래커는 빈 컬렉션들", () => {
+    const out = serializeRelationships(new RelationshipTracker()) as any;
+    expect(out).toEqual({ pairs: {}, slots: {}, ex_lover_tags: {}, fights: [] });
+  });
+});
+
+describe("deserializeRelationships (Python _deserialize_relationships 1:1)", () => {
+  it("golden → tracker → 재직렬화가 golden과 동일 (라운드트립 안정)", () => {
+    const golden = loadGolden<string, Record<string, unknown>>("save_relationships")[0];
+    const tr = deserializeRelationships(golden.expected!);
+    expect(serializeRelationships(tr)).toEqual(golden.expected);
+  });
+
+  it("deserialize(serialize(t))는 원본과 동치", () => {
+    const tr = sampleTracker();
+    const back = deserializeRelationships(serializeRelationships(tr));
+    expect(serializeRelationships(back)).toEqual(serializeRelationships(tr));
+  });
+
+  it("복원된 pair는 방향별 friendship/romance/stage 정확", () => {
+    const golden = loadGolden<string, Record<string, unknown>>("save_relationships")[0];
+    const tr = deserializeRelationships(golden.expected!);
+    expect(tr.get(1, 2)).toEqual({ friendship: 65, romance: 40, stage: "lover" });
+    expect(tr.get(2, 1)).toEqual({ friendship: 60, romance: 35, stage: "friend" });
+  });
+
+  it("누락 필드는 default(null/false)로 복원, 빈 입력은 빈 트래커", () => {
+    const tr = deserializeRelationships({
+      slots: { "9": { lover: 8 } }, // best_friend/enemy 생략
+      fights: [{ participants: [1, 2], cause: "x" }], // resolved/witnessed 생략
+    });
+    expect(tr.getSlots(9)).toEqual({ best_friend: null, lover: 8, enemy: null });
+    expect(tr.allFightsRaw()[0]).toEqual({
+      participants: [1, 2],
+      cause: "x",
+      resolved: false,
+      witnessed_by_player: false,
+    });
+    const empty = deserializeRelationships({});
+    expect(serializeRelationships(empty)).toEqual({ pairs: {}, slots: {}, ex_lover_tags: {}, fights: [] });
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// 샘플 MemoryStore — Python dump_golden.dump_save_events()와 1:1.
+// ────────────────────────────────────────────────────────────────────────────
+function sampleStore(): MemoryStore {
+  const store = new MemoryStore();
+  store.addEvent(defaultSocialEvent({
+    id: 1, type: "marriage", participants: [1, 2], day: 3,
+    time: "아침", location: "공원", reason: "사랑", result: "결혼 성공",
+  }));
+  store.addEvent(defaultSocialEvent({
+    id: 2, type: "fight", participants: [1, 2], day: 5, location: "카페", result: "화해",
+  }));
+  store.addEvent(defaultSocialEvent({ id: 3, type: "conversation", participants: [1], day: 7 }));
+  return store;
+}
+
+describe("serializeEvents (골든, _serialize_events 1:1)", () => {
+  it("샘플 스토어 직렬화가 골든과 일치", () => {
+    const golden = loadGolden<string, Record<string, unknown>[]>("save_events")[0];
+    expect(serializeEvents(sampleStore())).toEqual(golden.expected);
+  });
+
+  it("null 필드(time/location/reason/result)는 키 자체를 생략", () => {
+    const out = serializeEvents(sampleStore());
+    // event 2: time/reason 생략, location/result 유지
+    expect(out[1]).not.toHaveProperty("time");
+    expect(out[1]).not.toHaveProperty("reason");
+    expect(out[1]).toHaveProperty("location");
+    expect(out[1]).toHaveProperty("result");
+    // event 3: 4개 옵션 필드 전부 생략
+    expect(Object.keys(out[2]).sort()).toEqual(["day", "id", "participants", "type"]);
+  });
+
+  it("빈 스토어는 빈 배열", () => {
+    expect(serializeEvents(new MemoryStore())).toEqual([]);
+  });
+});
+
+describe("deserializeEvents (Python _deserialize_events 1:1)", () => {
+  it("golden → store → 재직렬화가 golden과 동일 (라운드트립 안정)", () => {
+    const golden = loadGolden<string, Record<string, unknown>[]>("save_events")[0];
+    const store = deserializeEvents(golden.expected!);
+    expect(serializeEvents(store)).toEqual(golden.expected);
+  });
+
+  it("deserialize(serialize(s))는 원본과 동치", () => {
+    const store = sampleStore();
+    const back = deserializeEvents(serializeEvents(store));
+    expect(serializeEvents(back)).toEqual(serializeEvents(store));
+  });
+
+  it("생략된 옵션 필드는 null로 복원, id 보존(id≠0)", () => {
+    const store = deserializeEvents([
+      { id: 42, type: "donation", participants: [], day: 1 },
+    ]);
+    const all = store.allEvents();
+    expect(all.length).toBe(1);
+    expect(all[0]).toEqual({
+      id: 42, type: "donation", participants: [], day: 1,
+      time: null, location: null, reason: null, result: null,
+    });
+  });
+});
