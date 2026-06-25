@@ -757,6 +757,90 @@ def dump_game_state() -> None:
     )
 
 
+def _sample_character():
+    """직렬화/라운드트립 골든용 샘플 캐릭터 (모든 섹션 비기본값).
+
+    TS 테스트는 이 동일 캐릭터를 defaultCharacter + 명시적 override로 재구성한다.
+    슬라이더(8/8/7/5)는 personality_code 계산을 위해 고정.
+    """
+    from tomodachai.character import (
+        Appearance, AppearanceAdjust, Body, Character, CharacterState,
+        ClothingPreference, Customizable, Eye, Eyebrow, Hair, InteriorPreference,
+        MiniTrait, MiniTraits, Mood, Mouth, Nose, Personality, PersonalityGroup,
+        Preferences, Profile, Records, SpeechHabits, Voice,
+    )
+
+    return Character(
+        id=7,
+        profile=Profile(
+            name="민지",
+            birthday="07-15",
+            blood_type="A",
+            favorite_color="#FF8800",
+            gender="여",
+            appearance=Appearance(
+                face_shape=3,
+                skin_color="#F5D6B8",
+                eye=Eye(base=2, lash=1, color="#3A2A1A",
+                        adjust=AppearanceAdjust(spacing=1, height=-2, size=3, angle=-1)),
+                eyebrow=Eyebrow(id=4, adjust=AppearanceAdjust(spacing=0, height=1, size=-1, angle=2)),
+                nose=Nose(id=2, adjust=AppearanceAdjust(spacing=0, height=2, size=-1, angle=0)),
+                mouth=Mouth(id=5, adjust=AppearanceAdjust(spacing=0, height=-1, size=1, angle=0)),
+                hair=Hair(front=3, back=2, color="#5B3A1A"),
+                glasses=2,
+                body=Body(height=6, build=4),
+            ),
+            personality=Personality(movement=8, speech=8, expressiveness=7, attitude=5, overall=6),
+            voice=Voice(preset="bright", pitch=7, speed=4, quality="clear",
+                        tone="warm", accent=None, intonation="rising"),
+        ),
+        preferences=Preferences(
+            food_ranks=[3, 1, 2],
+            food_eaten=[True, False, True],
+            clothing=ClothingPreference(likes="원피스", dislikes="정장"),
+            interior=InteriorPreference(likes="식물", dislikes="금속"),
+            personality_group=PersonalityGroup(group="활발", is_positive=True),
+        ),
+        state=CharacterState(
+            satisfaction=72,
+            level=3,
+            hunger=20,
+            mood=Mood(happiness=7, energy=6, stress=3),
+            sick="감기",
+            current_location="cafe",
+            current_outfit=11,
+            current_interior=22,
+            photo_frame=5,
+        ),
+        customizable=Customizable(
+            speech_habits=SpeechHabits(normal="~지", happy="개좋아", angry="아오", sad="흑", worried="음..."),
+            mini_traits=MiniTraits(
+                walking=MiniTrait(owned=[1, 2], active=1),
+                eating=MiniTrait(owned=[3], active=None),
+                idle=MiniTrait(owned=[], active=None),
+            ),
+            nicknames={"2": "민지짱"},
+            songs=[True, False, True, False, False, False, False, False],
+        ),
+        records=Records(
+            treasure_collection=[1, 5, 9],
+            confession_count={"2": 1},
+            photos=[10, 20],
+        ),
+    )
+
+
+def dump_save_character() -> None:
+    """_serialize_character 골든 — TS serializeCharacter와 1:1.
+
+    라운드트립(deserialize∘serialize)은 TS 단위테스트가 담당(순수 TS 불변식).
+    """
+    from tomodachai.save import _serialize_character
+
+    char = _sample_character()
+    _write("save_character", [{"input": "sample", "expected": _serialize_character(char)}])
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -775,6 +859,7 @@ def main() -> None:
     dump_event_summary()
     dump_config()
     dump_game_state()
+    dump_save_character()
 
 
 if __name__ == "__main__":
