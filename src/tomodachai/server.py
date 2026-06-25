@@ -16,6 +16,7 @@ from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
 from tomodachai.api.routes import _event_to_out, _ws_clients, router, set_game_state
+from tomodachai.api.snapshot_routes import compat_router
 from tomodachai.config import load_config
 from tomodachai.game_state import GameState
 from tomodachai.time_system import (
@@ -108,6 +109,7 @@ def create_app(config_path: Path | None = None) -> FastAPI:
 
     set_game_state(game)
     app.include_router(router, prefix="/api")
+    app.include_router(compat_router, prefix="/api")
     _register_realtime_routes(app, game)
 
     return app

@@ -1,4 +1,4 @@
-from tomodachai.character import Character, calculate_zodiac
+from tomodachai.character import Character, Mood, calculate_zodiac
 
 
 def test_character_creation():
@@ -118,3 +118,47 @@ def test_personality_group_in_preferences():
     c = Character(id="1", name="A", preferences=prefs)
     assert c.preferences.personality_group.group == "steady"
     assert c.preferences.personality_group.is_positive is True
+
+
+def test_mood_label_stressed():
+    assert Mood(happiness=5, energy=6, stress=8).label() == "짜증남"
+    assert Mood(happiness=5, energy=3, stress=8).label() == "지침"
+    assert Mood(happiness=5, energy=6, stress=7).label() == "짜증남"
+
+
+def test_mood_label_happy():
+    assert Mood(happiness=8, energy=7, stress=2).label() == "신남"
+    assert Mood(happiness=8, energy=4, stress=2).label() == "흐뭇함"
+    assert Mood(happiness=7, energy=7, stress=2).label() == "신남"
+
+
+def test_mood_label_sad():
+    assert Mood(happiness=2, energy=3, stress=2).label() == "우울함"
+    assert Mood(happiness=2, energy=6, stress=2).label() == "심술남"
+
+
+def test_mood_label_tired_and_calm():
+    assert Mood(happiness=5, energy=2, stress=2).label() == "나른함"
+    assert Mood(happiness=5, energy=5, stress=2).label() == "평온함"
+
+
+def test_mood_adjust_within_range():
+    m = Mood(happiness=5, energy=5, stress=2)
+    m.adjust(happiness=2, energy=1, stress=1)
+    assert (m.happiness, m.energy, m.stress) == (7, 6, 3)
+
+
+def test_mood_adjust_clamps_0_10():
+    m = Mood(happiness=9, energy=1, stress=9)
+    m.adjust(happiness=5, energy=-5, stress=5)
+    assert m.happiness == 10
+    assert m.energy == 0
+    assert m.stress == 10
+
+
+def test_mood_adjust_rounds_floats():
+    m = Mood(happiness=5, energy=5, stress=5)
+    m.adjust(happiness=2.5, energy=0.3, stress=-1.5)
+    assert m.happiness == round(7.5)
+    assert m.energy == round(5.3)
+    assert m.stress == round(3.5)

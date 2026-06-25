@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { viewMode } from "../lib/store";
+  import { viewMode, roomName } from "../lib/store";
   import { setView } from "../lib/village";
 </script>
 
-{#if $viewMode === "interior"}
-  <button id="exitbtn" on:click={() => setView("village")}>🏡 마을로 나가기</button>
+{#if $viewMode !== "village"}
+  <button id="exitbtn" on:click={() => setView("village")}
+    >🏡 마을로 나가기{#if $viewMode === "room" && $roomName} · {$roomName}의 방{/if}</button>
 {/if}
