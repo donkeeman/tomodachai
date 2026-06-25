@@ -29,6 +29,7 @@ import configDefaultsCases from "./config_defaults.json";
 import gameStateDefaultsCases from "./game_state_defaults.json";
 import saveCharacterCases from "./save_character.json";
 import saveRelationshipsCases from "./save_relationships.json";
+import saveEventsCases from "./save_events.json";
 
 export interface GoldenCase<I = unknown, E = unknown> {
   input: I;
@@ -67,6 +68,7 @@ const REGISTRY: Record<string, GoldenCase<unknown, unknown>[]> = {
   game_state_defaults: gameStateDefaultsCases as GoldenCase[],
   save_character: saveCharacterCases as GoldenCase[],
   save_relationships: saveRelationshipsCases as GoldenCase[],
+  save_events: saveEventsCases as GoldenCase[],
 };
 
 export function loadGolden<I = unknown, E = unknown>(name: string): GoldenCase<I, E>[] {

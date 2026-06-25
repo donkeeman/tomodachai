@@ -81,4 +81,12 @@ export class MemoryStore {
     relevant.sort((a, b) => b.day - a.day);
     return relevant.slice(0, limit);
   }
+
+  /**
+   * 저장된 모든 이벤트를 삽입 순서대로 반환(복사본).
+   * 직렬화(save.py _serialize_events가 memory._events 전체를 읽음) 전용 additive accessor.
+   */
+  allEvents(): SocialEvent[] {
+    return [...this._events];
+  }
 }

@@ -878,6 +878,30 @@ def dump_save_relationships() -> None:
     _write("save_relationships", [{"input": "sample", "expected": _serialize_relationships(tr)}])
 
 
+def dump_save_events() -> None:
+    """_serialize_events 골든 — TS serializeEvents와 1:1.
+
+    None 필드 조건부 생략(time/location/reason/result)을 케이스별로 검증.
+    add_event는 id 보존(id≠0)이라 직렬화 id가 입력과 동일.
+    """
+    from tomodachai.memory import MemoryStore, SocialEvent
+    from tomodachai.save import _serialize_events
+
+    store = MemoryStore()
+    # 전체 필드
+    store.add_event(SocialEvent(
+        id=1, type="marriage", participants=[1, 2], day=3,
+        time="아침", location="공원", reason="사랑", result="결혼 성공"))
+    # 일부 None (location/result만)
+    store.add_event(SocialEvent(
+        id=2, type="fight", participants=[1, 2], day=5,
+        location="카페", result="화해"))
+    # 전부 None (type/participants/day만)
+    store.add_event(SocialEvent(id=3, type="conversation", participants=[1], day=7))
+
+    _write("save_events", [{"input": "sample", "expected": _serialize_events(store)}])
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -898,6 +922,7 @@ def main() -> None:
     dump_game_state()
     dump_save_character()
     dump_save_relationships()
+    dump_save_events()
 
 
 if __name__ == "__main__":

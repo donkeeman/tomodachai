@@ -12,6 +12,7 @@ import {
 import { characterPersonalityCode } from "./characterAccessors";
 import type { BreakupReason, RelationshipStage } from "./relationship";
 import { RelationshipTracker } from "./relationshipTracker";
+import { MemoryStore, type SocialEvent } from "./memory";
 
 // ---------------------------------------------------------------------------
 // 직렬화 — Character → char_{id}.json mock format
@@ -278,4 +279,47 @@ export function deserializeRelationships(data: Record<string, unknown>): Relatio
   }
 
   return tracker;
+}
+
+// ---------------------------------------------------------------------------
+// 직렬화 — MemoryStore (events 전체, None 필드 조건부 생략)
+// ---------------------------------------------------------------------------
+
+/** Python _serialize_events — 전체 이벤트, time/location/reason/result는 null이면 키 생략. */
+export function serializeEvents(memory: MemoryStore): Record<string, unknown>[] {
+  return memory.allEvents().map((e) => {
+    const item: Record<string, unknown> = {
+      id: e.id,
+      type: e.type,
+      participants: e.participants,
+      day: e.day,
+    };
+    if (e.time !== null) item.time = e.time;
+    if (e.location !== null) item.location = e.location;
+    if (e.reason !== null) item.reason = e.reason;
+    if (e.result !== null) item.result = e.result;
+    return item;
+  });
+}
+
+/**
+ * Python _deserialize_events — 새 MemoryStore에 add_event로 복원.
+ * 생략된 필드는 null(SocialEvent 기본값). id≠0이라 add_event가 id 보존.
+ */
+export function deserializeEvents(data: Record<string, unknown>[]): MemoryStore {
+  const store = new MemoryStore();
+  for (const item of data) {
+    const e: SocialEvent = {
+      id: item.id as number,
+      type: item.type as string,
+      participants: item.participants as number[],
+      day: item.day as number,
+      time: (item.time as string | undefined) ?? null,
+      location: (item.location as string | undefined) ?? null,
+      reason: (item.reason as string | undefined) ?? null,
+      result: (item.result as string | undefined) ?? null,
+    };
+    store.addEvent(e);
+  }
+  return store;
 }

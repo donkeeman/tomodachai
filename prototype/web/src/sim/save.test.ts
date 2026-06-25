@@ -5,8 +5,11 @@ import {
   deserializeCharacter,
   serializeRelationships,
   deserializeRelationships,
+  serializeEvents,
+  deserializeEvents,
 } from "./save";
 import { RelationshipTracker } from "./relationshipTracker";
+import { MemoryStore, defaultSocialEvent } from "./memory";
 import { loadGolden } from "./__golden__/loadGolden";
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -248,5 +251,69 @@ describe("deserializeRelationships (Python _deserialize_relationships 1:1)", () 
     });
     const empty = deserializeRelationships({});
     expect(serializeRelationships(empty)).toEqual({ pairs: {}, slots: {}, ex_lover_tags: {}, fights: [] });
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// 샘플 MemoryStore — Python dump_golden.dump_save_events()와 1:1.
+// ────────────────────────────────────────────────────────────────────────────
+function sampleStore(): MemoryStore {
+  const store = new MemoryStore();
+  store.addEvent(defaultSocialEvent({
+    id: 1, type: "marriage", participants: [1, 2], day: 3,
+    time: "아침", location: "공원", reason: "사랑", result: "결혼 성공",
+  }));
+  store.addEvent(defaultSocialEvent({
+    id: 2, type: "fight", participants: [1, 2], day: 5, location: "카페", result: "화해",
+  }));
+  store.addEvent(defaultSocialEvent({ id: 3, type: "conversation", participants: [1], day: 7 }));
+  return store;
+}
+
+describe("serializeEvents (골든, _serialize_events 1:1)", () => {
+  it("샘플 스토어 직렬화가 골든과 일치", () => {
+    const golden = loadGolden<string, Record<string, unknown>[]>("save_events")[0];
+    expect(serializeEvents(sampleStore())).toEqual(golden.expected);
+  });
+
+  it("null 필드(time/location/reason/result)는 키 자체를 생략", () => {
+    const out = serializeEvents(sampleStore());
+    // event 2: time/reason 생략, location/result 유지
+    expect(out[1]).not.toHaveProperty("time");
+    expect(out[1]).not.toHaveProperty("reason");
+    expect(out[1]).toHaveProperty("location");
+    expect(out[1]).toHaveProperty("result");
+    // event 3: 4개 옵션 필드 전부 생략
+    expect(Object.keys(out[2]).sort()).toEqual(["day", "id", "participants", "type"]);
+  });
+
+  it("빈 스토어는 빈 배열", () => {
+    expect(serializeEvents(new MemoryStore())).toEqual([]);
+  });
+});
+
+describe("deserializeEvents (Python _deserialize_events 1:1)", () => {
+  it("golden → store → 재직렬화가 golden과 동일 (라운드트립 안정)", () => {
+    const golden = loadGolden<string, Record<string, unknown>[]>("save_events")[0];
+    const store = deserializeEvents(golden.expected!);
+    expect(serializeEvents(store)).toEqual(golden.expected);
+  });
+
+  it("deserialize(serialize(s))는 원본과 동치", () => {
+    const store = sampleStore();
+    const back = deserializeEvents(serializeEvents(store));
+    expect(serializeEvents(back)).toEqual(serializeEvents(store));
+  });
+
+  it("생략된 옵션 필드는 null로 복원, id 보존(id≠0)", () => {
+    const store = deserializeEvents([
+      { id: 42, type: "donation", participants: [], day: 1 },
+    ]);
+    const all = store.allEvents();
+    expect(all.length).toBe(1);
+    expect(all[0]).toEqual({
+      id: 42, type: "donation", participants: [], day: 1,
+      time: null, location: null, reason: null, result: null,
+    });
   });
 });
