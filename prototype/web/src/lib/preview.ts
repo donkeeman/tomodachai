@@ -25,9 +25,9 @@ export function initPreview(canvas: HTMLCanvasElement, look: AvatarLook): void {
   scene = new Scene(engine);
   scene.clearColor = new Color4(0, 0, 0, 0); // 투명 — 패널 배경이 비치도록
 
-  // alpha = +π/2 → 캐릭터 정면(얼굴은 +Z)을 기본 시점으로.
-  const cam = new ArcRotateCamera("pcam", Math.PI / 2, 1.16, 5.4, new Vector3(0, 1.1, 0), scene);
-  cam.fov = 0.7;
+  // alpha = +π/2 → 캐릭터 정면(얼굴은 +Z)을 기본 시점으로. radius 를 당겨 캐릭터를 크게.
+  const cam = new ArcRotateCamera("pcam", Math.PI / 2, 1.16, 4.5, new Vector3(0, 1.05, 0), scene);
+  cam.fov = 0.66;
   scene.activeCamera = cam;
   // 사용자가 직접 돌려보도록 — 드래그 회전 + 방향키 회전 + 휠 줌.
   cam.attachControl(canvas, true);
@@ -53,6 +53,15 @@ export function initPreview(canvas: HTMLCanvasElement, look: AvatarLook): void {
   pm.specularColor = new Color3(0, 0, 0);
   podium.material = pm;
   podium.position.y = -0.1;
+
+  // 접지 그림자 — 캐릭터 발밑에 어두운 디스크를 깔아 무대에서 떠 보이지 않게(분홍이 배경에 묻히는 것도 완화).
+  const contact = CreateCylinder("contact", { diameter: 1.25, height: 0.02, tessellation: 36 }, scene);
+  const cm = new StandardMaterial("cm", scene);
+  cm.diffuseColor = new Color3(0, 0, 0);
+  cm.specularColor = new Color3(0, 0, 0);
+  cm.alpha = 0.13;
+  contact.material = cm;
+  contact.position.y = 0.011;
 
   avatar = buildAvatar(scene, look);
   motion = new MotionController(avatar, { idle: "calm" }); // 평소엔 숨쉬듯 미세 보브
