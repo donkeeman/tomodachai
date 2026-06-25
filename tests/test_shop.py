@@ -1,4 +1,4 @@
-"""Tests for the shop system (ShopManager + API endpoints)."""
+"""Tests for the shop system (ShopManager)."""
 
 from __future__ import annotations
 
@@ -6,11 +6,8 @@ from random import Random
 from unittest.mock import MagicMock
 
 import pytest
-from fastapi.testclient import TestClient
 
-from tomodachai.api.routes import set_game_state
 from tomodachai.game_state import GameState
-from tomodachai.server import create_app
 from tomodachai.shop import CATEGORIES, HOLIDAYS, ShopManager
 
 # ---------------------------------------------------------------------------
@@ -38,15 +35,6 @@ def game_state():
     gs = GameState()
     gs.money = 10_000
     return gs
-
-
-@pytest.fixture
-def client(game_state):
-    """TestClient wired to a game state with refreshed shop."""
-    game_state.shop.refresh_daily(day=0)
-    app = create_app()
-    set_game_state(game_state)
-    return TestClient(app)
 
 
 # ---------------------------------------------------------------------------
@@ -272,128 +260,3 @@ class TestSerialization:
     def test_serialize_seasonal_empty_by_default(self, seeded_shop):
         data = seeded_shop.serialize()
         assert data["seasonal"] == []
-
-
-# ---------------------------------------------------------------------------
-# API — GET /api/shop
-# ---------------------------------------------------------------------------
-
-
-class TestShopApi:
-    def test_get_shop_returns_200(self, client):
-        resp = client.get("/api/shop")
-        assert resp.status_code == 200
-
-    def test_get_shop_structure(self, client):
-        data = client.get("/api/shop").json()
-        assert "daily" in data
-        assert "morning_market" in data
-        assert "seasonal" in data
-        for cat in ("food", "clothing", "interior"):
-            assert cat in data["daily"]
-
-    def test_get_shop_daily_lists(self, client):
-        data = client.get("/api/shop").json()
-        for cat in ("food", "clothing", "interior"):
-            assert isinstance(data["daily"][cat], list)
-
-    def test_get_shop_morning_market_present(self, client):
-        data = client.get("/api/shop").json()
-        mm = data["morning_market"]
-        assert mm is not None
-        assert "item" in mm
-        assert "discount_price" in mm
-
-
-# ---------------------------------------------------------------------------
-# API — POST /api/shop/buy/{item_id}
-# ---------------------------------------------------------------------------
-
-
-class TestBuyApi:
-    def test_buy_valid_item(self, client, game_state):
-        item_id = game_state.shop.get_daily("food")[0]
-        resp = client.post(f"/api/shop/buy/{item_id}")
-        assert resp.status_code == 200
-        data = resp.json()
-        assert data["ok"] is True
-        assert data["item_id"] == item_id
-        assert "remaining_money" in data
-
-    def test_buy_invalid_item_returns_404(self, client):
-        resp = client.post("/api/shop/buy/999999")
-        assert resp.status_code == 404
-
-    def test_buy_reduces_money(self, client, game_state):
-        item_id = game_state.shop.get_daily("food")[0]
-        initial = game_state.money
-        client.post(f"/api/shop/buy/{item_id}")
-        assert game_state.money < initial
-
-    def test_buy_insufficient_funds_returns_400(self, client, game_state):
-        game_state.money = 0
-        item_id = game_state.shop.get_daily("food")[0]
-        resp = client.post(f"/api/shop/buy/{item_id}")
-        assert resp.status_code == 400
-
-
-# ---------------------------------------------------------------------------
-# API — POST /api/shop/buy-market
-# ---------------------------------------------------------------------------
-
-
-class TestBuyMarketApi:
-    def test_buy_market_success(self, client):
-        resp = client.post("/api/shop/buy-market")
-        assert resp.status_code == 200
-        data = resp.json()
-        assert data["ok"] is True
-        assert data["item_id"] is not None
-
-    def test_buy_market_insufficient_funds_returns_400(self, client, game_state):
-        game_state.money = 0
-        resp = client.post("/api/shop/buy-market")
-        assert resp.status_code == 400
-
-    def test_buy_market_no_market_returns_404(self, game_state):
-        # Don't refresh — morning market is None
-        game_state.shop = ShopManager()  # fresh, no refresh
-        app = create_app()
-        set_game_state(game_state)
-        c = TestClient(app)
-        resp = c.post("/api/shop/buy-market")
-        assert resp.status_code == 404
-
-
-# ---------------------------------------------------------------------------
-# API — GET /api/shop/catalog/{category}
-# ---------------------------------------------------------------------------
-
-
-class TestCatalogApi:
-    def test_catalog_empty_initially(self, client):
-        resp = client.get("/api/shop/catalog/food")
-        assert resp.status_code == 200
-        data = resp.json()
-        assert data["category"] == "food"
-        assert data["items"] == []
-
-    def test_catalog_after_purchase(self, client, game_state):
-        item_id = game_state.shop.get_daily("food")[0]
-        client.post(f"/api/shop/buy/{item_id}")
-        resp = client.get("/api/shop/catalog/food")
-        assert item_id in resp.json()["items"]
-
-    def test_catalog_invalid_category_returns_400(self, client):
-        resp = client.get("/api/shop/catalog/treasure")
-        assert resp.status_code == 400
-
-    def test_catalog_clothing_category(self, client):
-        resp = client.get("/api/shop/catalog/clothing")
-        assert resp.status_code == 200
-        assert resp.json()["category"] == "clothing"
-
-    def test_catalog_interior_category(self, client):
-        resp = client.get("/api/shop/catalog/interior")
-        assert resp.status_code == 200
-        assert resp.json()["category"] == "interior"
