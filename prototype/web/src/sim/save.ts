@@ -230,6 +230,10 @@ export function serializeRelationships(tracker: RelationshipTracker): Record<str
  * (Simulation.relationships readonly)에 직접 주입하기 위해 분리.
  * pair 키 "a:b"(콜론) split, slots/fights 누락 필드는 Python .get default(null/false) 미러.
  * pairs는 get()으로 default 생성 후 in-place 세팅(저장 참조 유지).
+ *
+ * Python _deserialize_relationships는 _ex_lover_tags/_relationships를 통째로 교체하지만
+ * 여기선 addExLoverTag/get()-mutate로 누적한다. 둘은 tracker가 빈 경우에만 동치 —
+ * readSlot의 주입 시점은 새 Simulation(빈 tracker) 직후라 항상 빈 상태가 보장된다.
  */
 export function applyRelationshipsInto(
   tracker: RelationshipTracker,
