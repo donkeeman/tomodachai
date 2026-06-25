@@ -13,6 +13,7 @@ import { characterPersonalityCode } from "./characterAccessors";
 import type { BreakupReason, RelationshipStage } from "./relationship";
 import { RelationshipTracker } from "./relationshipTracker";
 import { MemoryStore, type SocialEvent } from "./memory";
+import { GameState, type GameStateDeps } from "./gameState";
 
 // ---------------------------------------------------------------------------
 // 직렬화 — Character → char_{id}.json mock format
@@ -225,13 +226,15 @@ export function serializeRelationships(tracker: RelationshipTracker): Record<str
 }
 
 /**
- * Python _deserialize_relationships — 새 tracker에 복원.
+ * 직렬화 데이터를 기존 tracker에 in-place 적용. load 시 GameState의 live tracker
+ * (Simulation.relationships readonly)에 직접 주입하기 위해 분리.
  * pair 키 "a:b"(콜론) split, slots/fights 누락 필드는 Python .get default(null/false) 미러.
  * pairs는 get()으로 default 생성 후 in-place 세팅(저장 참조 유지).
  */
-export function deserializeRelationships(data: Record<string, unknown>): RelationshipTracker {
-  const tracker = new RelationshipTracker();
-
+export function applyRelationshipsInto(
+  tracker: RelationshipTracker,
+  data: Record<string, unknown>,
+): void {
   const pairs = (data.pairs ?? {}) as Record<string, { friendship: number; romance: number; stage: string }>;
   for (const [key, relData] of Object.entries(pairs)) {
     const [aStr, bStr] = key.split(":");
@@ -277,7 +280,12 @@ export function deserializeRelationships(data: Record<string, unknown>): Relatio
       witnessed_by_player: f.witnessed_by_player ?? false,
     });
   }
+}
 
+/** Python _deserialize_relationships — 새 tracker에 복원. */
+export function deserializeRelationships(data: Record<string, unknown>): RelationshipTracker {
+  const tracker = new RelationshipTracker();
+  applyRelationshipsInto(tracker, data);
   return tracker;
 }
 
@@ -303,11 +311,11 @@ export function serializeEvents(memory: MemoryStore): Record<string, unknown>[] 
 }
 
 /**
- * Python _deserialize_events — 새 MemoryStore에 add_event로 복원.
+ * 직렬화 데이터를 기존 store에 add_event로 적용. load 시 GameState의 live memory
+ * (Simulation.memory readonly)에 직접 주입하기 위해 분리.
  * 생략된 필드는 null(SocialEvent 기본값). id≠0이라 add_event가 id 보존.
  */
-export function deserializeEvents(data: Record<string, unknown>[]): MemoryStore {
-  const store = new MemoryStore();
+export function applyEventsInto(store: MemoryStore, data: Record<string, unknown>[]): void {
   for (const item of data) {
     const e: SocialEvent = {
       id: item.id as number,
@@ -321,5 +329,269 @@ export function deserializeEvents(data: Record<string, unknown>[]): MemoryStore 
     };
     store.addEvent(e);
   }
+}
+
+/** Python _deserialize_events — 새 MemoryStore에 add_event로 복원. */
+export function deserializeEvents(data: Record<string, unknown>[]): MemoryStore {
+  const store = new MemoryStore();
+  applyEventsInto(store, data);
   return store;
+}
+
+// ===========================================================================
+// SaveManager — 슬롯 관리. 파일시스템은 주입형 SaveFs seam(Tauri fs는 후속).
+// 결정론 로직(슬롯검증/원자적 조립/스테일 제거/메타)만 단위검증, 시각=주입 nowFn.
+// ===========================================================================
+
+export const NUM_SLOTS = 3;
+const TEMP_DIR = "_temp";
+const META_FILE = "meta.json";
+
+/** Python SlotInfo(pydantic) 미러. */
+export interface SlotInfo {
+  slot: number;
+  exists: boolean;
+  island_name: string;
+  day_count: number;
+  last_saved: string; // ISO 8601
+}
+
+/**
+ * 파일시스템 추상화 seam. Python의 Path/shutil 연산을 주입형으로 대체.
+ * 경로는 "/" 구분 문자열. 구현(실 Tauri fs / 인메모리 stub)이 JSON 포맷·원자성을 담당.
+ */
+export interface SaveFs {
+  exists(path: string): boolean;
+  /** 누락 시 throw. */
+  readJson(path: string): unknown;
+  /** 부모 디렉터리 자동 생성(Python _write_json의 parent.mkdir). */
+  writeJson(path: string, data: unknown): void;
+  /** 디렉터리 생성(parents=True, exist_ok=True). */
+  mkdirp(path: string): void;
+  /** 파일/디렉터리 재귀 삭제. 없으면 no-op(Python rmtree/unlink missing_ok). */
+  remove(path: string): void;
+  rename(src: string, dst: string): void;
+  /** dir의 직속 *.json 파일 base 이름 목록. dir 없으면 []. */
+  listJsonFiles(dir: string): string[];
+}
+
+function joinPath(...parts: string[]): string {
+  return parts.join("/");
+}
+
+/** "1.json" → "1" (Python Path.stem). */
+function jsonStem(name: string): string {
+  return name.replace(/\.json$/, "");
+}
+
+export interface SaveManagerDeps {
+  fs: SaveFs;
+  /** load로 GameState 재구성 시 주입(llm/rng/nowFn). */
+  gameStateDeps: GameStateDeps;
+  /** 메타의 last_saved 타임스탬프(ISO). Python datetime.now(utc).isoformat() 대체 seam. */
+  nowFn: () => string;
+  /** 세이브 루트. 기본 "saves". */
+  saveDir?: string;
+}
+
+export class SaveManager {
+  private readonly fs: SaveFs;
+  private readonly gameStateDeps: GameStateDeps;
+  private readonly nowFn: () => string;
+  readonly saveDir: string;
+
+  constructor(deps: SaveManagerDeps) {
+    this.fs = deps.fs;
+    this.gameStateDeps = deps.gameStateDeps;
+    this.nowFn = deps.nowFn;
+    this.saveDir = deps.saveDir ?? "saves";
+  }
+
+  // ---- 경로/검증 -----------------------------------------------------------
+
+  private static validateSlot(slot: number): void {
+    if (slot < 1 || slot > NUM_SLOTS) {
+      throw new Error(`slot must be between 1 and ${NUM_SLOTS}, got ${slot}`);
+    }
+  }
+
+  private slotDir(slot: number): string {
+    SaveManager.validateSlot(slot);
+    return joinPath(this.saveDir, `slot_${slot}`);
+  }
+
+  private tempDir(): string {
+    return joinPath(this.saveDir, TEMP_DIR);
+  }
+
+  // ---- 코어 조립/복원 ------------------------------------------------------
+
+  /** slot_dir에 game.json/characters/events.json/relationships.json 기록. */
+  private writeSlot(dir: string, gs: GameState): void {
+    // 1. game.json
+    this.fs.writeJson(joinPath(dir, "game.json"), {
+      island_name: gs.island_name,
+      day_count: gs.day_count,
+      money: gs.money,
+      time_flip: gs.time_flip,
+    });
+
+    // 2. characters/ — 사라진 캐릭터의 스테일 파일 제거 후 기록
+    const charsDir = joinPath(dir, "characters");
+    this.fs.mkdirp(charsDir);
+    const existing = new Set(gs.characters.map((c) => String(c.id)));
+    for (const f of this.fs.listJsonFiles(charsDir)) {
+      if (!existing.has(jsonStem(f))) {
+        this.fs.remove(joinPath(charsDir, f));
+      }
+    }
+    for (const char of gs.characters) {
+      this.fs.writeJson(joinPath(charsDir, `${char.id}.json`), serializeCharacter(char));
+    }
+
+    // 3. events.json
+    this.fs.writeJson(joinPath(dir, "events.json"), serializeEvents(gs.memory));
+
+    // 4. relationships.json
+    this.fs.writeJson(joinPath(dir, "relationships.json"), serializeRelationships(gs.relationships));
+  }
+
+  /** slot_dir에서 GameState 재구성. 손상 파일은 건너뛰고 중단하지 않음. */
+  private readSlot(dir: string): GameState {
+    // 1. game.json
+    const gameData = this.fs.readJson(joinPath(dir, "game.json")) as Record<string, unknown>;
+    const gs = new GameState(this.gameStateDeps, {
+      islandName: (gameData.island_name as string | undefined) ?? "우리 마을",
+      dayCount: (gameData.day_count as number | undefined) ?? 0,
+      money: (gameData.money as number | undefined) ?? 0,
+      timeFlip: (gameData.time_flip as boolean | undefined) ?? false,
+    });
+
+    // 2. characters/ — 정렬된 순서로, 손상 파일은 경고 후 건너뜀
+    const charsDir = joinPath(dir, "characters");
+    if (this.fs.exists(charsDir)) {
+      for (const f of [...this.fs.listJsonFiles(charsDir)].sort()) {
+        try {
+          const charData = this.fs.readJson(joinPath(charsDir, f)) as Record<string, unknown>;
+          gs.addCharacter(deserializeCharacter(charData));
+        } catch (exc) {
+          console.warn(`Skipping corrupted character file ${f}: ${exc}`);
+        }
+      }
+    }
+
+    // 3. events.json — live memory(Simulation.memory readonly)에 in-place 주입
+    const eventsPath = joinPath(dir, "events.json");
+    if (this.fs.exists(eventsPath)) {
+      try {
+        applyEventsInto(gs.memory, this.fs.readJson(eventsPath) as Record<string, unknown>[]);
+      } catch (exc) {
+        console.warn(`Could not restore events: ${exc}`);
+      }
+    }
+
+    // 4. relationships.json — live tracker에 in-place 주입
+    const relPath = joinPath(dir, "relationships.json");
+    if (this.fs.exists(relPath)) {
+      try {
+        applyRelationshipsInto(gs.relationships, this.fs.readJson(relPath) as Record<string, unknown>);
+      } catch (exc) {
+        console.warn(`Could not restore relationships: ${exc}`);
+      }
+    }
+
+    return gs;
+  }
+
+  /** staging에 기록 → 메타 → 원자적 교체(기존 제거 후 rename). 실패 시 staging 정리. */
+  private writeAtomic(target: string, gs: GameState): void {
+    const staging = `${target}.staging`;
+    if (this.fs.exists(staging)) this.fs.remove(staging);
+    try {
+      this.writeSlot(staging, gs);
+      this.fs.writeJson(joinPath(staging, META_FILE), {
+        island_name: gs.island_name,
+        day_count: gs.day_count,
+        last_saved: this.nowFn(),
+      });
+      if (this.fs.exists(target)) this.fs.remove(target);
+      this.fs.rename(staging, target);
+    } catch (exc) {
+      if (this.fs.exists(staging)) this.fs.remove(staging);
+      throw exc;
+    }
+  }
+
+  // ---- Public API ----------------------------------------------------------
+
+  /** slot(1~NUM_SLOTS)에 저장. sibling staging 경유 원자적 기록. */
+  save(slot: number, gs: GameState): void {
+    SaveManager.validateSlot(slot);
+    this.writeAtomic(this.slotDir(slot), gs);
+  }
+
+  /** slot에서 로드. 없으면 throw. */
+  load(slot: number): GameState {
+    SaveManager.validateSlot(slot);
+    const dir = this.slotDir(slot);
+    if (!this.fs.exists(dir)) {
+      throw new Error(`Save slot ${slot} does not exist`);
+    }
+    return this.readSlot(dir);
+  }
+
+  /** 슬롯 1~NUM_SLOTS의 메타 정보. */
+  listSlots(): SlotInfo[] {
+    const result: SlotInfo[] = [];
+    for (let slot = 1; slot <= NUM_SLOTS; slot++) {
+      const dir = this.slotDir(slot);
+      const metaPath = joinPath(dir, META_FILE);
+      if (this.fs.exists(dir) && this.fs.exists(metaPath)) {
+        try {
+          const meta = this.fs.readJson(metaPath) as Record<string, unknown>;
+          result.push({
+            slot,
+            exists: true,
+            island_name: (meta.island_name as string | undefined) ?? "",
+            day_count: (meta.day_count as number | undefined) ?? 0,
+            last_saved: (meta.last_saved as string | undefined) ?? "",
+          });
+          continue;
+        } catch {
+          // 메타 손상 → 미존재로 처리
+        }
+      }
+      result.push({ slot, exists: false, island_name: "", day_count: 0, last_saved: "" });
+    }
+    return result;
+  }
+
+  /** 슬롯 삭제. 없으면 no-op. */
+  deleteSlot(slot: number): void {
+    SaveManager.validateSlot(slot);
+    const dir = this.slotDir(slot);
+    if (this.fs.exists(dir)) this.fs.remove(dir);
+  }
+
+  // ---- Temp (크래시 복구) --------------------------------------------------
+
+  saveTemp(gs: GameState): void {
+    this.writeAtomic(this.tempDir(), gs);
+  }
+
+  hasTempSave(): boolean {
+    return this.fs.exists(joinPath(this.tempDir(), "game.json"));
+  }
+
+  loadTemp(): GameState {
+    if (!this.hasTempSave()) {
+      throw new Error("No crash-recovery save found");
+    }
+    return this.readSlot(this.tempDir());
+  }
+
+  clearTemp(): void {
+    const dir = this.tempDir();
+    if (this.fs.exists(dir)) this.fs.remove(dir);
+  }
 }
