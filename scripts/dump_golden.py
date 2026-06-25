@@ -841,6 +841,43 @@ def dump_save_character() -> None:
     _write("save_character", [{"input": "sample", "expected": _serialize_character(char)}])
 
 
+def dump_save_relationships() -> None:
+    """_serialize_relationships 골든 — TS serializeRelationships와 1:1.
+
+    내부 저장(_relationships/_slots/_ex_lover_tags/_fights)을 직접 구성.
+    싸움 하나는 resolved=True로 둬서 '전체 읽기'(getFights 미해결-only와 구분)를 검증.
+    """
+    from tomodachai.relationship import (
+        BreakupReason, ExLoverTag, Fight, Relationship, RelationshipSlots,
+        RelationshipStage, RelationshipTracker,
+    )
+
+    tr = RelationshipTracker()
+    # pairs (방향 있음, "a:b" 직렬화 키)
+    tr._relationships[(1, 2)] = Relationship(
+        friendship=65.0, romance=40.0, stage=RelationshipStage.LOVER)
+    tr._relationships[(2, 1)] = Relationship(
+        friendship=60.0, romance=35.0, stage=RelationshipStage.FRIEND)
+    tr._relationships[(3, 4)] = Relationship(
+        friendship=-55.0, romance=0.0, stage=RelationshipStage.STRANGER)
+    # slots
+    tr._slots[1] = RelationshipSlots(best_friend=None, lover=2, enemy=None)
+    tr._slots[3] = RelationshipSlots(best_friend=None, lover=None, enemy=4)
+    # ex-lover tags
+    tr._ex_lover_tags[1] = [
+        ExLoverTag(target=5, reason=BreakupReason.FIGHT, day=3),
+        ExLoverTag(target=6, reason=BreakupReason.BOREDOM, day=7),
+    ]
+    # fights — 두 번째는 resolved=True (allFightsRaw 전체 읽기 검증)
+    tr._fights = [
+        Fight(participants=(1, 2), cause="오해", resolved=False, witnessed_by_player=True),
+        Fight(participants=(3, 4), cause="질투", resolved=True, witnessed_by_player=False),
+    ]
+
+    from tomodachai.save import _serialize_relationships
+    _write("save_relationships", [{"input": "sample", "expected": _serialize_relationships(tr)}])
+
+
 def main() -> None:
     dump_parse_json()
     dump_game_clock()
@@ -860,6 +897,7 @@ def main() -> None:
     dump_config()
     dump_game_state()
     dump_save_character()
+    dump_save_relationships()
 
 
 if __name__ == "__main__":

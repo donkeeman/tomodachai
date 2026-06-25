@@ -10,6 +10,8 @@ import {
   type Character,
 } from "./character";
 import { characterPersonalityCode } from "./characterAccessors";
+import type { BreakupReason, RelationshipStage } from "./relationship";
+import { RelationshipTracker } from "./relationshipTracker";
 
 // ---------------------------------------------------------------------------
 // 직렬화 — Character → char_{id}.json mock format
@@ -184,4 +186,96 @@ export function deserializeCharacter(data: Record<string, unknown>): Character {
   const { personality_code: _ignored, ...rest } = data;
 
   return deepMerge(defaultCharacter(0, name), rest) as Character;
+}
+
+// ---------------------------------------------------------------------------
+// 직렬화 — RelationshipTracker (pairs/slots/ex_lover_tags/fights 전체)
+// ---------------------------------------------------------------------------
+
+/** Python _serialize_relationships — 내부 저장 전체를 단일 dict로. fights는 해결분 포함 전체. */
+export function serializeRelationships(tracker: RelationshipTracker): Record<string, unknown> {
+  const pairs: Record<string, unknown> = {};
+  for (const [a, b, rel] of tracker.allPairs()) {
+    pairs[`${a}:${b}`] = { friendship: rel.friendship, romance: rel.romance, stage: rel.stage };
+  }
+
+  const slots: Record<string, unknown> = {};
+  for (const [charId, sl] of tracker.allSlots()) {
+    slots[String(charId)] = { best_friend: sl.best_friend, lover: sl.lover, enemy: sl.enemy };
+  }
+
+  const ex_lover_tags: Record<string, unknown> = {};
+  for (const [charId, tags] of tracker.allExLoverTags()) {
+    ex_lover_tags[String(charId)] = tags.map((t) => ({
+      target: t.target,
+      reason: t.reason,
+      day: t.day,
+    }));
+  }
+
+  const fights = tracker.allFightsRaw().map((f) => ({
+    participants: [f.participants[0], f.participants[1]],
+    cause: f.cause,
+    resolved: f.resolved,
+    witnessed_by_player: f.witnessed_by_player,
+  }));
+
+  return { pairs, slots, ex_lover_tags, fights };
+}
+
+/**
+ * Python _deserialize_relationships — 새 tracker에 복원.
+ * pair 키 "a:b"(콜론) split, slots/fights 누락 필드는 Python .get default(null/false) 미러.
+ * pairs는 get()으로 default 생성 후 in-place 세팅(저장 참조 유지).
+ */
+export function deserializeRelationships(data: Record<string, unknown>): RelationshipTracker {
+  const tracker = new RelationshipTracker();
+
+  const pairs = (data.pairs ?? {}) as Record<string, { friendship: number; romance: number; stage: string }>;
+  for (const [key, relData] of Object.entries(pairs)) {
+    const [aStr, bStr] = key.split(":");
+    const rel = tracker.get(Number(aStr), Number(bStr));
+    rel.friendship = relData.friendship;
+    rel.romance = relData.romance;
+    rel.stage = relData.stage as RelationshipStage;
+  }
+
+  const slots = (data.slots ?? {}) as Record<
+    string,
+    { best_friend?: number | null; lover?: number | null; enemy?: number | null }
+  >;
+  for (const [charIdStr, slData] of Object.entries(slots)) {
+    const sl = tracker.getSlots(Number(charIdStr));
+    sl.best_friend = slData.best_friend ?? null;
+    sl.lover = slData.lover ?? null;
+    sl.enemy = slData.enemy ?? null;
+  }
+
+  const exTags = (data.ex_lover_tags ?? {}) as Record<
+    string,
+    { target: number; reason: string; day: number }[]
+  >;
+  for (const [charIdStr, tags] of Object.entries(exTags)) {
+    const charId = Number(charIdStr);
+    for (const t of tags) {
+      tracker.addExLoverTag(charId, t.target, t.reason as BreakupReason, t.day);
+    }
+  }
+
+  const fights = (data.fights ?? []) as {
+    participants: number[];
+    cause: string;
+    resolved?: boolean;
+    witnessed_by_player?: boolean;
+  }[];
+  for (const f of fights) {
+    tracker.addFight({
+      participants: [f.participants[0], f.participants[1]],
+      cause: f.cause,
+      resolved: f.resolved ?? false,
+      witnessed_by_player: f.witnessed_by_player ?? false,
+    });
+  }
+
+  return tracker;
 }

@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { defaultCharacter, type Character } from "./character";
-import { serializeCharacter, deserializeCharacter } from "./save";
+import {
+  serializeCharacter,
+  deserializeCharacter,
+  serializeRelationships,
+  deserializeRelationships,
+} from "./save";
+import { RelationshipTracker } from "./relationshipTracker";
 import { loadGolden } from "./__golden__/loadGolden";
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -148,5 +154,99 @@ describe("deserializeCharacter (Character(**data) 의미)", () => {
     expect(char.profile.name).toBe("최소");
     expect(char.state.satisfaction).toBe(50); // defaultCharacterState
     expect(char.customizable.songs.length).toBe(8);
+  });
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// 샘플 트래커 — Python dump_golden.dump_save_relationships()와 1:1 (public API 구성).
+// ────────────────────────────────────────────────────────────────────────────
+function sampleTracker(): RelationshipTracker {
+  const tr = new RelationshipTracker();
+  // pairs (방향 있음): get()이 반환하는 저장 참조를 in-place 세팅
+  const r12 = tr.get(1, 2);
+  r12.friendship = 65;
+  r12.romance = 40;
+  r12.stage = "lover";
+  const r21 = tr.get(2, 1);
+  r21.friendship = 60;
+  r21.romance = 35;
+  r21.stage = "friend";
+  const r34 = tr.get(3, 4);
+  r34.friendship = -55;
+  r34.romance = 0;
+  r34.stage = "stranger";
+  // slots
+  const s1 = tr.getSlots(1);
+  s1.lover = 2;
+  const s3 = tr.getSlots(3);
+  s3.enemy = 4;
+  // ex-lover tags
+  tr.addExLoverTag(1, 5, "fight", 3);
+  tr.addExLoverTag(1, 6, "boredom", 7);
+  // fights — 두 번째 resolved=true (전체 읽기 검증)
+  tr.addFight({ participants: [1, 2], cause: "오해", resolved: false, witnessed_by_player: true });
+  tr.addFight({ participants: [3, 4], cause: "질투", resolved: true, witnessed_by_player: false });
+  return tr;
+}
+
+describe("serializeRelationships (골든, _serialize_relationships 1:1)", () => {
+  it("샘플 트래커 직렬화가 골든과 일치", () => {
+    const golden = loadGolden<string, Record<string, unknown>>("save_relationships")[0];
+    expect(serializeRelationships(sampleTracker())).toEqual(golden.expected);
+  });
+
+  it("fights는 resolved=true 포함 전체를 직렬화 (getFights 미해결-only와 구분)", () => {
+    const out = serializeRelationships(sampleTracker()) as any;
+    expect(out.fights.length).toBe(2);
+    expect(out.fights.map((f: any) => f.resolved)).toEqual([false, true]);
+    // getFights는 미해결만 → 직렬화에 쓰면 안 됨을 대조
+    expect(sampleTracker().getFights().length).toBe(1);
+  });
+
+  it("pair 키는 콜론 'a:b' 형식 (내부 콤마 키와 무관)", () => {
+    const out = serializeRelationships(sampleTracker()) as any;
+    expect(Object.keys(out.pairs).sort()).toEqual(["1:2", "2:1", "3:4"]);
+  });
+
+  it("빈 트래커는 빈 컬렉션들", () => {
+    const out = serializeRelationships(new RelationshipTracker()) as any;
+    expect(out).toEqual({ pairs: {}, slots: {}, ex_lover_tags: {}, fights: [] });
+  });
+});
+
+describe("deserializeRelationships (Python _deserialize_relationships 1:1)", () => {
+  it("golden → tracker → 재직렬화가 golden과 동일 (라운드트립 안정)", () => {
+    const golden = loadGolden<string, Record<string, unknown>>("save_relationships")[0];
+    const tr = deserializeRelationships(golden.expected!);
+    expect(serializeRelationships(tr)).toEqual(golden.expected);
+  });
+
+  it("deserialize(serialize(t))는 원본과 동치", () => {
+    const tr = sampleTracker();
+    const back = deserializeRelationships(serializeRelationships(tr));
+    expect(serializeRelationships(back)).toEqual(serializeRelationships(tr));
+  });
+
+  it("복원된 pair는 방향별 friendship/romance/stage 정확", () => {
+    const golden = loadGolden<string, Record<string, unknown>>("save_relationships")[0];
+    const tr = deserializeRelationships(golden.expected!);
+    expect(tr.get(1, 2)).toEqual({ friendship: 65, romance: 40, stage: "lover" });
+    expect(tr.get(2, 1)).toEqual({ friendship: 60, romance: 35, stage: "friend" });
+  });
+
+  it("누락 필드는 default(null/false)로 복원, 빈 입력은 빈 트래커", () => {
+    const tr = deserializeRelationships({
+      slots: { "9": { lover: 8 } }, // best_friend/enemy 생략
+      fights: [{ participants: [1, 2], cause: "x" }], // resolved/witnessed 생략
+    });
+    expect(tr.getSlots(9)).toEqual({ best_friend: null, lover: 8, enemy: null });
+    expect(tr.allFightsRaw()[0]).toEqual({
+      participants: [1, 2],
+      cause: "x",
+      resolved: false,
+      witnessed_by_player: false,
+    });
+    const empty = deserializeRelationships({});
+    expect(serializeRelationships(empty)).toEqual({ pairs: {}, slots: {}, ex_lover_tags: {}, fights: [] });
   });
 });

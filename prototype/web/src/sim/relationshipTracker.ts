@@ -288,6 +288,26 @@ export class RelationshipTracker {
     }
     return results.sort((x, y) => x[1] - y[1]);
   }
+
+  // ------------------------------------------------------------------
+  // Serialization accessors (additive, 비파괴) — save.py가 내부 저장 전체를 읽음.
+  // getFights()는 미해결만 반환하므로 직렬화엔 allFightsRaw()를 써야 한다.
+  // ------------------------------------------------------------------
+
+  /** 모든 (charId, slots) 쌍을 삽입 순서대로. Python tracker._slots.items() 미러. */
+  allSlots(): [number, RelationshipSlots][] {
+    return [...this._slots.entries()];
+  }
+
+  /** 모든 (charId, tags[]) 쌍을 삽입 순서대로. Python tracker._ex_lover_tags.items() 미러. */
+  allExLoverTags(): [number, ExLoverTag[]][] {
+    return [...this._exLoverTags.entries()];
+  }
+
+  /** 해결 여부 무관 전체 싸움 목록(복사본). Python tracker._fights 미러. */
+  allFightsRaw(): Fight[] {
+    return [...this._fights];
+  }
 }
 
 // ---------------------------------------------------------------------------
