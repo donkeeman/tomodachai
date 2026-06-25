@@ -20,6 +20,18 @@ export interface AvatarHandle {
 
 const HEAD_PIVOT_Y = 1.25; // 목 위치(머리 회전 피벗). 얼굴/머리 자식은 이 값을 기준으로 배치.
 
+// 이목구비 형태 → 기본 구(sphere)에 적용할 scaling. 절차적 표현(추후 3D 모델로 대체).
+const EYE_SHAPE_SCALE: Record<string, { x: number; y: number; z: number }> = {
+  round: { x: 1, y: 1, z: 1 },        // 동그란
+  narrow: { x: 1.35, y: 0.5, z: 1 },  // 가는(찢어진)
+  sleepy: { x: 1.2, y: 0.68, z: 1 },  // 졸린(반쯤 감은)
+};
+const MOUTH_SHAPE_SCALE: Record<string, { x: number; y: number; z: number }> = {
+  smile: { x: 1.7, y: 0.42, z: 0.5 },   // 옆으로 넓은 미소
+  neutral: { x: 1, y: 0.5, z: 0.5 },    // 무표정(기존 기본형)
+  pout: { x: 0.7, y: 0.78, z: 0.5 },    // 오므린(작고 동그란)
+};
+
 // scene 별 머티리얼 캐시(색상 중복 생성 방지).
 const matCaches = new WeakMap<Scene, Map<string, StandardMaterial>>();
 function mat(scene: Scene, hex: string): StandardMaterial {
@@ -57,9 +69,20 @@ export function buildAvatar(scene: Scene, look: AvatarLook, opts: { shadow?: Sha
   const headBall = ball(scene, 0.68, look.skin, 0, hy(1.6), 0); headBall.parent = head;
   casters.push(headBall);
 
-  // 눈 + 입(귀여운 인상)
-  for (const dx of [-0.12, 0.12]) { const e = ball(scene, 0.07, look.eyeColor, dx, hy(1.64), 0.31); e.parent = head; }
-  const mouth = ball(scene, 0.1, "#c4736b", 0, hy(1.5), 0.315); mouth.scaling.set(1, 0.5, 0.5); mouth.parent = head;
+  // 눈 — 모양(scaling)·크기(size) 반영. 미지정 시 동그란 기본형.
+  const eyeSize = look.eyeSize ?? 1;
+  const eyeScale = EYE_SHAPE_SCALE[look.eyeShape ?? "round"];
+  for (const dx of [-0.12, 0.12]) {
+    const e = ball(scene, 0.07 * eyeSize, look.eyeColor, dx, hy(1.64), 0.31);
+    e.scaling.copyFromFloats(eyeScale.x, eyeScale.y, eyeScale.z);
+    e.parent = head;
+  }
+  // 입 — 모양(scaling)·크기(size) 반영. 미지정 시 무표정.
+  const mouthSize = look.mouthSize ?? 1;
+  const mouthScale = MOUTH_SHAPE_SCALE[look.mouthShape ?? "neutral"];
+  const mouth = ball(scene, 0.1 * mouthSize, "#c4736b", 0, hy(1.5), 0.315);
+  mouth.scaling.copyFromFloats(mouthScale.x, mouthScale.y, mouthScale.z);
+  mouth.parent = head;
 
   // 헤어스타일
   const hc = look.hairColor;
