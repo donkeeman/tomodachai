@@ -7,7 +7,6 @@
   $: snap = $snapshot;
   $: char = (snap && $selectedId != null ? snap.characters.find((c) => c.id === $selectedId) : null) ?? null;
   $: foods = snap?.foods ?? [];
-  $: locNames = snap?.locations ?? {};
 
   // 선택이 바뀌면 메뉴 모드 초기화
   let prevId: number | null = null;
@@ -23,14 +22,12 @@
   const clamp = (v: number) => Math.max(0, Math.min(100, v));
   const satColor = (v: number) => (v < 20 ? "#e57373" : v < 50 ? "#ffb74d" : "#7ec77e");
   const hunColor = (v: number) => (v >= 70 ? "#e57373" : v >= 40 ? "#ffb74d" : "#a5d6a7");
-  // 도감은 전체 나열 대신 요약 — 진행도(먹여본 수/전체)와 최애만 노출.
+  // 도감은 전체 나열 대신 요약 — 진행도(먹여본 수/전체)와 최애만. (foods 있을 때만 호출됨)
   function dexSummary(c: Character) {
     const dex = c.dex || [];
-    const total = foods.length;
-    if (!dex.length) return total ? `먹여본 음식 0/${total}` : "아직 먹여본 음식이 없어요";
+    const progress = `먹여본 음식 ${dex.length}/${foods.length}`;
     const faves = dex.filter((d) => d.tier === "favorite").map((d) => d.name);
-    const progress = `먹여본 음식 ${dex.length}/${total}`;
-    return faves.length ? `${progress} · 최애 ${faves.join(", ")}` : progress;
+    return faves.length ? `${progress} (최애 ${faves.join(", ")})` : progress;
   }
   async function doFeed(id: number, fid: number) {
     try {
@@ -56,8 +53,7 @@
     <div class="cstats">
       <h2>{char.name}</h2>
       <div class="row">
-        기분: <b>{moodLabel(char.mood)}</b>{#if char.satisfaction < 0} · <b>절망</b>{/if} ·
-        <b>{locNames[char.location] || char.location}</b>
+        기분 <b>{moodLabel(char.mood)}</b>{#if char.satisfaction < 0} <b>절망</b>{/if}
       </div>
       <div class="row gauge">
         <span class="glabel">만족도</span>
@@ -71,12 +67,14 @@
       {:else if char.crushes.length}<div class="row">반함: {char.crushes.join(", ")}</div>{/if}
       {#if char.best_friend}<div class="row">베프: {char.best_friend}</div>{/if}
       {#if char.enemy}<div class="row">앙숙: {char.enemy}</div>{/if}
-      <div class="sect">친구 순위</div>
       {#if char.friends.length}
-        {#each char.friends as f, i}<div class="row small">{i + 1}. <b>{f.name}</b> · {f.label}</div>{/each}
-      {:else}<div class="row small">아직 만난 주민이 없어요</div>{/if}
-      <div class="sect">음식 도감</div>
-      <div class="row small">{dexSummary(char)}</div>
+        <div class="sect">친구 순위</div>
+        {#each char.friends as f, i}<div class="row small">{i + 1}. <b>{f.name}</b> {f.label}</div>{/each}
+      {/if}
+      {#if foods.length}
+        <div class="sect">음식 도감</div>
+        <div class="row small">{dexSummary(char)}</div>
+      {/if}
     </div>
     <div class="cacts">
       {#if $cardMode === "foods"}

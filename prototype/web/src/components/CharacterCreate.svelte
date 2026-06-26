@@ -176,7 +176,7 @@
         </div>
 
         {#if step === 0}
-          <input class="cc-name" bind:value={name} maxlength="8" placeholder="이름을 지어 주세요" />
+          <input class="cc-name" bind:value={name} maxlength="8" />
           <span class="cc-l">성별</span>
           <div class="cc-row">
             <button class="cc-pick" class:on={gender === "F"} on:click={() => pickGender("F")}>여자</button>
@@ -270,10 +270,10 @@
           </div>
         {:else}
           <ul class="cc-summary">
-            <li><b>{name.trim() || "-"}</b> · {gender === "F" ? "여자" : "남자"}</li>
-            {#if birthdayStr()}<li>생일 · {birthdayStr()}</li>{/if}
-            {#if age}<li>나이 · {age}</li>{/if}
-            <li>목소리 · {VOICE_PRESETS.find((v) => v.id === voicePreset)?.label}</li>
+            <li><b>{name.trim() || "-"}</b> {gender === "F" ? "여자" : "남자"}</li>
+            {#if birthdayStr()}<li>생일 {birthdayStr()}</li>{/if}
+            {#if age}<li>나이 {age}살</li>{/if}
+            <li>목소리 {VOICE_PRESETS.find((v) => v.id === voicePreset)?.label}</li>
           </ul>
           {#if !nameOk}
             <button class="cc-namewarn" on:click={() => (step = 0)}>이름을 지어 주세요<span class="cc-ic">{@html ICON_RIGHT}</span></button>
@@ -297,10 +297,14 @@
 {/if}
 
 <style>
-  /* 민트·연둣빛 테마 */
+  /* 민트·연둣빛 테마 — 캔디·젤리(친구모아풍): 툭툭한 잉크 아웃라인 + 청키 하단 두께 + 누르면 가라앉기 */
   .cc-view {
     --pt: #5ec8a0; --pt-d: #2f8f6e; --pt-l: #c8f0dd; --pt-bg: #eafaf2;
-    --cream: #f2fbf7; --ink: #355247; --muted: #7aa392;
+    --cream: #f2fbf7; --ink: #3a564a; --muted: #7c9a8e;
+    --cout: #4a3526;           /* 캔디 아웃라인(브라운 잉크) */
+    --cedge: #cfe7da;          /* 버튼/칩 하단 두께 */
+    --display: "Jua", "Pretendard", "Apple SD Gothic Neo", sans-serif;
+    --gloss: inset 0 2px 0 rgba(255,255,255,0.6);
     position: fixed; inset: 0; z-index: 50;
     background: var(--cream);
     display: flex; align-items: stretch; justify-content: stretch;
@@ -310,13 +314,23 @@
     background: var(--cream); position: relative;
     font-family: "Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif;
   }
+  /* 누르면 가라앉는 칩/버튼 공통 */
+  .cc-x, .cc-pick, .cc-hair, .cc-subtab, .cc-num, .cc-stepb, .cc-go, .cc-dot, .cc-namewarn {
+    transition: transform .09s ease, box-shadow .09s ease, filter .09s ease;
+  }
+  .cc-x:hover, .cc-pick:hover, .cc-hair:hover, .cc-subtab:hover, .cc-num:hover,
+  .cc-stepb:hover, .cc-namewarn:hover { filter: brightness(1.04); transform: translateY(-1px); }
+  .cc-x:active, .cc-pick:active, .cc-hair:active, .cc-subtab:active, .cc-num:active,
+  .cc-stepb:active, .cc-go:active, .cc-namewarn:active {
+    transform: translateY(2px); box-shadow: 0 1px 0 var(--cedge), var(--gloss);
+  }
   .cc-x {
     position: absolute; top: 16px; left: 18px; z-index: 2;
-    height: 34px; padding: 0 14px 0 11px; border: 0; border-radius: 999px;
-    background: rgba(255, 255, 255, 0.85); color: var(--pt-d);
-    font-weight: 800; font-size: 13px; cursor: pointer;
+    height: 36px; padding: 0 15px 0 12px; border: 2.5px solid var(--cout); border-radius: 999px;
+    background: #fff; color: var(--pt-d);
+    font-family: var(--display); font-size: 14px; cursor: pointer;
     display: inline-flex; align-items: center; gap: 3px;
-    box-shadow: 0 2px 8px rgba(40, 110, 85, 0.18);
+    box-shadow: 0 3px 0 var(--cedge), var(--gloss);
   }
   .cc-preview {
     width: 46%; position: relative;
@@ -331,8 +345,9 @@
   .cc-preview canvas { position: absolute; inset: 0; width: 100%; height: 100%; outline: none; }
   .cc-namechip {
     position: relative; margin-bottom: 16px; z-index: 1;
-    background: #fff; color: var(--pt-d); font-weight: 800;
-    padding: 5px 16px; border-radius: 999px; box-shadow: 0 3px 10px rgba(40, 110, 85, 0.22);
+    background: #fff; color: var(--pt-d); font-family: var(--display); font-size: 16px;
+    padding: 6px 18px; border: 2.5px solid var(--cout); border-radius: 999px;
+    box-shadow: 0 3px 0 var(--cedge), var(--gloss);
   }
   .cc-form {
     flex: 1; display: flex; padding: 28px; overflow-y: auto; box-sizing: border-box;
@@ -340,73 +355,77 @@
   /* 떠다니는 라벨 묶음이 아니라 "메뉴판" 한 장 — 카드로 담아 무대(미리보기)와 대칭. */
   .cc-card {
     margin: auto; width: 100%; max-width: 460px; box-sizing: border-box;
-    background: #fff; border-radius: 26px; padding: 26px 28px 20px;
+    background: #fff; border: 3px solid var(--cout); border-radius: 26px; padding: 24px 26px 18px;
     display: flex; flex-direction: column;
-    box-shadow: 0 18px 48px rgba(40, 110, 85, 0.16);
+    box-shadow: 0 6px 0 var(--cedge), 0 16px 30px rgba(74, 53, 38, 0.14), var(--gloss);
   }
-  .cc-steps { display: flex; gap: 6px; margin-bottom: 8px; }
+  .cc-steps { display: flex; gap: 6px; margin-bottom: 10px; }
   .cc-dot {
-    flex: 1; border: 0; cursor: pointer; font-size: 12px; font-weight: 700;
-    padding: 6px 0; border-radius: 999px; background: #e4efea; color: #8aa89b;
+    flex: 1; border: 2.5px solid var(--cout); cursor: pointer; font-family: var(--display); font-size: 13px;
+    padding: 6px 0; border-radius: 999px; background: #fff; color: var(--muted);
+    box-shadow: 0 2px 0 var(--cedge);
   }
   .cc-dot.done { background: var(--pt-l); color: var(--pt-d); }
   .cc-dot.on { background: var(--pt); color: #fff; }
-  h3 { margin: 8px 0 10px; color: var(--ink); font-size: 17px; }
+  h3 { margin: 8px 0 10px; color: var(--pt-d); font-family: var(--display); font-size: 20px; }
   .cc-l { font-size: 12px; font-weight: 700; color: var(--muted); margin: 10px 0 5px; display: block; }
   .cc-l .opt { font-style: normal; color: #a9c4ba; font-weight: 600; }
   /* 이름 — 입력칸이 아니라 네임플레이트(테두리 없는 큰 중앙 정렬). */
   .cc-name {
-    width: 100%; box-sizing: border-box; margin: 2px 0 4px; padding: 12px 14px;
-    border: 0; border-radius: 16px; background: var(--pt-bg); outline: none;
-    font-family: inherit; font-size: 22px; font-weight: 800; text-align: center;
-    color: var(--pt-d);
+    width: 100%; box-sizing: border-box; margin: 2px 0 4px; padding: 11px 14px;
+    border: 2.5px solid var(--cout); border-radius: 16px; background: var(--pt-bg); outline: none;
+    font-family: var(--display); font-size: 24px; text-align: center;
+    color: var(--pt-d); box-shadow: var(--gloss);
   }
-  .cc-name::placeholder { color: #a9c4ba; font-weight: 700; font-size: 16px; }
+  .cc-name::placeholder { color: #a9c4ba; font-size: 17px; }
   .cc-name:focus { background: #ddf6ea; }
   /* 생일/나이 ± 스테퍼 */
   .cc-step {
     flex: 1; display: flex; align-items: center; justify-content: space-between;
-    background: var(--pt-bg); border-radius: 14px; padding: 5px 6px;
+    background: var(--pt-bg); border: 2.5px solid var(--cout); border-radius: 14px; padding: 5px 6px;
   }
   .cc-stepb {
-    width: 32px; height: 32px; flex: 0 0 auto; border: 0; border-radius: 10px;
+    width: 32px; height: 32px; flex: 0 0 auto; border: 2.5px solid var(--cout); border-radius: 10px;
     background: #fff; color: var(--pt-d); cursor: pointer; font-size: 16px;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 1px 3px rgba(40, 110, 85, 0.16);
+    box-shadow: 0 2px 0 var(--cedge), var(--gloss);
   }
-  .cc-stepv { font-weight: 800; color: var(--ink); font-size: 16px; }
+  .cc-stepv { font-family: var(--display); color: var(--ink); font-size: 17px; }
   .cc-stepv i { font-style: normal; font-weight: 700; color: var(--muted); font-size: 12px; margin-left: 2px; }
   /* 버튼 안 아이콘 — 텍스트와 가운데 정렬. */
   .cc-ic { display: inline-flex; vertical-align: middle; font-size: 15px; }
   .cc-row { display: flex; gap: 8px; }
   .cc-row.wrap { flex-wrap: wrap; }
   .cc-pick {
-    flex: 1; padding: 11px 0; border: 2px solid var(--pt-l); border-radius: 12px;
-    background: #fff; color: #4f7d6c; font-weight: 700; cursor: pointer; font-size: 14px;
+    flex: 1; padding: 10px 0; border: 2.5px solid var(--cout); border-radius: 12px;
+    background: #fff; color: #4f7d6c; cursor: pointer; font-size: 14px;
+    box-shadow: 0 3px 0 var(--cedge), var(--gloss);
   }
-  .cc-pick.sm { flex: 0 0 auto; padding: 9px 14px; font-size: 13px; }
-  .cc-pick.on { border-color: var(--pt); background: var(--pt-bg); color: var(--pt-d); }
+  .cc-pick.sm { flex: 0 0 auto; padding: 8px 14px; font-size: 13px; }
+  .cc-pick.on { background: var(--pt); color: #fff; }
   .cc-hair {
-    flex: 0 0 auto; width: 76px; padding: 6px 6px 8px; border: 2px solid var(--pt-l);
-    border-radius: 12px; background: #fff; color: #4f7d6c; font-weight: 700;
+    flex: 0 0 auto; width: 76px; padding: 6px 6px 8px; border: 2.5px solid var(--cout);
+    border-radius: 12px; background: #fff; color: #4f7d6c;
     cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    box-shadow: 0 3px 0 var(--cedge), var(--gloss);
   }
   .cc-hair img { width: 60px; height: 60px; object-fit: contain; }
   .cc-hair span { font-size: 12px; }
-  .cc-hair.on { border-color: var(--pt); background: var(--pt-bg); color: var(--pt-d); }
+  .cc-hair.on { background: var(--pt-bg); color: var(--pt-d); }
   .cc-sw { display: flex; flex-wrap: wrap; gap: 7px; }
   .cc-sw .s {
     width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
-    border: 3px solid #fff; box-shadow: 0 0 0 1px #d2e8df; padding: 0;
+    border: 2.5px solid var(--cout); padding: 0;
   }
-  .cc-sw .s.on { box-shadow: 0 0 0 3px var(--pt); transform: scale(1.08); }
+  .cc-sw .s.on { box-shadow: 0 0 0 3px var(--pt); transform: scale(1.1); }
   /* 외모 하위 탭 */
-  .cc-subtabs { display: flex; gap: 6px; margin: 4px 0 6px; }
+  .cc-subtabs { display: flex; gap: 6px; margin: 4px 0 8px; }
   .cc-subtab {
-    flex: 1; border: 2px solid var(--pt-l); border-radius: 999px; background: #fff;
-    padding: 7px 0; font-size: 12.5px; font-weight: 700; color: #4f7d6c; cursor: pointer;
+    flex: 1; border: 2.5px solid var(--cout); border-radius: 999px; background: #fff;
+    padding: 7px 0; font-size: 13px; color: #4f7d6c; cursor: pointer;
+    box-shadow: 0 2px 0 var(--cedge);
   }
-  .cc-subtab.on { border-color: var(--pt); background: var(--pt-bg); color: var(--pt-d); }
+  .cc-subtab.on { background: var(--pt); color: #fff; }
   /* 음성 슬라이더 */
   .cc-slider { margin: 6px 0 2px; }
   .cc-srow { display: flex; align-items: baseline; justify-content: space-between; }
@@ -418,13 +437,13 @@
   .cc-scale { display: flex; gap: 5px; }
   .cc-num {
     flex: 1; aspect-ratio: 1 / 1; min-width: 0; padding: 0;
-    border: 2px solid var(--pt-l); border-radius: 10px; background: #fff;
-    color: #4f7d6c; font-weight: 700; font-size: 13px; cursor: pointer;
+    border: 2.5px solid var(--cout); border-radius: 10px; background: #fff;
+    color: #4f7d6c; font-size: 13px; cursor: pointer; box-shadow: 0 2px 0 var(--cedge);
   }
-  .cc-num.on { border-color: var(--pt); background: var(--pt); color: #fff; }
+  .cc-num.on { background: var(--pt); color: #fff; }
   .cc-result {
-    margin: 12px 0 2px; padding: 8px 12px; border-radius: 12px;
-    background: var(--pt-bg); color: #4f7d6c; font-size: 13px; text-align: center;
+    margin: 12px 0 2px; padding: 9px 12px; border: 2.5px solid var(--cout); border-radius: 12px;
+    background: var(--pt-bg); color: #4f7d6c; font-size: 13px; text-align: center; box-shadow: var(--gloss);
   }
   .cc-result b { color: var(--pt-d); }
   /* 완성 이후 성격 공개 화면 */
@@ -439,24 +458,26 @@
     font-size: 14px; line-height: 1.6;
   }
   .cc-summary { list-style: none; padding: 0; margin: 4px 0; }
-  .cc-summary li { padding: 7px 0; border-bottom: 1px dashed #dcefe6; color: var(--ink); }
+  .cc-summary li { padding: 7px 0; border-bottom: 2px dotted #dcefe6; color: var(--ink); }
   .cc-summary b { color: var(--pt-d); }
   .cc-nav { margin-top: auto; padding-top: 12px; display: flex; align-items: center; gap: 8px; }
   .cc-grow { flex: 1; }
   .cc-ghost {
-    border: 0; background: none; color: var(--muted); font-weight: 700; cursor: pointer;
+    border: 0; background: none; color: var(--muted); font-family: var(--display); cursor: pointer;
     display: inline-flex; align-items: center; gap: 2px;
   }
   .cc-go {
-    border: 0; padding: 11px 18px; border-radius: 999px; cursor: pointer;
-    background: var(--pt); color: #fff; font-weight: 800; font-size: 14px;
+    border: 2.5px solid var(--cout); padding: 10px 20px; border-radius: 999px; cursor: pointer;
+    background: var(--pt); color: #fff; font-size: 15px;
     display: inline-flex; align-items: center; gap: 4px;
-    box-shadow: 0 4px 12px rgba(94, 200, 160, 0.45);
+    box-shadow: 0 4px 0 var(--pt-d), var(--gloss);
   }
-  .cc-go:disabled { opacity: 0.6; cursor: not-allowed; }
+  .cc-go:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--pt-d), var(--gloss); }
+  .cc-go:disabled { filter: saturate(.5) brightness(1.03); cursor: not-allowed; }
   .cc-namewarn {
-    width: 100%; margin-top: 10px; padding: 9px; border: 0; border-radius: 10px;
-    background: #fff0f3; color: #d6607f; font-weight: 700; font-size: 13px; cursor: pointer;
+    width: 100%; margin-top: 10px; padding: 9px; border: 2.5px solid var(--cout); border-radius: 12px;
+    background: #fff0f3; color: #d6607f; font-family: var(--display); font-size: 14px; cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    box-shadow: 0 3px 0 #f3cdd8, var(--gloss);
   }
 </style>

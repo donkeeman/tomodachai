@@ -13,6 +13,7 @@
   import Fade from "./components/Fade.svelte";
   import ErrBanner from "./components/ErrBanner.svelte";
   import CharacterCreate from "./components/CharacterCreate.svelte";
+  import { logOpen } from "./lib/store";
 
   let canvas: HTMLCanvasElement;
   onMount(() => { startSim(canvas); });
@@ -21,7 +22,7 @@
 <canvas id="renderCanvas" bind:this={canvas}></canvas>
 <Hud />
 <Toast />
-<EventLog />
+{#if $logOpen}<EventLog />{/if}
 <Toolbar />
 <Album />
 <RankBoard />
@@ -31,4 +32,3 @@
 <CharacterCreate />
 <Fade />
 <ErrBanner />
-<div id="hint">드래그 회전 · 우클릭/Shift·방향키 이동 · 휠/핀치 줌 · 주민 클릭=정보 · 주민 근처로 가면 자동 따라가기 · 더블클릭 전체보기</div>

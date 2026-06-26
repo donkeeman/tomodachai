@@ -306,12 +306,7 @@ function buildVillage() {
     }
     clouds.push(g);
   }
-  for (const key of Object.keys(ANCHORS)) {
-    const a = ANCHORS[key];
-    if (key === "balcony" || key === "living_room") continue;  // 실내는 buildInterior가 라벨 담당
-    a.label = makeLocLabel(key);
-    a.label.position.set(a.x, a.labelY, a.z);
-  }
+  // 공개 장소명(광장/카페/공원…) 라벨은 노출하지 않음 — 장소는 3D 외형으로 구분(아기자기 몰입).
 }
 
 function buildInterior() {

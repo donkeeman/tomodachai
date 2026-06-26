@@ -15,6 +15,7 @@ export const errorMsg = writable<string>("");
 export const albumOpen = writable<boolean>(false);
 export const boardOpen = writable<boolean>(false);
 export const createOpen = writable<boolean>(false);
+export const logOpen = writable<boolean>(false); // 마을 소식 — 기본 숨김, 토글로만
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 export function toast(text: string) {
