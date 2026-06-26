@@ -1,0 +1,59 @@
+[
+  {
+    "input": {
+      "day": 1,
+      "characterCount": 3
+    },
+    "expected": {
+      "result": {
+        "day": 1,
+        "characterCount": 3,
+        "amount": 300
+      },
+      "money_added": 300,
+      "hasDonatedBefore": false,
+      "hasDonatedAfter": true
+    }
+  },
+  {
+    "input": {
+      "day": 1,
+      "characterCount": 3,
+      "reuse": "a"
+    },
+    "expected": {
+      "result": null,
+      "money_added": 300
+    }
+  },
+  {
+    "input": {
+      "day": 1,
+      "characterCount": 0
+    },
+    "expected": {
+      "result": {
+        "day": 1,
+        "characterCount": 0,
+        "amount": 0
+      },
+      "money_added": 0,
+      "add_money_calls": 0
+    }
+  },
+  {
+    "input": {
+      "day": 1,
+      "characterCount": -5
+    },
+    "expected": {
+      "result": {
+        "day": 1,
+        "characterCount": -5,
+        "amount": 0
+      },
+      "money_added": 0,
+      "add_money_calls": 0
+    }
+  }
+]

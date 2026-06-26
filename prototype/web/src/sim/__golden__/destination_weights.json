@@ -1,0 +1,142 @@
+[
+  {
+    "input": "baseline",
+    "expected": {
+      "grocery": 1.0,
+      "clothing": 0.5,
+      "interior": 0.5,
+      "fountain": 1.5,
+      "news_station": 0.3,
+      "park": 2.0,
+      "cafe": 1.5,
+      "beach": 1.0,
+      "plaza": 1.0,
+      "concert_hall": 0.8,
+      "amusement_park": 1.2,
+      "city_hall": 0.4,
+      "photo_studio": 0.6,
+      "living_room": 2.0,
+      "balcony": 0.8
+    }
+  },
+  {
+    "input": "hungry",
+    "expected": {
+      "grocery": 10.0,
+      "clothing": 0.5,
+      "interior": 0.5,
+      "fountain": 1.5,
+      "news_station": 0.3,
+      "park": 2.0,
+      "cafe": 1.5,
+      "beach": 1.0,
+      "plaza": 1.0,
+      "concert_hall": 0.8,
+      "amusement_park": 1.2,
+      "city_hall": 0.4,
+      "photo_studio": 0.6,
+      "living_room": 2.0,
+      "balcony": 0.8
+    }
+  },
+  {
+    "input": "unsatisfied",
+    "expected": {
+      "grocery": 1.0,
+      "clothing": 0.5,
+      "interior": 0.5,
+      "fountain": 1.5,
+      "news_station": 0.3,
+      "park": 5.0,
+      "cafe": 3.75,
+      "beach": 2.5,
+      "plaza": 1.0,
+      "concert_hall": 0.8,
+      "amusement_park": 3.0,
+      "city_hall": 0.4,
+      "photo_studio": 0.6,
+      "living_room": 2.0,
+      "balcony": 0.8
+    }
+  },
+  {
+    "input": "stressed",
+    "expected": {
+      "grocery": 1.0,
+      "clothing": 0.5,
+      "interior": 0.5,
+      "fountain": 1.5,
+      "news_station": 0.3,
+      "park": 2.0,
+      "cafe": 1.5,
+      "beach": 3.0,
+      "plaza": 1.0,
+      "concert_hall": 0.8,
+      "amusement_park": 1.2,
+      "city_hall": 0.4,
+      "photo_studio": 0.6,
+      "living_room": 2.0,
+      "balcony": 1.6
+    }
+  },
+  {
+    "input": "follow_friend",
+    "expected": {
+      "grocery": 1.0,
+      "clothing": 0.5,
+      "interior": 0.5,
+      "fountain": 1.5,
+      "news_station": 0.3,
+      "park": 6.0,
+      "cafe": 1.5,
+      "beach": 1.0,
+      "plaza": 1.0,
+      "concert_hall": 0.8,
+      "amusement_park": 1.2,
+      "city_hall": 0.4,
+      "photo_studio": 0.6,
+      "living_room": 2.0,
+      "balcony": 0.8
+    }
+  },
+  {
+    "input": "capacity",
+    "expected": {
+      "grocery": 1.0,
+      "clothing": 0.5,
+      "interior": 0.5,
+      "fountain": 1.5,
+      "news_station": 0.09,
+      "park": 2.0,
+      "cafe": 1.5,
+      "beach": 1.0,
+      "plaza": 1.0,
+      "concert_hall": 0.8,
+      "amusement_park": 1.2,
+      "city_hall": 0.4,
+      "photo_studio": 0.6,
+      "living_room": 2.0,
+      "balcony": 0.8
+    }
+  },
+  {
+    "input": "combined",
+    "expected": {
+      "grocery": 3.0,
+      "clothing": 0.5,
+      "interior": 0.5,
+      "fountain": 1.5,
+      "news_station": 0.3,
+      "park": 5.0,
+      "cafe": 3.75,
+      "beach": 22.5,
+      "plaza": 1.0,
+      "concert_hall": 0.8,
+      "amusement_park": 3.0,
+      "city_hall": 0.4,
+      "photo_studio": 0.6,
+      "living_room": 2.0,
+      "balcony": 1.6
+    }
+  }
+]

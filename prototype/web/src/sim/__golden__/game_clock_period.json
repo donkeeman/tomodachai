@@ -1,0 +1,72 @@
+[
+  {
+    "input": {
+      "at": "2026-06-19T07:00:00+00:00",
+      "flip": false
+    },
+    "expected": {
+      "hour": 7,
+      "period": "아침"
+    }
+  },
+  {
+    "input": {
+      "at": "2026-06-19T13:00:00+00:00",
+      "flip": false
+    },
+    "expected": {
+      "hour": 13,
+      "period": "낮"
+    }
+  },
+  {
+    "input": {
+      "at": "2026-06-19T19:00:00+00:00",
+      "flip": false
+    },
+    "expected": {
+      "hour": 19,
+      "period": "저녁"
+    }
+  },
+  {
+    "input": {
+      "at": "2026-06-19T22:00:00+00:00",
+      "flip": false
+    },
+    "expected": {
+      "hour": 22,
+      "period": "밤"
+    }
+  },
+  {
+    "input": {
+      "at": "2026-06-19T02:00:00+00:00",
+      "flip": false
+    },
+    "expected": {
+      "hour": 2,
+      "period": "밤"
+    }
+  },
+  {
+    "input": {
+      "at": "2026-06-19T07:00:00+00:00",
+      "flip": true
+    },
+    "expected": {
+      "hour": 19,
+      "period": null
+    }
+  },
+  {
+    "input": {
+      "at": "2026-06-19T23:00:00+00:00",
+      "flip": true
+    },
+    "expected": {
+      "hour": 11,
+      "period": null
+    }
+  }
+]

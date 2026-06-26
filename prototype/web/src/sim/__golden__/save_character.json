@@ -1,0 +1,174 @@
+[
+  {
+    "input": "sample",
+    "expected": {
+      "id": 7,
+      "personality_code": "outgoing_buddy",
+      "profile": {
+        "name": "민지",
+        "birthday": "07-15",
+        "blood_type": "A",
+        "favorite_color": "#FF8800",
+        "gender": "여",
+        "appearance": {
+          "face_shape": 3,
+          "skin_color": "#F5D6B8",
+          "eye": {
+            "base": 2,
+            "lash": 1,
+            "color": "#3A2A1A",
+            "adjust": {
+              "spacing": 1,
+              "height": -2,
+              "size": 3,
+              "angle": -1
+            }
+          },
+          "eyebrow": {
+            "id": 4,
+            "adjust": {
+              "spacing": 0,
+              "height": 1,
+              "size": -1,
+              "angle": 2
+            }
+          },
+          "nose": {
+            "id": 2,
+            "adjust": {
+              "height": 2,
+              "size": -1
+            }
+          },
+          "mouth": {
+            "id": 5,
+            "adjust": {
+              "height": -1,
+              "size": 1
+            }
+          },
+          "hair": {
+            "front": 3,
+            "back": 2,
+            "color": "#5B3A1A"
+          },
+          "glasses": 2,
+          "body": {
+            "height": 6,
+            "build": 4
+          }
+        },
+        "personality": {
+          "movement": 8,
+          "speech": 8,
+          "expressiveness": 7,
+          "attitude": 5,
+          "overall": 6
+        },
+        "voice": {
+          "preset": "bright",
+          "pitch": 7,
+          "speed": 4,
+          "quality": "clear",
+          "tone": "warm",
+          "accent": null,
+          "intonation": "rising"
+        }
+      },
+      "preferences": {
+        "food_ranks": [
+          3,
+          1,
+          2
+        ],
+        "food_eaten": [
+          true,
+          false,
+          true
+        ],
+        "clothing": {
+          "likes": "원피스",
+          "dislikes": "정장"
+        },
+        "interior": {
+          "likes": "식물",
+          "dislikes": "금속"
+        },
+        "personality_group": {
+          "group": "활발",
+          "is_positive": true
+        }
+      },
+      "state": {
+        "satisfaction": 72.0,
+        "level": 3,
+        "hunger": 20.0,
+        "mood": {
+          "happiness": 7,
+          "energy": 6,
+          "stress": 3
+        },
+        "sick": "감기",
+        "current_location": "cafe",
+        "current_outfit": 11,
+        "current_interior": 22,
+        "photo_frame": 5
+      },
+      "customizable": {
+        "speech_habits": {
+          "normal": "~지",
+          "happy": "개좋아",
+          "angry": "아오",
+          "sad": "흑",
+          "worried": "음..."
+        },
+        "mini_traits": {
+          "walking": {
+            "owned": [
+              1,
+              2
+            ],
+            "active": 1
+          },
+          "eating": {
+            "owned": [
+              3
+            ],
+            "active": null
+          },
+          "idle": {
+            "owned": [],
+            "active": null
+          }
+        },
+        "nicknames": {
+          "2": "민지짱"
+        },
+        "songs": [
+          true,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "records": {
+        "treasure_collection": [
+          1,
+          5,
+          9
+        ],
+        "confession_count": {
+          "2": 1
+        },
+        "photos": [
+          10,
+          20
+        ]
+      }
+    }
+  }
+]

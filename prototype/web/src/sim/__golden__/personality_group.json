@@ -1,0 +1,22 @@
+[
+  {
+    "input": "easygoing_softie",
+    "expected": "안정파"
+  },
+  {
+    "input": "outgoing_charmer",
+    "expected": "사교파"
+  },
+  {
+    "input": "confident_busybee",
+    "expected": "주도파"
+  },
+  {
+    "input": "independent_thinker",
+    "expected": "신중파"
+  },
+  {
+    "input": "weird_unknown",
+    "expected": null
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "기본 권한 + Ollama HTTP",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    {
+      "identifier": "http:default",
+      "allow": [{ "url": "http://localhost:11434/*" }, { "url": "http://127.0.0.1:11434/*" }]
+    }
+  ]
+}

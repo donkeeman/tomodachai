@@ -1,0 +1,33 @@
+[
+  {
+    "input": "AppConfig",
+    "expected": {
+      "llm": {
+        "provider": "litellm",
+        "model": "claude-sonnet-4-20250514",
+        "api_key": null,
+        "api_base": null,
+        "temperature": 0.8,
+        "max_tokens": 1000
+      },
+      "simulation": {
+        "ticks_per_day": 6,
+        "max_characters": 10
+      },
+      "locations": [
+        {
+          "name": "공원",
+          "capacity": 5
+        },
+        {
+          "name": "편의점",
+          "capacity": 3
+        },
+        {
+          "name": "카페",
+          "capacity": 4
+        }
+      ]
+    }
+  }
+]

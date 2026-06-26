@@ -1,0 +1,70 @@
+[
+  {
+    "input": "sample",
+    "expected": {
+      "pairs": {
+        "1:2": {
+          "friendship": 65.0,
+          "romance": 40.0,
+          "stage": "lover"
+        },
+        "2:1": {
+          "friendship": 60.0,
+          "romance": 35.0,
+          "stage": "friend"
+        },
+        "3:4": {
+          "friendship": -55.0,
+          "romance": 0.0,
+          "stage": "stranger"
+        }
+      },
+      "slots": {
+        "1": {
+          "best_friend": null,
+          "lover": 2,
+          "enemy": null
+        },
+        "3": {
+          "best_friend": null,
+          "lover": null,
+          "enemy": 4
+        }
+      },
+      "ex_lover_tags": {
+        "1": [
+          {
+            "target": 5,
+            "reason": "fight",
+            "day": 3
+          },
+          {
+            "target": 6,
+            "reason": "boredom",
+            "day": 7
+          }
+        ]
+      },
+      "fights": [
+        {
+          "participants": [
+            1,
+            2
+          ],
+          "cause": "오해",
+          "resolved": false,
+          "witnessed_by_player": true
+        },
+        {
+          "participants": [
+            3,
+            4
+          ],
+          "cause": "질투",
+          "resolved": true,
+          "witnessed_by_player": false
+        }
+      ]
+    }
+  }
+]

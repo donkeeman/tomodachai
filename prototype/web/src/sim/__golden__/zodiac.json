@@ -1,0 +1,110 @@
+[
+  {
+    "input": "03-21",
+    "expected": "양자리"
+  },
+  {
+    "input": "04-19",
+    "expected": "양자리"
+  },
+  {
+    "input": "04-20",
+    "expected": "황소자리"
+  },
+  {
+    "input": "05-20",
+    "expected": "황소자리"
+  },
+  {
+    "input": "05-21",
+    "expected": "쌍둥이자리"
+  },
+  {
+    "input": "06-20",
+    "expected": "쌍둥이자리"
+  },
+  {
+    "input": "06-21",
+    "expected": "게자리"
+  },
+  {
+    "input": "07-22",
+    "expected": "게자리"
+  },
+  {
+    "input": "07-23",
+    "expected": "사자자리"
+  },
+  {
+    "input": "08-22",
+    "expected": "사자자리"
+  },
+  {
+    "input": "08-23",
+    "expected": "처녀자리"
+  },
+  {
+    "input": "09-22",
+    "expected": "처녀자리"
+  },
+  {
+    "input": "09-23",
+    "expected": "천칭자리"
+  },
+  {
+    "input": "10-22",
+    "expected": "천칭자리"
+  },
+  {
+    "input": "10-23",
+    "expected": "전갈자리"
+  },
+  {
+    "input": "11-21",
+    "expected": "전갈자리"
+  },
+  {
+    "input": "11-22",
+    "expected": "사수자리"
+  },
+  {
+    "input": "12-21",
+    "expected": "사수자리"
+  },
+  {
+    "input": "12-22",
+    "expected": "염소자리"
+  },
+  {
+    "input": "01-19",
+    "expected": "염소자리"
+  },
+  {
+    "input": "01-20",
+    "expected": "물병자리"
+  },
+  {
+    "input": "02-18",
+    "expected": "물병자리"
+  },
+  {
+    "input": "02-19",
+    "expected": "물고기자리"
+  },
+  {
+    "input": "03-20",
+    "expected": "물고기자리"
+  },
+  {
+    "input": "",
+    "expected": ""
+  },
+  {
+    "input": "bad",
+    "expected": ""
+  },
+  {
+    "input": "13-99",
+    "expected": ""
+  }
+]

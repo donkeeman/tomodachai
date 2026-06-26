@@ -1,0 +1,22 @@
+[
+  {
+    "input": "weights",
+    "expected": {
+      "grocery": 1.0,
+      "clothing": 0.5,
+      "interior": 0.5,
+      "fountain": 1.5,
+      "news_station": 0.3,
+      "park": 2.0,
+      "cafe": 1.5,
+      "beach": 1.0,
+      "plaza": 1.0,
+      "concert_hall": 0.8,
+      "amusement_park": 1.2,
+      "city_hall": 0.4,
+      "photo_studio": 0.6,
+      "living_room": 2.0,
+      "balcony": 0.8
+    }
+  }
+]

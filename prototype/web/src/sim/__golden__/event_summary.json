@@ -1,0 +1,241 @@
+[
+  {
+    "input": {
+      "kind": "summary",
+      "event": {
+        "id": 1,
+        "type": "marriage",
+        "participants": [
+          1,
+          2
+        ],
+        "day": 3,
+        "time": null,
+        "location": "공원",
+        "reason": "사랑",
+        "result": "결혼 성공"
+      },
+      "characters": [
+        {
+          "id": 1,
+          "name": "민수"
+        },
+        {
+          "id": 2,
+          "name": "지은"
+        }
+      ]
+    },
+    "expected": {
+      "summary": "민수과(와) 지은 — marriage — 장소: 공원 — 사유: 사랑 — 결과: 결혼 성공"
+    }
+  },
+  {
+    "input": {
+      "kind": "summary",
+      "event": {
+        "id": 2,
+        "type": "conversation",
+        "participants": [
+          1
+        ],
+        "day": 4,
+        "time": null,
+        "location": null,
+        "reason": null,
+        "result": null
+      },
+      "characters": [
+        {
+          "id": 1,
+          "name": "민수"
+        },
+        {
+          "id": 2,
+          "name": "지은"
+        }
+      ]
+    },
+    "expected": {
+      "summary": "민수 — conversation"
+    }
+  },
+  {
+    "input": {
+      "kind": "summary",
+      "event": {
+        "id": 3,
+        "type": "fight",
+        "participants": [
+          1,
+          99
+        ],
+        "day": 5,
+        "time": null,
+        "location": null,
+        "reason": "오해",
+        "result": null
+      },
+      "characters": [
+        {
+          "id": 1,
+          "name": "민수"
+        },
+        {
+          "id": 2,
+          "name": "지은"
+        }
+      ]
+    },
+    "expected": {
+      "summary": "민수과(와) 99 — fight — 사유: 오해"
+    }
+  },
+  {
+    "input": {
+      "kind": "summary",
+      "event": {
+        "id": 4,
+        "type": "donation",
+        "participants": [],
+        "day": 6,
+        "time": null,
+        "location": null,
+        "reason": null,
+        "result": "100원 기부"
+      },
+      "characters": [
+        {
+          "id": 1,
+          "name": "민수"
+        },
+        {
+          "id": 2,
+          "name": "지은"
+        }
+      ]
+    },
+    "expected": {
+      "summary": "주민 — donation — 결과: 100원 기부"
+    }
+  },
+  {
+    "input": {
+      "kind": "selection",
+      "events": [
+        {
+          "id": 10,
+          "type": "conversation",
+          "participants": [
+            1,
+            2
+          ],
+          "day": 7,
+          "time": null,
+          "location": null,
+          "reason": null,
+          "result": null
+        },
+        {
+          "id": 11,
+          "type": "marriage",
+          "participants": [
+            1,
+            2
+          ],
+          "day": 7,
+          "time": null,
+          "location": null,
+          "reason": null,
+          "result": null
+        },
+        {
+          "id": 12,
+          "type": "fight",
+          "participants": [
+            1,
+            2
+          ],
+          "day": 7,
+          "time": null,
+          "location": null,
+          "reason": null,
+          "result": null
+        }
+      ],
+      "characters": [
+        {
+          "id": 1,
+          "name": "민수"
+        },
+        {
+          "id": 2,
+          "name": "지은"
+        }
+      ]
+    },
+    "expected": {
+      "highlight_index": 1,
+      "highlight_type": "marriage",
+      "summary": "민수과(와) 지은 — marriage"
+    }
+  },
+  {
+    "input": {
+      "kind": "selection",
+      "events": [
+        {
+          "id": 20,
+          "type": "fight",
+          "participants": [
+            1
+          ],
+          "day": 8,
+          "time": null,
+          "location": null,
+          "reason": "첫번째",
+          "result": null
+        },
+        {
+          "id": 21,
+          "type": "travel",
+          "participants": [
+            2
+          ],
+          "day": 8,
+          "time": null,
+          "location": null,
+          "reason": null,
+          "result": null
+        },
+        {
+          "id": 22,
+          "type": "fight",
+          "participants": [
+            2
+          ],
+          "day": 8,
+          "time": null,
+          "location": null,
+          "reason": "두번째",
+          "result": null
+        }
+      ],
+      "characters": [
+        {
+          "id": 1,
+          "name": "민수"
+        },
+        {
+          "id": 2,
+          "name": "지은"
+        }
+      ]
+    },
+    "expected": {
+      "highlight_index": 0,
+      "highlight_type": "fight",
+      "summary": "민수 — fight — 사유: 첫번째"
+    }
+  }
+]
