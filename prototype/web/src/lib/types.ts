@@ -1,12 +1,17 @@
+import type { AvatarLook } from "./appearance";
+
 export interface CharFriend { name: string; label: string; }
 export interface DexItem { name: string; tier: string; }
+
+// sim Character.state.mood(0~10 구조체)와 동일 형태 — 라벨로 압축하지 않고 구조 그대로 전달.
+export interface Mood { happiness: number; energy: number; stress: number; }
 
 export interface Character {
   id: number;
   name: string;
   gender: "M" | "F";
   location: string;
-  mood: string;
+  mood: Mood;
   hunger: number;
   satisfaction: number;
   lover: string | null;
@@ -16,6 +21,8 @@ export interface Character {
   food_eaten: boolean[];
   friends: CharFriend[];
   dex: DexItem[];
+  // read-path 가 sim Appearance 에서 복원해 실어줌(figures.ts 가 소비). 시드/폴백은 미지정.
+  look?: AvatarLook;
 }
 
 export interface EventItem {

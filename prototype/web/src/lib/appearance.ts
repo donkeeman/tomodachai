@@ -1,5 +1,5 @@
-// 캐릭터 외모(아바타 룩) — 프론트엔드 단독. 생성 UI 미리보기와 마을 렌더가 같은 정의를 공유한다.
-// 백엔드가 appearance 를 저장/회신하기 전까지는 여기 스토어가 소스 오브 트루스.
+// 캐릭터 외모(아바타 룩) 정의 — 생성 UI 미리보기와 마을 렌더가 공유. 정본은 sim Character
+// (profile.appearance)이며, AvatarLook↔Appearance 변환은 lookAppearance.ts 에 격리돼 있다.
 import type { Character } from "./types";
 
 export type HairStyle = "short" | "bob" | "long" | "bun";
@@ -62,37 +62,8 @@ export function defaultLook(id: number, gender: "M" | "F"): AvatarLook {
   };
 }
 
-// 사용자가 만든 외모 저장소(캐릭터 id → 룩). 백엔드 영속 전까지 프론트 보관.
-// localStorage 에 미러링 — 새로고침해도 만든 외모가 유지되도록.
-const LOOKS_KEY = "tomodachai.looks.v1";
-
-function loadLooks(): Map<number, AvatarLook> {
-  try {
-    const raw = localStorage.getItem(LOOKS_KEY);
-    if (!raw) return new Map();
-    const obj = JSON.parse(raw) as Record<string, AvatarLook>;
-    return new Map(Object.entries(obj).map(([k, v]) => [Number(k), v]));
-  } catch {
-    return new Map(); // 손상된 데이터는 무시하고 빈 저장소로 시작
-  }
-}
-
-function persistLooks(): void {
-  try {
-    const obj: Record<number, AvatarLook> = {};
-    for (const [id, look] of customLooks) obj[id] = look;
-    localStorage.setItem(LOOKS_KEY, JSON.stringify(obj));
-  } catch {
-    // 저장 실패(용량 초과/프라이빗 모드)는 무시 — 메모리 저장소는 그대로 동작
-  }
-}
-
-const customLooks = loadLooks();
-
-export function setLook(id: number, look: AvatarLook): void {
-  customLooks.set(id, { ...look });
-  persistLooks();
-}
+// 외모 정본은 sim Character.profile.appearance(read-path 가 스냅샷 char.look 으로 복원).
+// 여기 lookFor 는 look 이 없는 캐릭터(시드/폴백)를 위한 id 파생 기본값만 제공한다.
 export function lookFor(char: Pick<Character, "id" | "gender">): AvatarLook {
-  return customLooks.get(char.id) ?? defaultLook(char.id, char.gender);
+  return defaultLook(char.id, char.gender);
 }

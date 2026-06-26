@@ -30,7 +30,7 @@ import { toast, selectedId, viewMode, roomName, followName, modelLoaded, boardOp
 import { buildAvatar, type AvatarHandle } from "./figures";
 import { MotionController, styleForId, styleForPersonality } from "./motion";
 import { personaFor, setPersona } from "./personality";
-import { lookFor, setLook, type AvatarLook } from "./appearance";
+import { lookFor, type AvatarLook } from "./appearance";
 
 let engine: Engine, scene: Scene, camera: UniversalCamera, shadow: ShadowGenerator;
 let sun: DirectionalLight;
@@ -231,7 +231,7 @@ function buildVillage() {
   boardMesh.metadata = { board: true };
   cyl(0.16, 0.16, 1.5, "#8a5a3b", pk.x - 3.95, 0.75, pk.z + 2.2);
   cyl(0.16, 0.16, 1.5, "#8a5a3b", pk.x - 2.25, 0.75, pk.z + 2.2);
-  const bl = makeLocLabel("🏆 랭킹"); bl.scaling.scaleInPlace(0.62);
+  const bl = makeLocLabel("랭킹"); bl.scaling.scaleInPlace(0.62);
   bl.position.set(pk.x - 3.1, 2.5, pk.z + 2.2);
 
   const cf = ANCHORS.cafe;
@@ -446,8 +446,8 @@ export async function loadModels() {
 }
 
 function buildProcedural(root: TransformNode, data: Character, cast = true): AvatarHandle {
-  // 공유 아바타 빌더에 위임 — 외모(커스텀 또는 id 파생)를 미리보기와 동일하게 렌더.
-  const handle = buildAvatar(scene, lookFor(data), { shadow: cast ? shadow : undefined });
+  // 공유 아바타 빌더에 위임 — 스냅샷이 실어준 look(sim 정본) 우선, 없으면 id 파생 폴백.
+  const handle = buildAvatar(scene, data.look ?? lookFor(data), { shadow: cast ? shadow : undefined });
   handle.root.parent = root;
   return handle;
 }
@@ -492,7 +492,7 @@ function makeFigure(data: Character, cast = true): { root: TransformNode; motion
 
 // 생성 UI 에서 만든 캐릭터를 즉시 마을에 등장시킨다(외모 적용 + 피규어 등록). 백엔드 POST 는 별도.
 export function spawnCharacter(data: Character, look?: AvatarLook, personaCode?: string) {
-  if (look) setLook(data.id, look);
+  if (look) data.look = look; // 외모는 캐릭터에 직접 — localStorage 미러 제거(sim 정본 일원화)
   if (personaCode) setPersona(data.id, personaCode); // 모션이 성격을 따라가도록
   upsertChar(data);
   const e = entries.get(data.id);
@@ -603,7 +603,7 @@ export function applySnapshot(snap: Snapshot) {
   for (const c of snap.characters) upsertChar(c);
   const byKind = (k: string) => snap.bubbles.filter((b) => b.kind === k);
   const hungry = new Set(byKind("hungry").map((b) => b.char));
-  for (const e of entries.values()) if (hungry.has(e.data.name) && !e.bubble) showBubble(e, "🍚 배고파요...", { grey: true, dur: 2300 });
+  for (const e of entries.values()) if (hungry.has(e.data.name) && !e.bubble) showBubble(e, "배고파요...", { grey: true, dur: 2300 });
   // 고민(worry): 집 외관 힌트 + (그 방에 들어가 있으면) 방 안 표출
   const worry = new Map(byKind("worry").map((b) => [b.char, b.text] as const));
   for (const e of entries.values()) {

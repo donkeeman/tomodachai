@@ -41,5 +41,3 @@ export const give = noop;
 export const save = noop;
 export const reset = noop;
 export const answerBubble = noop;
-// 캐릭터 생성 스텁 — 후속 Phase에서 GameState 에 신규 캐릭터 등록/영속 구현. 현재는 페이로드 무시 노옵.
-export const createCharacter = async (_payload: unknown): Promise<Record<string, unknown>> => ({ message: "" });

@@ -25,7 +25,7 @@
 
   const STEPS = ["기본", "외모", "목소리", "성격", "완성"];
   const SCALE = Array.from({ length: SCALE_MAX - SCALE_MIN + 1 }, (_, i) => SCALE_MIN + i); // [1..8]
-  const APP_TABS = ["피부", "머리", "이목구비", "옷"]; // 외모 하위 분류
+  const APP_TABS = ["피부", "머리", "이목구비"]; // 외모 하위 분류 (옷=좋아하는 색이라 별도 탭 없음)
   let appTab = 0;
   const VOICE_PRESETS = [
     { id: "female", label: "여성 목소리" },
@@ -44,8 +44,6 @@
   let skin = SKIN_TONES[0];
   let hairColor = HAIR_COLORS[1];
   let hairStyle: HairStyle = "long";
-  let bodyColor = favColor;        // 좋아하는 색에서 기본값, 이후 개별 변경 가능
-  let bodyTouched = false;         // 옷 색을 직접 바꿨는지
   let eyeColor = EYE_COLORS[0];
   let eyeShape: EyeShape = "round";
   let eyeSize = 4;                 // 1~8 (figures 배율로 변환)
@@ -64,12 +62,8 @@
   let busy = false;
   let revealed = false; // 완성 버튼 이후 성격을 공개하는 리빌 화면
 
-  // 좋아하는 색이 바뀌면(아직 옷 색을 직접 만지지 않았다면) 기본 옷 색도 따라간다.
-  function pickFav(c: string) {
-    favColor = c;
-    if (!bodyTouched) bodyColor = c;
-  }
-  function pickBody(c: string) { bodyColor = c; bodyTouched = true; }
+  // 좋아하는 색 = 아바타 몸통(옷) 색. 단일 입력.
+  function pickFav(c: string) { favColor = c; }
   // 성별을 바꾸면 음성 프리셋 기본값도 맞춘다(직접 고르기 전까지).
   let voiceTouched = false;
   function pickGender(g: "M" | "F") {
@@ -87,7 +81,7 @@
   $: nameOk = name.trim().length > 0; // 이름은 필수 — 비면 다음/완성 불가
   $: persona = determinePersonality(traits);
   $: look = {
-    gender, skin, hairColor, hairStyle, bodyColor, eyeColor,
+    gender, skin, hairColor, hairStyle, bodyColor: favColor, eyeColor,
     eyeShape, eyeSize: sizeMul(eyeSize),
     mouthShape, mouthSize: sizeMul(mouthSize),
   } as AvatarLook;
@@ -104,7 +98,7 @@
     step = 0; appTab = 0; revealed = false; name = ""; gender = "F";
     favColor = BODY_COLORS[6]; birthMonth = null; birthDay = null; age = null;
     skin = SKIN_TONES[0]; hairColor = HAIR_COLORS[1]; hairStyle = "long";
-    bodyColor = favColor; bodyTouched = false; eyeColor = EYE_COLORS[0];
+    eyeColor = EYE_COLORS[0];
     eyeShape = "round"; eyeSize = 4; mouthShape = "smile"; mouthSize = 4;
     voicePreset = "female"; pitch = 4; speed = 4; voiceTouched = false;
     traits = { ...DEFAULT_TRAITS };
@@ -131,9 +125,9 @@
     const id = nextId();
     const char: Character = {
       id, name: nm, gender, location: "fountain",
-      mood: "평온", hunger: 0, satisfaction: 50,
+      mood: { happiness: 5, energy: 5, stress: 2 }, hunger: 0, satisfaction: 50,
       lover: null, best_friend: null, enemy: null,
-      crushes: [], food_eaten: [], friends: [], dex: [],
+      crushes: [], food_eaten: [], friends: [], dex: [], look,
     };
     spawnCharacter(char, look, persona); // 즉시 마을 등장(외모 + 성격 모션 적용)
     try {
@@ -194,19 +188,19 @@
           <div class="cc-row">
             <div class="cc-step">
               <button class="cc-stepb" on:click={() => (birthMonth = stepVal(birthMonth, -1, 1, 12))} aria-label="월 감소">{@html ICON_MINUS}</button>
-              <span class="cc-stepv">{birthMonth ?? "—"}<i>월</i></span>
+              <span class="cc-stepv">{birthMonth ?? "-"}<i>월</i></span>
               <button class="cc-stepb" on:click={() => (birthMonth = stepVal(birthMonth, 1, 1, 12))} aria-label="월 증가">{@html ICON_PLUS}</button>
             </div>
             <div class="cc-step">
               <button class="cc-stepb" on:click={() => (birthDay = stepVal(birthDay, -1, 1, 31))} aria-label="일 감소">{@html ICON_MINUS}</button>
-              <span class="cc-stepv">{birthDay ?? "—"}<i>일</i></span>
+              <span class="cc-stepv">{birthDay ?? "-"}<i>일</i></span>
               <button class="cc-stepb" on:click={() => (birthDay = stepVal(birthDay, 1, 1, 31))} aria-label="일 증가">{@html ICON_PLUS}</button>
             </div>
           </div>
           <span class="cc-l">나이 <i class="opt">선택</i></span>
           <div class="cc-step">
             <button class="cc-stepb" on:click={() => (age = stepVal(age, -1, 0, 120))} aria-label="나이 감소">{@html ICON_MINUS}</button>
-            <span class="cc-stepv">{age ?? "—"}<i>살</i></span>
+            <span class="cc-stepv">{age ?? "-"}<i>살</i></span>
             <button class="cc-stepb" on:click={() => (age = stepVal(age, 1, 0, 120))} aria-label="나이 증가">{@html ICON_PLUS}</button>
           </div>
         {:else if step === 1}
@@ -240,9 +234,6 @@
             <div class="cc-row wrap">{#each MOUTH_SHAPES as s}<button class="cc-pick sm" class:on={mouthShape === s.id} on:click={() => (mouthShape = s.id)}>{s.label}</button>{/each}</div>
             <div class="cc-srow"><span class="cc-l">입 크기</span><span class="cc-poles">작게 ↔ 크게</span></div>
             <input type="range" min="1" max="8" step="1" bind:value={mouthSize} />
-          {:else}
-            <span class="cc-l">옷 색</span>
-            <div class="cc-sw">{#each BODY_COLORS as c}<button class="s" class:on={bodyColor === c} style="background:{c}" on:click={() => pickBody(c)} aria-label="옷색"></button>{/each}</div>
           {/if}
         {:else if step === 2}
           <span class="cc-l">목소리 종류</span>
@@ -279,7 +270,7 @@
           </div>
         {:else}
           <ul class="cc-summary">
-            <li><b>{name.trim() || "—"}</b> · {gender === "F" ? "여자" : "남자"}</li>
+            <li><b>{name.trim() || "-"}</b> · {gender === "F" ? "여자" : "남자"}</li>
             {#if birthdayStr()}<li>생일 · {birthdayStr()}</li>{/if}
             {#if age}<li>나이 · {age}</li>{/if}
             <li>목소리 · {VOICE_PRESETS.find((v) => v.id === voicePreset)?.label}</li>

@@ -16,7 +16,7 @@
 </script>
 
 <div id="log" bind:this={el}>
-  <h3>📋 마을 소식</h3>
+  <h3>마을 소식</h3>
   {#each items as ev (ev.seq)}
     <div class="ev">
       <span class="time">Day {ev.day} {ev.clock}</span><br />

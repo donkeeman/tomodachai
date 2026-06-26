@@ -199,18 +199,18 @@
 
 ## 10. 캐릭터 생성 — 프론트엔드 구현 & 백엔드 요구사항
 
-동물의 숲/친구모아 아일랜드풍 생성 플로우. **외모 커스터마이즈·미리보기는 전적으로 프론트엔드**이며, 백엔드는 (1) 영속, (2) 시뮬 참여, (3) 외모 round-trip만 책임진다.
+동물의 숲/친구모아 아일랜드풍 생성 플로우. 백엔드가 **인-프로세스 sim 코어(TS)** 로 마이그레이션됨에 따라, 생성 캐릭터는 `lib/game.ts`(app 런타임)가 보유한 `GameState` 싱글톤에 등록되고 `localStorage`(`tomodachai.game.v1`, `save.ts` 직렬화)로 영속된다. 외모는 더 이상 별도 프론트 스토어가 아니라 **sim `Character.profile.appearance`가 정본**이며, `AvatarLook↔Appearance` 변환은 `lib/lookAppearance.ts` 어댑터에 격리된다.
 
 **프론트엔드 (구현 완료):**
 *   `CharacterCreate.svelte` — **전용 전체화면 뷰**(모달 아님). 5단계: 기본 → 외모 → 목소리 → 성격 → 완성(기획 생성 흐름 외형/프로필→음성→성격과 정합). 좌측 **라이브 3D 미리보기**(턴테이블, 마을과 동일한 공유 `buildAvatar`/`lib/figures.ts`). 테마: 민트·연둣빛.
-*   **기본 단계 필드:** 이름, 성별, **좋아하는 색**, 생일(MM-DD, 선택), 나이(선택). **좋아하는 색 = 기본 옷 색**(옷 색을 직접 바꾸기 전까지 따라감) — 백엔드 `Profile.favorite_color` 주석("좋아하는 색(기본 복장 색상)")과 정합.
-*   외모 모델 `AvatarLook`(`lib/appearance.ts`): `{ gender, skin, hairColor, hairStyle('short'|'bob'|'long'|'bun'), bodyColor, eyeColor, eyeShape?('round'|'narrow'|'sleepy'), eyeSize?(0.8~1.3), mouthShape?('smile'|'neutral'|'pout'), mouthSize?(0.8~1.3) }`. 이목구비 형태 필드는 **옵셔널**(미지정 시 기본값 — 기존/시드 캐릭터·백엔드 라운드트립 무영향). 사용자가 만든 외모는 프론트 `appearance` 스토어에 보관하며 **`localStorage`에 미러링**(`tomodachai.looks.v1`) → 새로고침해도 유지(백엔드 영속 전까지 소스 오브 트루스).
-*   **외모 단계는 하위 탭으로 분리:** `피부 / 머리 / 이목구비 / 옷`. `머리` 탭은 색 + 스타일(실제 헤어 실루엣 썸네일), `이목구비` 탭은 눈 색 + 눈 모양·크기 + 입 모양·크기를 제공. 파츠가 늘어날 것을 대비한 구조.
+*   **기본 단계 필드:** 이름, 성별, **좋아하는 색**, 생일(MM-DD, 선택), 나이(선택). **좋아하는 색 = 아바타 몸통(옷) 색**(단일 입력 — 단순 아바타에선 몸통 색이 곧 옷처럼 보이므로 별도 옷 색 피커 제거). sim `Profile.favorite_color`에 매핑.
+*   외모 모델 `AvatarLook`(`lib/appearance.ts`): `{ gender, skin, hairColor, hairStyle('short'|'bob'|'long'|'bun'), bodyColor, eyeColor, eyeShape?('round'|'narrow'|'sleepy'), eyeSize?(0.8~1.3), mouthShape?('smile'|'neutral'|'pout'), mouthSize?(0.8~1.3) }`. **sim `Appearance`(숫자 id 모델, 골든 잠금) 매핑**(`lib/lookAppearance.ts`): skin/eyeColor/hairColor 직결, eyeSize/mouthSize→`adjust.size`, eyeShape/mouthShape→`eye.base`/`mouth.id`(enum↔int), hairStyle→`hair.front`, bodyColor→`profile.favorite_color`. read-path가 `Appearance`에서 `AvatarLook`을 복원해 스냅샷 `char.look`으로 실어줌(figures.ts 소비). **프론트 `localStorage` 외모 미러 제거** — sim Character가 단일 진실원.
+*   **외모 단계는 하위 탭으로 분리:** `피부 / 머리 / 이목구비`. `머리` 탭은 색 + 스타일(실제 헤어 실루엣 썸네일), `이목구비` 탭은 눈 색 + 눈 모양·크기 + 입 모양·크기를 제공. (옷=좋아하는 색이라 별도 탭 없음.) 파츠가 늘어날 것을 대비한 구조.
 *   **미리보기는 사용자 조작:** 자동 회전 제거 → 드래그 회전 + 휠 줌 + 방향키 회전(canvas 포커스 시).
 *   **말버릇은 생성에서 제외:** 추후 고민/레벨업 보상 등으로 더 세부(말 처음/말 끝/기분 좋을 때 등)하게 지정하는 방향(§8 말버릇 시스템과 연계). 생성 시엔 `speech_habits: {}` 전송.
 *   **목소리 단계:** 프리셋(여성/남성, 성별에 따라 기본 배정) + 음 높이/말 속도(1~8). 백엔드 `Voice`(preset/pitch/speed, 0~10)로 변환 전송. 실제 TTS 재생은 미연결. **(향후) 슬라이더/프리셋을 바꿀 때마다 샘플 음성을 즉시 재생**해 들어보며 조절.
 *   **성격은 1~8 버튼 스케일 검사**: 5개 트레잇(movement/speech/expressiveness/attitude/overall)을 1~8 버튼으로 선택. movement+speech→4계통, expressiveness+attitude→4형으로 16유형 코드 도출(`lib/personality.ts`, 백엔드 `personality.py` 로직 미러링). overall은 유형 무관(병맛 톤). **유형은 선택 중엔 숨기고 완성 단계에서 공개.**
-*   완성 시 `spawnCharacter()`로 **즉시 마을 등장**(외모 적용) + `POST /api/characters` 전송(베스트 에포트, 실패해도 로컬 등장 유지).
+*   완성 시 `spawnCharacter()`로 **즉시 마을 등장**(외모를 `char.look`에 직접 부착) + `createCharacter()`가 `GameState.addCharacter` + `localStorage` 영속. 이후 폴링 read-path가 동일 캐릭터를 스냅샷으로 렌더(새로고침/캐시 클리어에도 생존).
 *   현재 아바타는 프로토타입용 프로시저럴 프리미티브(캡슐+구). **실제 3D 모델 도입 시 외모 표현이 크게 달라질 수 있음**(아래 향후 확장 참조).
 
 **외모 커스터마이즈 확장 — 진행 상황:**
@@ -219,9 +219,9 @@
 *   **(향후) 코 파츠** + 파츠별 세밀 변형: 가로/세로 개별 크기, 위치 이동(너비/높이), 각도(회전). → `AvatarLook`을 파츠별 구조(모양 id + 변형 파라미터)로 확장 필요.
 *   현 프로시저럴 빌더(캡슐+구)는 임시이며, 실제 3D 모델 파이프라인 확정 후 재설계.
 
-**백엔드 요구사항 (영속·시뮬·외모 반영을 위해 필요):**
-1.  `POST /api/characters` 수락 필드: `id, name, gender, personality_code`(또는 `personality` 슬라이더), `speech_habits, birthday, blood_type, favorite_color, voice`. → **FastAPI 이미 구현.** dev 백엔드(web_server.py)는 **미구현**이라, dev에서 영속하려면 추가 필요.
-2.  **`appearance` 저장 추가:** `CharacterCreate` 스키마에 `appearance`(위 `AvatarLook` 필드 일체 — 색/스타일 + 옵셔널 `eyeShape/eyeSize/mouthShape/mouthSize`) 추가 → `Profile.appearance`에 저장. (현재 생성 스키마에 누락.) **현재는 프론트가 `localStorage`로 임시 영속.**
-3.  **snapshot 회신에 `appearance` 포함:** 각 character DTO에 외모 필드를 실어줘야 **다른 기기/캐시 클리어 후에도** 마을이 커스텀 외모를 렌더(현재 미포함 → 프론트는 `localStorage` 또는 id 파생 룩으로 폴백). 동일하게 `personality_code`도 회신하면 모션이 성격을 따라감(현재 프론트 `localStorage` 임시 보관).
-4.  **location 배치:** 생성 캐릭터가 시뮬에 참여하려면 위치 지정(생성이 `location` 수락 또는 `POST /api/locations/move/{id}/{loc}`).
-5.  **나이(age) 필드 부재:** 백엔드 `Profile`에는 나이 필드가 없고 생일(MM-DD)에서 띠만 계산. 프론트는 나이를 받지만 현재 **전송/저장 안 함**. 나이를 영속하려면 `Profile`에 필드 추가 필요(또는 생년 포함 생일로 런타임 계산).
+**통합 현황 (인-프로세스 sim — 정적 read-path 단계):**
+1.  **생성→등록·영속 (구현):** `createCharacter()`가 `defaultCharacter` 위에 profile/외모(`applyLook`)를 얹어 `GameState.addCharacter`. `localStorage`(`tomodachai.game.v1`, `save.ts` `serializeCharacter`)로 영속 → 외모·성격이 직렬화 필드(`favorite_color`/`eye.base`/`mouth.id`/`hair.front`/`adjust.size`)에 실려 **무손실 라운드트립**.
+2.  **read-path (구현):** `game.ts getSnapshot`이 `GameState.characters`를 lean `Character`로 매핑(+`characterLook`으로 `look` 부착), `location` 기준 배치, 시계/수면 파생. 캐릭터 0이면 빈 마을.
+3.  **mood 구조화 (구현):** lean `Character.mood`를 sim과 동일한 `{happiness, energy, stress}` 구조체로 승격(라벨 압축 폐기). Card는 표시 시 라벨로 변환.
+4.  **location 배치 (구현):** 생성 시 `current_location`(기본 `plaza`/페이로드 `location`) 지정 → village 앵커에 배치.
+5.  **남은 것 (후속 Phase):** `simulation.step()`/LLM 구동(이동·대화·이벤트 — 현재 정적, Ollama 비의존), 실 RNG/LLM 프로덕션 구현(현재 `Math.random` + throwing 스텁), 관계/메모리 직렬화 연동, 나이(age) 영속(`Profile`에 필드 부재 — 현재 미전송). 성격 코드는 모션용 별도 store(`tomodachai.persona.v1`)에 보관(추후 sim 파생으로 일원화 여지).

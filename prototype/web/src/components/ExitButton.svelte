@@ -5,5 +5,5 @@
 
 {#if $viewMode !== "village"}
   <button id="exitbtn" on:click={() => setView("village")}
-    >🏡 마을로 나가기{#if $viewMode === "room" && $roomName} · {$roomName}의 방{/if}</button>
+    >마을로 나가기{#if $viewMode === "room" && $roomName} · {$roomName}의 방{/if}</button>
 {/if}

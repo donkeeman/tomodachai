@@ -23,7 +23,7 @@ export async function pollNow() {
     applySnapshot(snap);
     playEvents(fresh);
     const confess = snap.bubbles.filter((b) => b.kind === "confess_request");
-    if (confess.length > knownConfess) toast(`💗 ${confess[confess.length - 1].char}의 말풍선이 도착했어요!`);
+    if (confess.length > knownConfess) toast(`${confess[confess.length - 1].char}의 말풍선이 도착했어요!`);
     knownConfess = confess.length;
   } catch {
     /* 서버 기동 대기 */
